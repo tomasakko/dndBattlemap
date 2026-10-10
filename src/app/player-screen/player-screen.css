@@ -1,0 +1,234 @@
+:host {
+  display: flex;
+  height: 100vh;
+  background: var(--leather);
+}
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compass {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  display: grid;
+  place-items: center;
+  color: var(--parchment);
+  background: rgb(42 27 24 / 88%);
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 45%);
+  font-size: 0.7rem;
+  font-weight: 700;
+  pointer-events: none;
+
+  svg {
+    position: absolute;
+    inset: 0.35rem;
+    width: calc(100% - 0.7rem);
+    height: calc(100% - 0.7rem);
+    fill: none;
+    stroke: var(--parchment);
+    stroke-width: 1.5;
+  }
+
+  .north {
+    position: absolute;
+    top: 0.15rem;
+    z-index: 1;
+    color: var(--gold);
+  }
+
+  .east,
+  .south,
+  .west {
+    position: absolute;
+    z-index: 1;
+  }
+
+  .east { right: 0.25rem; }
+  .south { bottom: 0.15rem; }
+  .west { left: 0.25rem; }
+
+  .cross {
+    opacity: 0.55;
+  }
+
+  .north-point {
+    fill: var(--gold);
+    stroke: var(--gold);
+  }
+
+  .south-point {
+    fill: var(--parchment);
+    opacity: 0.75;
+  }
+}
+
+.initiative {
+  flex: none;
+  width: 8rem;
+  overflow: hidden auto;
+  background: var(--leather-raised);
+  border-right: 2px solid var(--gold);
+
+  ol {
+    list-style: none;
+    margin: 0;
+    padding: 0.75rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.combatant {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--parchment);
+  text-align: center;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  /* Rotated so it reads upright for players seated along the left edge (counter-clockwise) of the table. */
+  transform: rotate(-90deg);
+  width: 5.5rem;
+  height: 7rem;
+  margin-block: -0.75rem;
+
+  .avatar {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--leather);
+    border: 3px solid var(--crimson);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .material-symbols-outlined {
+      font-size: 2.5rem;
+      width: 1em;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  }
+
+  &.player .avatar {
+    border-color: #3f6f9c;
+  }
+
+  &.down {
+    filter: grayscale(1);
+    opacity: 0.45;
+  }
+
+  &.active {
+    color: var(--gold);
+
+    .avatar {
+      border-color: var(--gold);
+      box-shadow: 0 0 12px var(--gold);
+    }
+  }
+}
+
+.board {
+  width: 100%;
+  height: 100%;
+}
+
+.cover {
+  fill: #fff;
+  stroke: #fff;
+  stroke-linejoin: round;
+  opacity: 1;
+  transition: opacity 1s ease;
+  pointer-events: none;
+
+  &.revealed {
+    opacity: 0;
+  }
+}
+
+/* Each layer drifts by exactly one tile, so the loop is seamless. */
+.fog {
+  pointer-events: none;
+}
+
+.fog-a {
+  animation: drift-a 150s linear infinite;
+}
+
+.fog-b {
+  fill-opacity: 0.55;
+  animation: drift-b 100s linear infinite;
+}
+
+@keyframes drift-a {
+  to {
+    transform: translate(calc(var(--tile) * 1px), 0);
+  }
+}
+
+@keyframes drift-b {
+  to {
+    transform: translate(calc(var(--tile) * -1px), calc(var(--tile) * -1px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cover {
+    transition: none;
+  }
+
+  .fog {
+    animation: none;
+  }
+}
+
+.waiting {
+  color: var(--parchment);
+  font-size: 1.25rem;
+}
+
+.fullscreen {
+  position: fixed;
+  right: 0.75rem;
+  top: 0.75rem;
+  font: inherit;
+  color: var(--parchment);
+  background: var(--indigo);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+  }
+}

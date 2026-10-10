@@ -1,0 +1,72 @@
+@if (turnOrder().length > 0) {
+  <nav class="initiative" aria-label="Initiative order">
+    <ol>
+      @for (c of turnOrder(); track c.id) {
+        <li class="combatant" [class.player]="c.player" [class.down]="c.down" [class.active]="c.active" [attr.aria-current]="c.active ? 'step' : null">
+          <span class="avatar">
+            @if (c.image) {
+              <img [ngSrc]="c.image" width="64" height="64" alt="" />
+            } @else {
+              <span class="material-symbols-outlined" aria-hidden="true">person</span>
+            }
+          </span>
+          <span class="name">{{ c.name }}</span>
+        </li>
+      }
+    </ol>
+  </nav>
+}
+
+<div class="stage" #stage>
+@if (map(); as m) {
+  <svg class="board" [attr.viewBox]="viewBox()" role="img" aria-label="Battlemap">
+    <defs>
+      <filter id="fog-feather" filterUnits="userSpaceOnUse" x="0" y="0" [attr.width]="m.width" [attr.height]="m.height">
+        <feGaussianBlur [attr.stdDeviation]="feather()" />
+      </filter>
+      <mask id="fog-mask" maskUnits="userSpaceOnUse" x="0" y="0" [attr.width]="m.width" [attr.height]="m.height">
+        <g filter="url(#fog-feather)">
+          @for (room of roomViews(); track room.id) {
+            <polygon
+              class="cover"
+              [class.revealed]="room.revealed"
+              [attr.points]="room.points"
+              [attr.stroke-width]="feather() * 2"
+            />
+          }
+        </g>
+      </mask>
+      <pattern id="fog-tile-a" patternUnits="userSpaceOnUse" [attr.width]="tileA()" [attr.height]="tileA()">
+        <image [attr.href]="fogTile(1)" [attr.width]="tileA()" [attr.height]="tileA()" />
+      </pattern>
+      <pattern id="fog-tile-b" patternUnits="userSpaceOnUse" [attr.width]="tileB()" [attr.height]="tileB()">
+        <image [attr.href]="fogTile(2)" [attr.width]="tileB()" [attr.height]="tileB()" />
+      </pattern>
+    </defs>
+    <image [attr.href]="m.url" x="0" y="0" [attr.width]="m.width" [attr.height]="m.height" />
+    <g mask="url(#fog-mask)">
+      <rect class="fog fog-a" fill="url(#fog-tile-a)" [attr.x]="-tileA()" [attr.y]="-tileA()" [attr.width]="m.width + tileA() * 2" [attr.height]="m.height + tileA() * 2" [style.--tile]="tileA()" />
+      <rect class="fog fog-b" fill="url(#fog-tile-b)" [attr.x]="-tileB()" [attr.y]="-tileB()" [attr.width]="m.width + tileB() * 2" [attr.height]="m.height + tileB() * 2" [style.--tile]="tileB()" />
+    </g>
+  </svg>
+  <div class="compass" role="img" aria-label="Map compass: north is up">
+    <span class="north">N</span>
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <circle cx="32" cy="32" r="28" />
+      <path class="cross" d="M32 9v46M9 32h46" />
+      <path class="north-point" d="M32 10 23 34 32 30 41 34Z" />
+      <path class="south-point" d="M32 54 23 30 32 34 41 30Z" />
+    </svg>
+    <span class="east">E</span>
+    <span class="south">S</span>
+    <span class="west">W</span>
+  </div>
+} @else {
+  <p class="waiting" role="status">Waiting for the Dungeon Master to share a map.</p>
+}
+
+</div>
+
+<button type="button" class="fullscreen" (click)="toggleFullscreen()">
+  {{ isFullscreen() ? 'Exit full screen' : 'Full screen' }}
+</button>

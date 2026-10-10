@@ -20,7 +20,9 @@
     "@angular/platform-server": "^22.2.0",
     "@angular/router": "^22.2.0",
     "@angular/ssr": "^22.2.2",
+    "@fontsource-variable/pixelify-sans": "^5.3.0",
     "express": "^5.1.0",
+    "material-symbols": "^0.48.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

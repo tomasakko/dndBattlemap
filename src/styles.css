@@ -1,1 +1,20 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'material-symbols/outlined.css';
+
+:root {
+  --parchment: #f4efe6;
+  --leather: #2a1b18;
+  --leather-raised: #36221f;
+  --leather-line: #5a3d36;
+  --gold: #d4af37;
+  --crimson: #5c1d24;
+  --indigo: #1f3a52;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--parchment);
+  color: var(--leather);
+  font-family: Tahoma, Verdana, sans-serif;
+}

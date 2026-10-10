@@ -1,0 +1,32 @@
+{
+  "name": "Bugbear",
+  "size": "Medium",
+  "type": "Humanoid",
+  "alignment": "Chaotic Evil",
+  "armorClass": 16,
+  "armorNote": "Hide Armor, Shield",
+  "hitPoints": 27,
+  "hitDice": "",
+  "speed": {
+    "walk": "30ft.",
+    "fly": "",
+    "swim": "",
+    "burrow": "",
+    "climb": ""
+  },
+  "abilities": { "str": 15, "dex": 14, "con": 13, "int": 8, "wis": 11, "cha": 9 },
+  "skills": "Stealth +6, Survival +2",
+  "senses": "Darkvision 60ft., Passive Perception 10",
+  "languages": "Common, Goblin",
+  "traits": [],
+  "actions": [
+    {
+      "name": "Morningstar",
+      "description": "Melee Weapon Attack: +4 to hit (2d8 + 2) piercing damage."
+    },
+    {
+      "name": "Javelin",
+      "description": "Ranged Weapon Attack: 30/120ft. (1d6 + 2) piercing damage."
+    }
+  ]
+}

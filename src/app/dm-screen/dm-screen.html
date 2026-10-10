@@ -1,0 +1,318 @@
+<header class="topbar">
+  <h1>Battlemap – DM overview</h1>
+  <div class="actions">
+    <label class="button primary" for="map-file">Add map</label>
+    <input id="map-file" class="visually-hidden" type="file" accept="image/*" (change)="onFileSelected($event)" />
+    <button
+      type="button"
+      class="button share"
+      [class.on]="shared()"
+      [attr.aria-pressed]="shared()"
+      [disabled]="shareDisabled()"
+      (click)="toggleShare()"
+    >
+      {{ shareLabel() }}
+    </button>
+    <a class="button" routerLink="/player" target="_blank" rel="noopener">Open player screen ↗</a>
+  </div>
+</header>
+
+@if (maps().length > 0) {
+  <nav class="tabs" aria-label="Maps">
+    @for (entry of maps(); track entry.id) {
+      <span class="tab" [class.current]="entry.id === currentId()" [class.live]="entry.id === sharedId()">
+        <button
+          type="button"
+          class="tab-select"
+          [attr.aria-current]="entry.id === currentId() ? 'true' : null"
+          [disabled]="locked() && entry.id !== currentId()"
+          (click)="selectMap(entry.id)"
+        >
+          {{ entry.name }}
+          @if (entry.id === sharedId()) {
+            <span class="material-symbols-outlined" role="img" aria-label="Shown to players">visibility</span>
+          }
+        </button>
+        <button
+          type="button"
+          class="tab-close"
+          [attr.aria-label]="'Remove map ' + entry.name"
+          [disabled]="locked()"
+          (click)="removeMap(entry.id, entry.name)"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </span>
+    }
+    @if (locked()) {
+      <span class="tabs-note">Combat in progress: end combat to switch maps.</span>
+    }
+  </nav>
+}
+
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}
+
+<div class="layout" [style.--panel-width.px]="panelWidth()" [style.--initiative-width.px]="initiativeWidth()">
+  <app-initiative-panel class="initiative" />
+
+  <div
+    class="resizer"
+    [class.active]="resizingInitiative()"
+    role="separator"
+    aria-orientation="vertical"
+    aria-label="Resize initiative sidebar"
+    tabindex="0"
+    [attr.aria-valuenow]="initiativeWidth()"
+    [attr.aria-valuemin]="minPanelWidth"
+    [attr.aria-valuemax]="maxPanelWidth"
+    (pointerdown)="onInitiativeResizeStart($event)"
+    (pointermove)="onInitiativeResizeMove($event)"
+    (pointerup)="onInitiativeResizeEnd()"
+    (pointercancel)="onInitiativeResizeEnd()"
+    (keydown.arrowLeft)="resizeInitiativeBy(-24)"
+    (keydown.arrowRight)="resizeInitiativeBy(24)"
+  ></div>
+
+  <main class="stage">
+    @if (map(); as m) {
+      <svg
+        #board
+        class="board"
+        [class.drawing]="tool() === 'draw'"
+        [class.move-view]="tool() === 'view'"
+        [class.pan]="tool() === 'pan'"
+        [class.dragging]="dragging() !== null"
+        [attr.viewBox]="viewBox()"
+        (wheel)="onWheel($event)"
+        (contextmenu)="$event.preventDefault()"
+        role="group"
+        aria-label="Map with numbered room covers. The dashed outline is the area the players see."
+        (pointerdown)="onBoardPointerDown($event)"
+        (pointermove)="onBoardPointerMove($event)"
+        (pointerup)="onBoardPointerUp()"
+        (pointercancel)="cancelDraft()"
+      >
+        <image [attr.href]="m.url" x="0" y="0" [attr.width]="m.width" [attr.height]="m.height" />
+
+        @for (view of roomViews(); track view.room.id) {
+          <polygon
+            class="room"
+            [class.revealed]="view.room.revealed"
+            [class.highlight]="highlightedId() === view.room.id"
+            [style.--room-color]="view.color"
+            [attr.points]="view.points"
+            aria-hidden="true"
+          />
+        }
+
+        @for (view of roomViews(); track view.room.id) {
+          <g
+            class="label"
+            [class.revealed]="view.room.revealed"
+            [class.highlight]="highlightedId() === view.room.id"
+            [style.--room-color]="view.color"
+            [attr.transform]="'translate(' + view.center.x + ' ' + view.center.y + ')'"
+            [style.font-size.px]="labelSize()"
+            aria-hidden="true"
+          >
+            <circle class="badge" [attr.r]="labelSize() * 0.85" />
+            <text class="badge-number" text-anchor="middle" dominant-baseline="central">{{ view.number }}</text>
+            <text class="name" text-anchor="middle" [attr.y]="labelSize() * 1.9">{{ view.room.name }}</text>
+          </g>
+        }
+
+        @if (playerRect(); as r) {
+          @if (view().zoom > 1 || r.w > m.width || r.h > m.height) {
+            <path class="dim" fill-rule="evenodd" [attr.d]="dimPath()" />
+          }
+          <rect class="player-view" [attr.x]="r.x" [attr.y]="r.y" [attr.width]="r.w" [attr.height]="r.h" />
+        }
+
+        @if (shapeDraft().length > 1) {
+          <polygon class="draft" [attr.points]="draftPoints()" />
+        }
+        @for (point of shapeDraft(); track $index) {
+          <circle class="handle" [attr.cx]="point.x" [attr.cy]="point.y" [attr.r]="handleRadius()" />
+        }
+      </svg>
+
+      <div class="action-bar" role="toolbar" aria-label="Map tools">
+        <button
+          type="button"
+          class="icon-button"
+          aria-label="Draw shape"
+          title="Draw shape"
+          [attr.aria-pressed]="tool() === 'draw'"
+          (click)="setTool('draw')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">draw</span>
+        </button>
+        <button
+          type="button"
+          class="icon-button"
+          aria-label="Pan my view"
+          title="Pan my view"
+          [attr.aria-pressed]="tool() === 'pan'"
+          (click)="setTool('pan')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">pan_tool</span>
+        </button>
+        <button
+          type="button"
+          class="icon-button"
+          aria-label="Move player view"
+          title="Move player view"
+          [attr.aria-pressed]="tool() === 'view'"
+          (click)="setTool('view')"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">open_with</span>
+        </button>
+        @if (tool() === 'draw') {
+          <span class="separator" aria-hidden="true"></span>
+          <button
+            type="button"
+            class="icon-button"
+            aria-label="Finish shape"
+            title="Finish shape"
+            [disabled]="shapeDraft().length < 3"
+            (click)="finishShape()"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">check</span>
+          </button>
+          <button
+            type="button"
+            class="icon-button"
+            aria-label="Undo point"
+            title="Undo point"
+            [disabled]="shapeDraft().length === 0"
+            (click)="undoShapePoint()"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">undo</span>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="empty">
+        <p>Upload a map image to get started.</p>
+        <label class="button primary" for="map-file">Upload map</label>
+      </div>
+    }
+  </main>
+
+  <div
+    class="resizer"
+    [class.active]="resizing()"
+    role="separator"
+    aria-orientation="vertical"
+    aria-label="Resize sidebar"
+    tabindex="0"
+    [attr.aria-valuenow]="panelWidth()"
+    [attr.aria-valuemin]="minPanelWidth"
+    [attr.aria-valuemax]="maxPanelWidth"
+    (pointerdown)="onResizeStart($event)"
+    (pointermove)="onResizeMove($event)"
+    (pointerup)="onResizeEnd()"
+    (pointercancel)="onResizeEnd()"
+    (keydown.arrowLeft)="resizePanelBy(24)"
+    (keydown.arrowRight)="resizePanelBy(-24)"
+  ></div>
+
+  <aside class="panel" aria-label="Controls">
+    <section>
+      <h2>My zoom</h2>
+      <div class="tools zoom-row">
+        <button type="button" aria-label="Zoom my view out" [disabled]="!map() || dmView().zoom <= minZoom" (click)="zoomDmBy(1 / 1.25)">
+          −
+        </button>
+        <input
+          class="zoom-slider"
+          type="range"
+          aria-label="My zoom"
+          step="0.05"
+          [min]="minZoom"
+          [max]="maxZoom * 2"
+          [value]="dmView().zoom"
+          [disabled]="!map()"
+          (input)="onDmZoomSlider($event)"
+        />
+        <button type="button" aria-label="Zoom my view in" (click)="zoomDmBy(1.25)" [disabled]="!map()">+</button>
+        <button type="button" class="icon-button" aria-label="Fit my view" title="Fit my view" [disabled]="!map()" (click)="fitDmView()">
+          <span class="material-symbols-outlined" aria-hidden="true">fit_screen</span>
+        </button>
+        <output class="zoom-value" aria-label="My zoom level">{{ dmZoomPercent() }}%</output>
+      </div>
+    </section>
+
+    <section>
+      <h2>Player zoom</h2>
+      <div class="tools zoom-row">
+        <button type="button" aria-label="Zoom players out" [disabled]="!map() || view().zoom <= minZoom" (click)="zoomBy(1 / 1.25)">
+          −
+        </button>
+        <input
+          class="zoom-slider"
+          type="range"
+          aria-label="Player zoom"
+          step="0.05"
+          [min]="minZoom"
+          [max]="maxZoom"
+          [value]="view().zoom"
+          [disabled]="!map()"
+          (input)="onZoomSlider($event)"
+        />
+        <button type="button" aria-label="Zoom players in" [disabled]="!map() || view().zoom >= maxZoom" (click)="zoomBy(1.25)">
+          +
+        </button>
+        <button type="button" class="icon-button" aria-label="Reset player zoom" title="Reset player zoom" [disabled]="!map()" (click)="resetView()">
+          <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
+        </button>
+        <output class="zoom-value" aria-label="Player zoom level">{{ zoomPercent() }}%</output>
+      </div>
+    </section>
+
+    <section>
+      <h2>Rooms ({{ revealedCount() }}/{{ rooms().length }} revealed)</h2>
+      @if (rooms().length === 0) {
+        <p class="hint">No rooms yet. Draw a shape over a room to cover it.</p>
+      } @else {
+        <div class="tools">
+          <button type="button" (click)="setAll(true)">Reveal all</button>
+          <button type="button" (click)="setAll(false)">Cover all</button>
+        </div>
+        <ul class="rooms">
+          @for (view of roomViews(); track view.room.id) {
+            <li
+              [class.highlight]="highlightedId() === view.room.id"
+              [style.--room-color]="view.color"
+              (pointerenter)="highlightedId.set(view.room.id)"
+              (pointerleave)="highlightedId.set(null)"
+              (focusin)="highlightedId.set(view.room.id)"
+              (focusout)="highlightedId.set(null)"
+            >
+              <span class="swatch" aria-hidden="true">{{ view.number }}</span>
+              <input
+                type="text"
+                [value]="view.room.name"
+                [attr.aria-label]="'Name of room ' + view.number"
+                (change)="rename(view.room, $event)"
+              />
+              <button type="button" [attr.aria-pressed]="view.room.revealed" (click)="toggle(view.room)">
+                {{ view.room.revealed ? 'Revealed' : 'Covered' }}
+              </button>
+              <button
+                type="button"
+                class="danger"
+                [attr.aria-label]="'Delete room ' + view.number + ', ' + view.room.name"
+                (click)="remove(view.room)"
+              >
+                ✕
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </aside>
+</div>
