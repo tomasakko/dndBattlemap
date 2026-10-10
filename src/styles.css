@@ -1,4 +1,5 @@
 @import 'material-symbols/outlined.css';
+@import '@fontsource-variable/cinzel';
 
 :root {
   --parchment: #f4efe6;
@@ -16,5 +17,6 @@ body {
   height: 100%;
   background: var(--parchment);
   color: var(--leather);
-  font-family: Tahoma, Verdana, sans-serif;
+  font-family: 'Cinzel Variable', Georgia, serif;
+  font-size: 0.9rem;
 }
