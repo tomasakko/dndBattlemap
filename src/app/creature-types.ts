@@ -1,10 +1,10 @@
-import bugbear from './creatures/bugbear.json';
-import goblin from './creatures/goblin.json';
-import hobgoblin from './creatures/hobgoblin.json';
-import human from './creatures/human.json';
-import owlbear from './creatures/owlbear.json';
+import bugbear from '../assets/creatures/bugbear.json';
+import goblin from '../assets/creatures/goblin.json';
+import hobgoblin from '../assets/creatures/hobgoblin.json';
+import human from '../assets/creatures/human.json';
+import owlbear from '../assets/creatures/owlbear.json';
 import { Statblock } from './statblock';
-import grick from './creatures/grick.json'
+import grick from '../assets/creatures/grick.json';
 
 export interface CreatureType {
   id: string;
@@ -16,13 +16,12 @@ export interface CreatureType {
 }
 
 const UNSORTED_CREATURE_TYPES: readonly CreatureType[] = [
-  { id: 'human', label: 'Human', statblock: human },
-  { id: 'goblin', label: 'Goblin', statblock: goblin },
-  { id: 'bugbear', label: 'Bugbear', statblock: bugbear },
-  { id: 'hobgoblin', label: 'Hobgoblin', statblock: hobgoblin },
-  { id: 'owlbear', label: 'Owlbear', statblock: owlbear },
-  { id: 'grick', label: 'Grick', statblock: grick}
-
+  { id: 'human', label: 'Human', image: 'assets/icons/human.svg', statblock: human },
+  { id: 'goblin', label: 'Goblin', image: 'assets/icons/goblin.svg', statblock: goblin },
+  { id: 'bugbear', label: 'Bugbear', image: 'assets/icons/bugbear.svg', statblock: bugbear },
+  { id: 'hobgoblin', label: 'Hobgoblin', image: 'assets/icons/hobgoblin.svg', statblock: hobgoblin },
+  { id: 'owlbear', label: 'Owlbear', image: 'assets/icons/owlbear.svg', statblock: owlbear },
+  { id: 'grick', label: 'Grick', image: 'assets/icons/grick.svg', statblock: grick },
 ];
 
 /** Always alphabetical by label, so new types can be added anywhere above. */

@@ -1,11 +1,10 @@
 :host {
   display: block;
   box-sizing: border-box;
-  height: 100%;
-  overflow-y: auto;
-  padding: 1rem;
-  background: var(--leather);
-  color: var(--parchment);
+  padding: 0.65rem 0.8rem;
+  background: var(--parchment);
+  color: var(--leather);
+  border-bottom: 1px solid var(--leather-line);
 }
 
 h2 {
@@ -62,27 +61,27 @@ button {
 
 .add {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.4rem;
 
   label {
     display: grid;
     gap: 0.2rem;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     min-width: 0;
   }
 
   .row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.6rem;
+    gap: 0.4rem;
   }
 }
 
 input,
 select {
   min-width: 0;
-  color: var(--parchment);
-  background: #1c110f;
+  color: var(--leather);
+  background: #fffdf8;
   border: 1px solid var(--leather-line);
   border-radius: 6px;
   padding: 0.35rem 0.5rem;
@@ -96,7 +95,7 @@ select {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
-  margin: 1rem 0 0.5rem;
+  margin: 0.5rem 0 0.35rem;
 }
 
 .end {
@@ -105,9 +104,9 @@ select {
 }
 
 .hint {
-  margin: 0.5rem 0;
-  font-size: 0.9rem;
-  color: #d9cdb8;
+  margin: 0.4rem 0;
+  font-size: 0.8rem;
+  color: #5a3d36;
 }
 
 .order {
@@ -122,17 +121,22 @@ select {
     grid-template-columns: auto 1fr auto auto;
     align-items: center;
     gap: 0.4rem;
-    padding: 0.3rem;
-    border: 2px solid transparent;
-    border-radius: 8px;
+    padding: 0.25rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--crimson) 18%, var(--parchment));
 
     &.player .score {
       background: var(--indigo);
     }
 
+    &.player {
+      background: color-mix(in srgb, var(--indigo) 18%, var(--parchment));
+    }
+
     &.active {
       border-color: var(--gold);
-      background: var(--leather-raised);
+      background: color-mix(in srgb, var(--gold) 22%, var(--parchment));
     }
   }
 
@@ -159,14 +163,14 @@ select {
   }
 
   .kind {
-    font-size: 0.8rem;
-    color: #d9cdb8;
+    font-size: 0.7rem;
+    color: #5a3d36;
   }
 }
 
 .icon-button {
-  width: 2rem;
-  height: 2rem;
+  width: 1.8rem;
+  height: 1.8rem;
   padding: 0;
 
   &.danger {
@@ -179,8 +183,8 @@ select {
   grid-column: 1 / -1;
   display: grid;
   gap: 0.15rem;
-  font-size: 0.8rem;
-  color: #d9cdb8;
+  font-size: 0.7rem;
+  color: #5a3d36;
 
   input {
     width: 100%;
@@ -192,7 +196,7 @@ select {
   grid-column: 1 / -1;
   margin: 0;
   font-size: 0.75rem;
-  color: #d9cdb8;
+  color: #5a3d36;
 }
 
 .clear {
@@ -207,11 +211,11 @@ select {
 
 .side {
   display: flex;
-  gap: 1rem;
+  gap: 0.8rem;
   margin: 0;
   padding: 0;
   border: 0;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 
   legend {
     padding: 0;

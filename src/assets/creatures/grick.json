@@ -1,5 +1,5 @@
 {
-  "name": "Hobgoblin",
+  "name": "Grick",
   "size": "",
   "type": "",
   "alignment": "",
@@ -19,5 +19,6 @@
   "senses": "",
   "languages": "",
   "traits": [],
-  "actions": []
+  "actions": [],
+  "legendaryActions": []
 }

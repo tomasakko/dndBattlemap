@@ -39,6 +39,7 @@ export class DmScreen {
   protected readonly shared = this.battlemap.shared;
   protected readonly maps = this.battlemap.maps;
   protected readonly currentId = this.battlemap.currentId;
+  protected readonly currentMapName = computed(() => this.maps().find((entry) => entry.id === this.currentId())?.name ?? 'Choose Map');
   protected readonly sharedId = this.battlemap.sharedId;
   protected readonly locked = this.battlemap.locked;
   protected readonly shareLabel = computed(() =>

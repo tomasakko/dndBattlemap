@@ -1,6 +1,20 @@
-<h2>Initiative</h2>
+<h2>Initiative Tracker</h2>
 
 <form class="add" [formGroup]="form" (ngSubmit)="add()">
+  <div class="row">
+    <label>
+      Initiative
+      <input type="number" inputmode="numeric" step="1" formControlName="initiative" />
+    </label>
+    <label>
+      Type
+      <select formControlName="type">
+        @for (type of types; track type.id) {
+          <option [value]="type.id">{{ type.label }}</option>
+        }
+      </select>
+    </label>
+  </div>
   <label>
     Name
     <input type="text" formControlName="name" autocomplete="off" />
@@ -16,20 +30,6 @@
       <span>NPC / Enemy</span>
     </label>
   </fieldset>
-  <div class="row">
-    <label>
-      Initiative
-      <input type="number" inputmode="numeric" step="1" formControlName="initiative" />
-    </label>
-    <label>
-      Type
-      <select formControlName="type">
-        @for (type of types; track type.id) {
-          <option [value]="type.id">{{ type.label }}</option>
-        }
-      </select>
-    </label>
-  </div>
   <button type="submit" class="primary">
     <span class="material-symbols-outlined" aria-hidden="true">add</span>
     Add to order
