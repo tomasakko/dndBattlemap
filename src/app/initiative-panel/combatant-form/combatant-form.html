@@ -27,7 +27,15 @@
         (blur)="closeTypes()"
       />
       @if (typeOpen()) {
-        <ul id="type-options" class="type-options" role="listbox" aria-label="Creature types">
+        <ul
+          id="type-options"
+          class="type-options"
+          role="listbox"
+          aria-label="Creature types"
+          [style.top.px]="typeMenuPosition().top"
+          [style.left.px]="typeMenuPosition().left"
+          [style.width.px]="typeMenuPosition().width"
+        >
           @for (type of filteredTypes(); track type.id; let i = $index) {
             <li
               role="option"
@@ -68,6 +76,12 @@
     Add to order
   </button>
 </form>
+@if (creaturesLoading()) {
+  <p class="hint" role="status">Loading Monster Manual creatures...</p>
+}
+@if (creaturesError(); as message) {
+  <p class="error" role="alert">Monster Manual could not be loaded: {{ message }}</p>
+}
 @if (error()) {
   <p class="error" role="alert">{{ error() }}</p>
 }

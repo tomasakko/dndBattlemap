@@ -49,7 +49,7 @@ export class DmScreen {
   protected readonly panelOrder = this.dockedPanelOrder.asReadonly();
   protected readonly dockWidth = computed(() => {
     const viewportWidth = typeof window === 'undefined' ? 1024 : window.innerWidth;
-    return Math.min(viewportWidth - 16, viewportWidth <= 760 ? 330 : 240);
+    return Math.min(viewportWidth - 16, viewportWidth <= 760 ? 330 : 320);
   });
 
   protected readonly map = this.battlemap.map;

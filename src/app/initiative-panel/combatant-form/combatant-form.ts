@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InitiativeService, Side } from '../../services/initiative.service';
 import { CreatureService } from '../../services/creature.service';
@@ -8,10 +8,16 @@ import { CreatureService } from '../../services/creature.service';
   imports: [ReactiveFormsModule],
   templateUrl: './combatant-form.html',
   styleUrl: './combatant-form.css',
+  host: {
+    '(window:pointermove)': 'repositionOpenTypeMenu()',
+    '(window:resize)': 'repositionOpenTypeMenu()',
+    '(window:scroll)': 'repositionOpenTypeMenu()',
+  },
 })
 export class CombatantForm {
   private readonly initiative = inject(InitiativeService);
   private readonly creatures = inject(CreatureService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly types = this.creatures.types;
   protected readonly form = inject(FormBuilder).nonNullable.group({
@@ -21,16 +27,19 @@ export class CombatantForm {
     side: ['enemy' as Side],
   });
   protected readonly error = signal('');
+  protected readonly creaturesLoading = this.creatures.loading;
+  protected readonly creaturesError = this.creatures.error;
   protected readonly typeOpen = signal(false);
   protected readonly typeIndex = signal(0);
+  protected readonly typeMenuPosition = signal({ top: 0, left: 0, width: 0 });
   private readonly typeFilter = signal('');
   protected readonly typeText = signal('');
   protected readonly filteredTypes = computed(() => {
     const query = this.typeFilter().trim().toLowerCase();
     if (!query) {
-      return this.types;
+      return this.types();
     }
-    const matches = this.types.filter((type) => type.label.toLowerCase().includes(query));
+    const matches = this.types().filter((type) => type.label.toLowerCase().includes(query));
     return [
       ...matches.filter((type) => type.label.toLowerCase().startsWith(query)),
       ...matches.filter((type) => !type.label.toLowerCase().startsWith(query)),
@@ -38,6 +47,7 @@ export class CombatantForm {
   });
 
   protected openTypes(event: Event): void {
+    this.positionTypeMenu(event.target as HTMLInputElement);
     this.typeFilter.set('');
     this.typeIndex.set(0);
     this.typeOpen.set(true);
@@ -45,7 +55,9 @@ export class CombatantForm {
   }
 
   protected searchTypes(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    this.positionTypeMenu(input);
     this.typeText.set(value);
     this.typeFilter.set(value);
     this.typeIndex.set(0);
@@ -90,6 +102,25 @@ export class CombatantForm {
   protected closeTypes(): void {
     this.typeText.set(this.creatures.findById(this.form.controls.type.value)?.label ?? '');
     this.typeOpen.set(false);
+  }
+
+  private positionTypeMenu(input: HTMLInputElement): void {
+    const bounds = input.getBoundingClientRect();
+    this.typeMenuPosition.set({
+      top: bounds.bottom + 2,
+      left: bounds.left,
+      width: bounds.width,
+    });
+  }
+
+  protected repositionOpenTypeMenu(): void {
+    if (!this.typeOpen()) {
+      return;
+    }
+    const input = this.host.nativeElement.querySelector<HTMLInputElement>('#type-input');
+    if (input) {
+      this.positionTypeMenu(input);
+    }
   }
 
   protected add(): void {

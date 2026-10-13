@@ -48,6 +48,15 @@ ng test
 
 Domain services live in `src/app/services/`. Creature defaults are stored as JSON in `src/assets/creatures/` and accessed through `CreatureService`, keeping the data source centralized for a future API integration.
 
+### Bestiary
+
+The initiative tracker loads the Monster Manual creatures from
+[`src/assets/creatures/bestiary-mm.json`](./src/assets/creatures/bestiary-mm.json).
+This file is a local copy of the [5e.tools bestiary data](https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/main/data/bestiary/bestiary-mm.json).
+The browser loads it as a runtime asset and `CreatureService` converts the 5e.tools
+format to the application's statblock format. To update the available creatures,
+replace the local file with a reviewed version of the upstream JSON and rebuild.
+
 ## Running end-to-end tests
 
 For end-to-end (e2e) testing, run:

@@ -64,13 +64,10 @@ button {
   }
 
   .type-options {
-    position: absolute;
+    position: fixed;
     z-index: 5;
-    top: 100%;
-    left: 0;
-    right: 0;
     min-width: 8rem;
-    max-height: 10rem;
+    max-height: min(24rem, 50dvh);
     margin: 0.15rem 0 0;
     padding: 0.15rem;
     overflow-y: auto;
