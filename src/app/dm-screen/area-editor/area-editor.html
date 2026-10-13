@@ -1,0 +1,51 @@
+<div class="area-tools">
+  <span>{{ revealedCount() }} / {{ rooms().length }} revealed</span>
+  <button type="button" (click)="setAll.emit(true)" [disabled]="rooms().length === 0">
+    Reveal all
+  </button>
+  <button type="button" (click)="setAll.emit(false)" [disabled]="rooms().length === 0">
+    Cover all
+  </button>
+</div>
+@if (rooms().length === 0) {
+  <p class="hint">Draw a shape over a room to create an area.</p>
+} @else {
+  <ul class="rooms">
+    @for (view of roomViews(); track view.room.id) {
+      <li
+        [class.highlight]="highlightedId() === view.room.id"
+        [style.--room-color]="view.color"
+        (pointerenter)="highlightedId.set(view.room.id)"
+        (pointerleave)="highlightedId.set(null)"
+        (focusin)="highlightedId.set(view.room.id)"
+        (focusout)="highlightedId.set(null)"
+      >
+        <span class="swatch" aria-hidden="true">{{ view.number }}</span>
+        <input
+          type="text"
+          [value]="view.room.name"
+          [attr.aria-label]="'Name of room ' + view.number"
+          (change)="rename(view.room, $event)"
+        />
+        <button
+          type="button"
+          [attr.aria-pressed]="view.room.revealed"
+          [attr.aria-label]="'Toggle visibility of ' + view.room.name"
+          (click)="toggled.emit(view.room)"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">{{
+            view.room.revealed ? 'visibility' : 'visibility_off'
+          }}</span>
+        </button>
+        <button
+          type="button"
+          class="danger"
+          [attr.aria-label]="'Delete room ' + view.number + ', ' + view.room.name"
+          (click)="removed.emit(view.room)"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+        </button>
+      </li>
+    }
+  </ul>
+}

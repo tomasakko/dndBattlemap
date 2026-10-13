@@ -1,44 +1,4 @@
-<h2>Initiative Tracker</h2>
-
-<form class="add" [formGroup]="form" (ngSubmit)="add()">
-  <div class="row">
-    <label>
-      Initiative
-      <input type="number" inputmode="numeric" step="1" formControlName="initiative" />
-    </label>
-    <label>
-      Type
-      <select formControlName="type">
-        @for (type of types; track type.id) {
-          <option [value]="type.id">{{ type.label }}</option>
-        }
-      </select>
-    </label>
-  </div>
-  <label>
-    Name
-    <input type="text" formControlName="name" autocomplete="off" />
-  </label>
-  <fieldset class="side">
-    <legend>Side</legend>
-    <label class="choice">
-      <input type="radio" formControlName="side" value="player" />
-      <span>Player</span>
-    </label>
-    <label class="choice">
-      <input type="radio" formControlName="side" value="enemy" />
-      <span>NPC / Enemy</span>
-    </label>
-  </fieldset>
-  <button type="submit" class="primary">
-    <span class="material-symbols-outlined" aria-hidden="true">add</span>
-    Add to order
-  </button>
-</form>
-
-@if (error()) {
-  <p class="error" role="alert">{{ error() }}</p>
-}
+<app-combatant-form />
 
 <div class="turn-controls" role="group" aria-label="Turn controls">
   <button type="button" [disabled]="combatants().length === 0" (click)="previous()">
@@ -58,73 +18,19 @@
 @if (combatants().length === 0) {
   <p class="hint">Nobody in the order yet. Add creatures above.</p>
 } @else {
-  <ol class="order">
-    @for (combatant of combatants(); track combatant.id) {
-      <li [class.player]="combatant.side === 'player'" [class.active]="combatant.id === activeId()" [attr.aria-current]="combatant.id === activeId() ? 'step' : null">
-        @if (combatant.side === 'enemy') {
-          <button
-            type="button"
-            class="identity"
-            [attr.aria-label]="'Show statblock: ' + combatant.name"
-            title="Show statblock"
-            (click)="showStatblock(combatant)"
-          >
-            <ng-container *ngTemplateOutlet="identity; context: { $implicit: combatant }" />
-          </button>
-        } @else {
-          <div class="identity">
-            <ng-container *ngTemplateOutlet="identity; context: { $implicit: combatant }" />
-          </div>
-        }
-        <button
-          type="button"
-          class="icon-button"
-          [attr.aria-label]="'Set turn: ' + combatant.name"
-          title="Make it their turn"
-          (click)="setActive(combatant)"
-        >
-          <span class="material-symbols-outlined" aria-hidden="true">play_arrow</span>
-        </button>
-        <button
-          type="button"
-          class="icon-button danger"
-          [attr.aria-label]="'Remove ' + combatant.name"
-          title="Remove"
-          (click)="remove(combatant)"
-        >
-          <span class="material-symbols-outlined" aria-hidden="true">close</span>
-        </button>
-        @if (combatant.side === 'enemy') {
-          @if (maxHp(combatant) > 0) {
-            <label class="hp">
-              <span class="hp-text">HP {{ hp(combatant) }} / {{ maxHp(combatant) }}</span>
-              <input
-                type="range"
-                min="0"
-                [max]="maxHp(combatant)"
-                step="1"
-                [value]="hp(combatant)"
-                [attr.aria-label]="'Hit points of ' + combatant.name"
-                (input)="setHp(combatant, $event)"
-              />
-            </label>
-          } @else {
-            <p class="hp-hint">Fill in hit points in the statblock to track HP.</p>
-          }
-        }
-      </li>
-    }
-  </ol>
+  <div class="order-scroll">
+    <ol class="order">
+      @for (combatant of combatants(); track combatant.id) {
+        <app-combatant-row
+          [combatant]="combatant"
+          [active]="combatant.id === activeId()"
+          (showStatblock)="showStatblock($event)"
+        />
+      }
+    </ol>
+  </div>
   <button type="button" class="clear" (click)="clear()">Clear all</button>
 }
-
-<ng-template #identity let-combatant>
-  <span class="score" aria-label="Initiative">{{ combatant.initiative }}</span>
-  <span class="who">
-    <span class="name">{{ combatant.name }}</span>
-    <span class="kind">{{ sideLabel(combatant) }} - {{ typeLabel(combatant) }}</span>
-  </span>
-</ng-template>
 
 @if (statblockOf(); as selected) {
   <app-statblock-card [combatant]="selected" (closed)="closeStatblock()" />

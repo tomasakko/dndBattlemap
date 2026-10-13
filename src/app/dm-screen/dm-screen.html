@@ -6,7 +6,6 @@
         class="board"
         [class.drawing]="tool() === 'draw'"
         [class.move-view]="tool() === 'view'"
-        [class.pan]="tool() === 'pan'"
         [class.dragging]="dragging() !== null"
         [attr.viewBox]="viewBox()"
         (wheel)="onWheel($event)"
@@ -60,6 +59,37 @@
         @for (point of shapeDraft(); track $index) {
           <circle class="handle" [attr.cx]="point.x" [attr.cy]="point.y" [attr.r]="handleRadius()" />
         }
+        @if (draftActions(); as a) {
+          <g class="draft-actions" [attr.transform]="'translate(' + a.x + ' ' + a.y + ') scale(' + a.size + ')'">
+            <g
+              class="draft-action"
+              [class.disabled]="!a.canFinish"
+              role="button"
+              tabindex="0"
+              aria-label="Finish shape"
+              (pointerdown)="$event.stopPropagation(); $event.preventDefault()"
+              (click)="finishShape()"
+              (keydown.enter)="finishShape()"
+            >
+              <title>Finish shape</title>
+              <circle cx="1.6" cy="0" r="1" />
+              <path d="M1.1 0.05 L1.5 0.45 L2.2 -0.4" />
+            </g>
+            <g
+              class="draft-action"
+              role="button"
+              tabindex="0"
+              aria-label="Undo point"
+              (pointerdown)="$event.stopPropagation(); $event.preventDefault()"
+              (click)="undoShapePoint()"
+              (keydown.enter)="undoShapePoint()"
+            >
+              <title>Undo point</title>
+              <circle cx="3.8" cy="0" r="1" />
+              <path d="M3.3 -0.35 L3.3 0.15 L3.8 0.15 M3.3 0.15 C3.7 -0.5 4.5 -0.5 4.5 0.1" />
+            </g>
+          </g>
+        }
       </svg>
 
       <div class="bottom-toolbar" role="toolbar" aria-label="Map tools and player zoom">
@@ -76,16 +106,6 @@
         <button
           type="button"
           class="icon-button"
-          aria-label="Pan my view"
-          title="Pan my view"
-          [attr.aria-pressed]="tool() === 'pan'"
-          (click)="setTool('pan')"
-        >
-          <span class="material-symbols-outlined" aria-hidden="true">pan_tool</span>
-        </button>
-        <button
-          type="button"
-          class="icon-button"
           aria-label="Move player view"
           title="Move player view"
           [attr.aria-pressed]="tool() === 'view'"
@@ -93,29 +113,6 @@
         >
           <span class="material-symbols-outlined" aria-hidden="true">open_with</span>
         </button>
-        @if (tool() === 'draw') {
-          <span class="separator" aria-hidden="true"></span>
-          <button
-            type="button"
-            class="icon-button"
-            aria-label="Finish shape"
-            title="Finish shape"
-            [disabled]="shapeDraft().length < 3"
-            (click)="finishShape()"
-          >
-            <span class="material-symbols-outlined" aria-hidden="true">check</span>
-          </button>
-          <button
-            type="button"
-            class="icon-button"
-            aria-label="Undo point"
-            title="Undo point"
-            [disabled]="shapeDraft().length === 0"
-            (click)="undoShapePoint()"
-          >
-            <span class="material-symbols-outlined" aria-hidden="true">undo</span>
-          </button>
-        }
         <span class="separator" aria-hidden="true"></span>
         <label class="player-zoom">
           <span>Player Zoom</span>
@@ -140,46 +137,17 @@
     }
   </main>
 
-  <nav class="map-picker" aria-label="Maps">
-    <details>
-      <summary>
-        <span class="material-symbols-outlined" aria-hidden="true">castle</span>
-        <span class="map-name">{{ currentMapName() }}</span>
-        <span class="material-symbols-outlined expand" aria-hidden="true">expand_more</span>
-      </summary>
-      <div class="map-options">
-        @for (entry of maps(); track entry.id) {
-          <div class="map-option" [class.current]="entry.id === currentId()">
-            <button
-              type="button"
-              [attr.aria-current]="entry.id === currentId() ? 'true' : null"
-              [disabled]="locked() && entry.id !== currentId()"
-              (click)="selectMap(entry.id)"
-            >
-              {{ entry.name }}
-              @if (entry.id === sharedId()) {
-                <span class="material-symbols-outlined" role="img" aria-label="Shown to players">visibility</span>
-              }
-            </button>
-            <button
-              type="button"
-              class="map-remove"
-              [attr.aria-label]="'Remove map ' + entry.name"
-              [disabled]="locked()"
-              (click)="removeMap(entry.id, entry.name)"
-            >
-              <span class="material-symbols-outlined" aria-hidden="true">close</span>
-            </button>
-          </div>
-        } @empty {
-          <p class="no-maps">No maps uploaded</p>
-        }
-        @if (locked()) {
-          <p class="map-note">End combat to switch maps.</p>
-        }
-      </div>
-    </details>
-  </nav>
+  <app-map-picker
+    class="map-picker"
+    [maps]="maps()"
+    [currentId]="currentId()"
+    [currentName]="currentMapName()"
+    [currentIcon]="currentMapIcon()"
+    [sharedId]="sharedId()"
+    [locked]="locked()"
+    (selected)="selectMap($event)"
+    (removed)="removeMap($event.id, $event.name)"
+  />
 
   <header class="top-actions">
     <label class="button primary upload-button" for="map-file">
@@ -192,98 +160,75 @@
     }
   </header>
 
-  <aside class="control-dock" aria-label="Battle controls">
-    <div class="dock-actions" aria-label="Quick actions">
-      <button
-        type="button"
-        class="icon-button"
-        [class.on]="shared()"
-        [attr.aria-pressed]="shared()"
-        [disabled]="shareDisabled()"
-        [attr.aria-label]="shareLabel()"
-        [title]="shareLabel()"
-        (click)="toggleShare()"
-      >
-        <span class="material-symbols-outlined" aria-hidden="true">{{ shared() ? 'visibility' : 'visibility_off' }}</span>
-      </button>
-      <a class="icon-button" routerLink="/player" target="_blank" rel="noopener" aria-label="Open player screen" title="Open player screen">
-        <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
-      </a>
-      <button type="button" class="icon-button" aria-label="Fit my map view" title="Fit my map view" [disabled]="!map()" (click)="fitDmView()">
-        <span class="material-symbols-outlined" aria-hidden="true">fit_screen</span>
-      </button>
-      <button type="button" class="icon-button" aria-label="Reset player view" title="Reset player view" [disabled]="!map()" (click)="resetView()">
-        <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
-      </button>
+    @if (pendingMapFile()) {
+      <app-map-upload-dialog
+        [title]="mapTitle()"
+        [icon]="mapIcon()"
+        (titleChanged)="mapTitle.set($event)"
+        (iconSelected)="setMapIcon($event)"
+        (cancelled)="cancelMapUpload()"
+        (submitted)="confirmMapUpload()"
+      />
+    }
+
+  <app-control-dock
+    [panelOrder]="panelOrder()"
+    [panels]="panels()"
+    [dockWidth]="dockWidth()"
+    [shared]="shared()"
+    [shareDisabled]="shareDisabled()"
+    [shareLabel]="shareLabel()"
+    [hasMap]="!!map()"
+    [rooms]="rooms()"
+    [revealedCount]="revealedCount()"
+    (action)="onDockAction($event)"
+    (showTip)="showTip($event)"
+    (hideTip)="hideTip()"
+    (panelDragStart)="onPanelDragStart($event.id, $event.event)"
+    (setAll)="setAll($event)"
+    (renamed)="rename($event.room, $event.name)"
+    (toggled)="toggle($event)"
+    (removed)="remove($event)"
+  />
+
+  <ng-template #panelHead let-id="id" let-title="title">
+    <header class="section-heading drag-handle" title="Drag to move or detach" (pointerdown)="onPanelDragStart(id, $event)">
+      <h2>{{ title }}</h2>
+    </header>
+  </ng-template>
+
+  <ng-template #initiativeTpl>
+    <div class="panel initiative-wrap" data-panel="initiative">
+      <ng-container *ngTemplateOutlet="panelHead; context: { id: 'initiative', title: 'Initiative Tracker' }" />
+      <app-initiative-panel class="initiative" />
     </div>
+  </ng-template>
 
-    <app-initiative-panel class="initiative" />
-
-    <section class="area-editor">
-      <header class="section-heading">
-        <h2>Area Editor</h2>
-        <span class="material-symbols-outlined" aria-hidden="true">drag_indicator</span>
-      </header>
-      <div class="area-tools">
-        <span>{{ revealedCount() }} / {{ rooms().length }} revealed</span>
-        <button type="button" (click)="setAll(true)" [disabled]="rooms().length === 0">Reveal all</button>
-        <button type="button" (click)="setAll(false)" [disabled]="rooms().length === 0">Cover all</button>
-      </div>
-      @if (rooms().length === 0) {
-        <p class="hint">Draw a shape over a room to create an area.</p>
-      } @else {
-        <ul class="rooms">
-          @for (view of roomViews(); track view.room.id) {
-            <li
-              [class.highlight]="highlightedId() === view.room.id"
-              [style.--room-color]="view.color"
-              (pointerenter)="highlightedId.set(view.room.id)"
-              (pointerleave)="highlightedId.set(null)"
-              (focusin)="highlightedId.set(view.room.id)"
-              (focusout)="highlightedId.set(null)"
-            >
-              <span class="swatch" aria-hidden="true">{{ view.number }}</span>
-              <input
-                type="text"
-                [value]="view.room.name"
-                [attr.aria-label]="'Name of room ' + view.number"
-                (change)="rename(view.room, $event)"
-              />
-              <button type="button" [attr.aria-pressed]="view.room.revealed" [attr.aria-label]="'Toggle visibility of ' + view.room.name" (click)="toggle(view.room)">
-                <span class="material-symbols-outlined" aria-hidden="true">{{ view.room.revealed ? 'visibility' : 'visibility_off' }}</span>
-              </button>
-              <button
-                type="button"
-                class="danger"
-                [attr.aria-label]="'Delete room ' + view.number + ', ' + view.room.name"
-                (click)="remove(view.room)"
-              >
-                <span class="material-symbols-outlined" aria-hidden="true">delete</span>
-              </button>
-            </li>
-          }
-        </ul>
-      }
+  <ng-template #areaTpl>
+    <section class="area-editor panel" data-panel="area">
+      <ng-container *ngTemplateOutlet="panelHead; context: { id: 'area', title: 'Area Editor' }" />
+      <app-area-editor
+        [rooms]="rooms()"
+        [revealedCount]="revealedCount()"
+        (setAll)="setAll($event)"
+        (renamed)="rename($event.room, $event.name)"
+        (toggled)="toggle($event)"
+        (removed)="remove($event)"
+      />
     </section>
+  </ng-template>
+  @if (tip(); as t) {
+    <div class="tooltip" role="tooltip" [style.left.px]="t.x" [style.top.px]="t.y">{{ t.text }}</div>
+  }
 
-    <section class="dm-zoom-control">
-      <h2>My zoom</h2>
-      <div class="zoom-row">
-        <button type="button" aria-label="Zoom my view out" [disabled]="!map() || dmView().zoom <= minZoom" (click)="zoomDmBy(1 / 1.25)">−</button>
-        <input
-          class="zoom-slider"
-          type="range"
-          aria-label="My zoom"
-          step="0.05"
-          [min]="minZoom"
-          [max]="maxZoom * 2"
-          [value]="dmView().zoom"
-          [disabled]="!map()"
-          (input)="onDmZoomSlider($event)"
-        />
-        <button type="button" aria-label="Zoom my view in" (click)="zoomDmBy(1.25)" [disabled]="!map()">+</button>
-        <output class="zoom-value" aria-label="My zoom level">{{ dmZoomPercent() }}%</output>
-      </div>
-    </section>
-  </aside>
+  @if (panels().initiative.visible && panels().initiative.floating) {
+    <div class="floating-panel" [class.snap-ready]="snapReady() === 'initiative'" [class.snap-top]="snapReady() === 'initiative' && snapEdge() === 'top'" [style.left.px]="panels().initiative.x" [style.top.px]="panels().initiative.y" [style.z-index]="panels().initiative.z" (pointerdown)="raisePanel('initiative')">
+      <ng-container *ngTemplateOutlet="initiativeTpl" />
+    </div>
+  }
+  @if (panels().area.visible && panels().area.floating) {
+    <div class="floating-panel" [class.snap-ready]="snapReady() === 'area'" [class.snap-top]="snapReady() === 'area' && snapEdge() === 'top'" [style.left.px]="panels().area.x" [style.top.px]="panels().area.y" [style.z-index]="panels().area.z" (pointerdown)="raisePanel('area')">
+      <ng-container *ngTemplateOutlet="areaTpl" />
+    </div>
+  }
 </div>

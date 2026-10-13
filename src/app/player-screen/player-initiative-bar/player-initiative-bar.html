@@ -1,0 +1,24 @@
+@if (turns().length > 0) {
+  <nav class="initiative" aria-label="Initiative order">
+    <ol>
+      @for (turn of turns(); track turn.id) {
+        <li
+          class="combatant"
+          [class.player]="turn.player"
+          [class.down]="turn.down"
+          [class.active]="turn.active"
+          [attr.aria-current]="turn.active ? 'step' : null"
+        >
+          <span class="avatar">
+            @if (turn.image) {
+              <img [ngSrc]="turn.image" width="64" height="64" alt="" />
+            } @else {
+              <span class="material-symbols-outlined" aria-hidden="true">person</span>
+            }
+          </span>
+          <span class="name">{{ turn.name }}</span>
+        </li>
+      }
+    </ol>
+  </nav>
+}

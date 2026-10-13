@@ -1,0 +1,74 @@
+:host {
+  display: block;
+}
+
+.basics {
+  margin: 0.75rem 0;
+  display: grid;
+  gap: 0.2rem;
+
+  div {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  dt {
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.abilities-table {
+  width: 100%;
+  margin: 0.5rem 0;
+  text-align: center;
+  border-collapse: collapse;
+  background: var(--leather-raised);
+  border-top: 2px solid var(--crimson);
+  border-bottom: 2px solid var(--crimson);
+
+  th {
+    color: var(--gold);
+    padding-top: 0.3rem;
+  }
+
+  td {
+    padding: 0.2rem 0.1rem 0.4rem;
+    font-size: 0.9rem;
+  }
+}
+
+button {
+  font: inherit;
+  color: var(--parchment);
+  background: var(--leather-raised);
+  border: 1px solid var(--leather-line);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+
+  &:hover {
+    background: #4a2f2a;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  &.primary {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--leather);
+  }
+}
+
+footer {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}

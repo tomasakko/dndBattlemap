@@ -1,0 +1,110 @@
+<aside class="control-dock" aria-label="Battle controls" [style.width.px]="dockWidth()">
+  <div
+    class="dock-actions"
+    aria-label="Quick actions"
+    (pointerover)="showTip.emit($event)"
+    (focusin)="showTip.emit($event)"
+    (pointerleave)="hideTip.emit()"
+    (focusout)="hideTip.emit()"
+  >
+    <button
+      type="button"
+      class="icon-button"
+      [class.on]="shared()"
+      [attr.aria-pressed]="shared()"
+      [disabled]="shareDisabled()"
+      [attr.aria-label]="shareLabel()"
+      (click)="action.emit('share')"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">{{
+        shared() ? 'visibility' : 'visibility_off'
+      }}</span>
+    </button>
+    <a
+      class="icon-button"
+      routerLink="/player"
+      target="_blank"
+      rel="noopener"
+      aria-label="Open player screen"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
+    </a>
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Fit my map view"
+      [disabled]="!hasMap()"
+      (click)="action.emit('fit')"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">fit_screen</span>
+    </button>
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Reset player view"
+      [disabled]="!hasMap()"
+      (click)="action.emit('reset')"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
+    </button>
+    <button
+      type="button"
+      class="icon-button"
+      [class.on]="panels().initiative.visible"
+      [attr.aria-pressed]="panels().initiative.visible"
+      [attr.aria-label]="
+        panels().initiative.visible ? 'Hide initiative tracker' : 'Show initiative tracker'
+      "
+      (click)="action.emit('initiative')"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">format_list_numbered</span>
+    </button>
+    <button
+      type="button"
+      class="icon-button"
+      [class.on]="panels().area.visible"
+      [attr.aria-pressed]="panels().area.visible"
+      [attr.aria-label]="panels().area.visible ? 'Hide area editor' : 'Show area editor'"
+      (click)="action.emit('area')"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
+    </button>
+  </div>
+
+  @for (id of panelOrder(); track id; let index = $index) {
+    @if (panels()[id].visible && !panels()[id].floating) {
+      <div class="docked-panel" [style.order]="index + 1">
+        @if (id === 'initiative') {
+          <div class="panel initiative-wrap" data-panel="initiative">
+            <header
+              class="section-heading drag-handle"
+              title="Drag to move or detach"
+              (pointerdown)="panelDragStart.emit({ id, event: $event })"
+            >
+              <h2>Initiative Tracker</h2>
+            </header>
+            <app-initiative-panel class="initiative" />
+          </div>
+        } @else {
+          <section class="area-editor panel" data-panel="area">
+            <header
+              class="section-heading drag-handle"
+              title="Drag to move or detach"
+              (pointerdown)="panelDragStart.emit({ id, event: $event })"
+            >
+              <h2>Area Editor</h2>
+            </header>
+            <app-area-editor
+              [rooms]="rooms()"
+              [revealedCount]="revealedCount()"
+              (setAll)="setAll.emit($event)"
+              (renamed)="renamed.emit($event)"
+              (toggled)="toggled.emit($event)"
+              (removed)="removed.emit($event)"
+            />
+          </section>
+        }
+      </div>
+    }
+  }
+</aside>

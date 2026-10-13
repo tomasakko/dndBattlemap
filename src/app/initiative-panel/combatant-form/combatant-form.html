@@ -1,0 +1,73 @@
+<form class="add" [formGroup]="form" (ngSubmit)="add()">
+  <div class="row">
+    <label>
+      Initiative
+      <input type="number" inputmode="numeric" step="1" formControlName="initiative" />
+    </label>
+    <div class="type-search">
+      <label for="type-input">Type</label>
+      <input
+        id="type-input"
+        type="text"
+        role="combobox"
+        autocomplete="off"
+        placeholder="Search"
+        aria-autocomplete="list"
+        aria-controls="type-options"
+        [attr.aria-expanded]="typeOpen()"
+        [attr.aria-activedescendant]="
+          typeOpen() && filteredTypes().length
+            ? 'type-option-' + filteredTypes()[typeIndex()].id
+            : null
+        "
+        [value]="typeText()"
+        (focus)="openTypes($event)"
+        (input)="searchTypes($event)"
+        (keydown)="onTypeKey($event)"
+        (blur)="closeTypes()"
+      />
+      @if (typeOpen()) {
+        <ul id="type-options" class="type-options" role="listbox" aria-label="Creature types">
+          @for (type of filteredTypes(); track type.id; let i = $index) {
+            <li
+              role="option"
+              [id]="'type-option-' + type.id"
+              [class.active]="i === typeIndex()"
+              [attr.aria-selected]="type.id === form.controls.type.value"
+              (mousedown)="$event.preventDefault()"
+              (click)="pickType(type.id)"
+            >
+              {{ type.label }}
+            </li>
+          } @empty {
+            <li class="empty" role="option" aria-disabled="true" aria-selected="false">
+              No matches
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+  <label>
+    Name
+    <input type="text" formControlName="name" autocomplete="off" />
+  </label>
+  <fieldset class="side">
+    <legend>Side</legend>
+    <label class="choice">
+      <input type="radio" formControlName="side" value="player" />
+      <span>Player</span>
+    </label>
+    <label class="choice">
+      <input type="radio" formControlName="side" value="enemy" />
+      <span>NPC / Enemy</span>
+    </label>
+  </fieldset>
+  <button type="submit" class="primary">
+    <span class="material-symbols-outlined" aria-hidden="true">add</span>
+    Add to order
+  </button>
+</form>
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}

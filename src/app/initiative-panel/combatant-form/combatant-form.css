@@ -1,0 +1,145 @@
+:host {
+  display: block;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  color: var(--parchment);
+  background: var(--leather-raised);
+  border: 1px solid var(--leather-line);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #4a2f2a;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  &.primary {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--leather);
+  }
+}
+
+.material-symbols-outlined {
+  font-size: 1.25rem;
+}
+
+.add {
+  display: grid;
+  gap: 0.4rem;
+
+  label {
+    display: grid;
+    gap: 0.2rem;
+    font-size: 0.75rem;
+    min-width: 0;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+  }
+
+  .type-search {
+    position: relative;
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+
+  .type-options {
+    position: absolute;
+    z-index: 5;
+    top: 100%;
+    left: 0;
+    right: 0;
+    min-width: 8rem;
+    max-height: 10rem;
+    margin: 0.15rem 0 0;
+    padding: 0.15rem;
+    overflow-y: auto;
+    list-style: none;
+    background: #fffdf8;
+    border: 1px solid var(--leather-line);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
+
+    li {
+      padding: 0.3rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--leather);
+
+      &.active,
+      &:hover {
+        background: color-mix(in srgb, var(--gold) 30%, transparent);
+      }
+
+      &.empty {
+        cursor: default;
+        color: #5a3d36;
+      }
+    }
+  }
+}
+
+input {
+  min-width: 0;
+  color: var(--leather);
+  background: #fffdf8;
+  border: 1px solid var(--leather-line);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+
+  &:focus-visible {
+    outline: 3px solid var(--gold);
+  }
+}
+
+.error {
+  margin: 0;
+  color: #ff6b6b;
+  font-size: 0.9rem;
+}
+
+.side {
+  display: flex;
+  gap: 0.8rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 0.75rem;
+
+  legend {
+    padding: 0;
+    margin-bottom: 0.2rem;
+  }
+
+  .choice {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+  }
+
+  input {
+    accent-color: var(--gold);
+  }
+}

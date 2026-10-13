@@ -1,6 +1,6 @@
-import { Service, computed, signal } from '@angular/core';
-import { creatureType } from './creature-types';
-import { Statblock } from './statblock';
+import { Service, computed, inject, signal } from '@angular/core';
+import { CreatureService } from './creature.service';
+import type { Statblock } from '../models/statblock';
 
 export type Side = 'player' | 'enemy';
 
@@ -32,6 +32,7 @@ export class InitiativeService {
   /** Highest initiative first. The sort is stable, so ties keep the order they were added in. */
   readonly ordered = computed(() => [...this.combatants()].sort((a, b) => b.initiative - a.initiative));
 
+  private readonly creatures = inject(CreatureService);
   private channel?: BroadcastChannel;
 
   startHost(): void {
@@ -66,7 +67,7 @@ export class InitiativeService {
 
   /** Maximum hit points from the (possibly edited) statblock. 0 when no hit points are filled in. */
   maxHp(combatant: Combatant): number {
-    return combatant.stats?.hitPoints ?? creatureType(combatant.type)?.statblock.hitPoints ?? 0;
+    return combatant.stats?.hitPoints ?? this.creatures.findById(combatant.type)?.statblock.hitPoints ?? 0;
   }
 
   currentHp(combatant: Combatant): number {

@@ -1,0 +1,94 @@
+<li
+  [class.player]="combatant().side === 'player'"
+  [class.active]="active()"
+  [attr.aria-current]="active() ? 'step' : null"
+>
+  @if (combatant().side === 'enemy') {
+    <button
+      type="button"
+      class="identity"
+      [attr.aria-label]="'Show statblock: ' + combatant().name"
+      title="Show statblock"
+      (click)="showStatblock.emit(combatant())"
+    >
+      <ng-container *ngTemplateOutlet="identity" />
+    </button>
+  } @else {
+    <div class="identity">
+      <ng-container *ngTemplateOutlet="identity" />
+    </div>
+  }
+  <button
+    type="button"
+    class="icon-button"
+    [attr.aria-label]="'Set turn: ' + combatant().name"
+    title="Make it their turn"
+    (click)="setActive()"
+  >
+    <span class="material-symbols-outlined" aria-hidden="true">play_arrow</span>
+  </button>
+  <button
+    type="button"
+    class="icon-button danger"
+    [attr.aria-label]="'Remove ' + combatant().name"
+    title="Remove"
+    (click)="remove()"
+  >
+    <span class="material-symbols-outlined" aria-hidden="true">close</span>
+  </button>
+  @if (combatant().side === 'enemy') {
+    @if (maxHp() > 0) {
+      <div class="hp">
+        @if (editingHp()) {
+          <label class="hp-edit">
+            HP
+            <input
+              #hpInput
+              type="number"
+              inputmode="numeric"
+              min="0"
+              [max]="maxHp()"
+              step="1"
+              [value]="hp()"
+              [attr.aria-label]="'Hit points of ' + combatant().name"
+              (keydown.enter)="commitHp(hpInput.value)"
+              (keydown.escape)="editingHp.set(false)"
+              (blur)="commitHp(hpInput.value)"
+            />
+            / {{ maxHp() }}
+          </label>
+        } @else {
+          <button
+            type="button"
+            class="hp-text"
+            [attr.aria-label]="'Edit hit points of ' + combatant().name"
+            title="Click to edit hit points"
+            (click)="editHp()"
+          >
+            HP {{ hp() }} / {{ maxHp() }}
+          </button>
+        }
+        <span
+          class="hp-bar"
+          role="progressbar"
+          aria-valuemin="0"
+          [attr.aria-valuemax]="maxHp()"
+          [attr.aria-valuenow]="hp()"
+          [attr.aria-label]="'Hit points of ' + combatant().name"
+        >
+          <span class="hp-fill" [style.width.%]="(hp() / maxHp()) * 100"></span>
+        </span>
+      </div>
+    } @else {
+      <p class="hp-hint">Fill in hit points in the statblock to track HP.</p>
+    }
+  }
+</li>
+
+<ng-template #identity>
+  <span class="score" aria-label="Initiative">{{ combatant().initiative }}</span>
+  <span class="who">
+    <span class="name">{{ combatant().name }}</span>
+    <span class="kind">{{ sideLabel() }} - {{ typeLabel() }}</span>
+  </span>
+</ng-template>

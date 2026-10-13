@@ -1,0 +1,61 @@
+<div class="map-upload-backdrop">
+  <form
+    class="map-upload-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="map-upload-title"
+    (submit)="$event.preventDefault(); submitted.emit()"
+  >
+    <h2 id="map-upload-title">Add Map</h2>
+    <label for="map-title">Map title</label>
+    <input
+      id="map-title"
+      class="map-title-input"
+      type="text"
+      required
+      maxlength="80"
+      [value]="title()"
+      (input)="updateTitle($event)"
+    />
+    <fieldset class="map-icon-options">
+      <legend>Choose an icon</legend>
+      <label [class.selected]="icon() === 'castle'">
+        <input
+          type="radio"
+          name="map-icon"
+          value="castle"
+          [checked]="icon() === 'castle'"
+          (change)="iconSelected.emit('castle')"
+        />
+        <span class="material-symbols-outlined" aria-hidden="true">castle</span>
+        Castle
+      </label>
+      <label [class.selected]="icon() === 'forest'">
+        <input
+          type="radio"
+          name="map-icon"
+          value="forest"
+          [checked]="icon() === 'forest'"
+          (change)="iconSelected.emit('forest')"
+        />
+        <span class="material-symbols-outlined" aria-hidden="true">forest</span>
+        Forest
+      </label>
+      <label [class.selected]="icon() === 'city'">
+        <input
+          type="radio"
+          name="map-icon"
+          value="city"
+          [checked]="icon() === 'city'"
+          (change)="iconSelected.emit('city')"
+        />
+        <span class="material-symbols-outlined" aria-hidden="true">location_city</span>
+        City
+      </label>
+    </fieldset>
+    <div class="map-upload-actions">
+      <button type="button" (click)="cancelled.emit()">Cancel</button>
+      <button type="submit" class="primary">Add map</button>
+    </div>
+  </form>
+</div>

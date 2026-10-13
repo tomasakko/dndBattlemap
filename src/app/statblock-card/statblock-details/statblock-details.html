@@ -1,0 +1,61 @@
+@let s = stats();
+<dl class="basics">
+  <div>
+    <dt>Armor Class</dt>
+    <dd>{{ s.armorClass || '-' }}{{ s.armorNote ? ' (' + s.armorNote + ')' : '' }}</dd>
+  </div>
+  <div>
+    <dt>Hit Points</dt>
+    <dd>{{ s.hitPoints || '-' }}{{ s.hitDice ? ' (' + s.hitDice + ')' : '' }}</dd>
+  </div>
+  @for (speed of speeds(); track speed.label) {
+    <div>
+      <dt>{{ speed.label }}</dt>
+      <dd>{{ speed.value }}</dd>
+    </div>
+  } @empty {
+    <div>
+      <dt>Speed</dt>
+      <dd>-</dd>
+    </div>
+  }
+</dl>
+<table class="abilities-table">
+  <thead>
+    <tr>
+      @for (ability of abilities; track ability) {
+        <th scope="col">{{ ability.toUpperCase() }}</th>
+      }
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      @for (ability of abilities; track ability) {
+        <td>{{ s.abilities[ability] }} ({{ modifier(s.abilities[ability]) }})</td>
+      }
+    </tr>
+  </tbody>
+</table>
+<dl class="basics">
+  <div>
+    <dt>Skills</dt>
+    <dd>{{ s.skills || '-' }}</dd>
+  </div>
+  <div>
+    <dt>Senses</dt>
+    <dd>{{ s.senses || '-' }}</dd>
+  </div>
+  <div>
+    <dt>Languages</dt>
+    <dd>{{ s.languages || '-' }}</dd>
+  </div>
+</dl>
+@for (section of sections(); track section.key) {
+  <app-statblock-entries [title]="section.title" [entries]="s[section.key]" />
+}
+<footer>
+  <button type="button" class="primary" (click)="edit.emit()">Edit stats</button>
+  @if (customised()) {
+    <button type="button" (click)="reset.emit()">Reset to standard</button>
+  }
+</footer>

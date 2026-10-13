@@ -1,12 +1,13 @@
-import { DOCUMENT, NgOptimizedImage } from '@angular/common';
+import { DOCUMENT } from '@angular/common';
 import { Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, signal, viewChild } from '@angular/core';
-import { BattlemapService, viewBoxFor, viewRect } from '../battlemap.service';
-import { creatureType } from '../creature-types';
-import { InitiativeService } from '../initiative.service';
+import { BattlemapService, viewBoxFor, viewRect } from '../services/battlemap.service';
+import { InitiativeService } from '../services/initiative.service';
+import { CreatureService } from '../services/creature.service';
+import { PlayerInitiativeBar } from './player-initiative-bar/player-initiative-bar';
 
 @Component({
   selector: 'app-player-screen',
-  imports: [NgOptimizedImage],
+  imports: [PlayerInitiativeBar],
   templateUrl: './player-screen.html',
   styleUrl: './player-screen.css',
   host: {
@@ -19,6 +20,7 @@ export class PlayerScreen {
   private readonly document = inject(DOCUMENT);
   private readonly battlemap = inject(BattlemapService);
   private readonly initiative = inject(InitiativeService);
+  private readonly creatures = inject(CreatureService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
   private readonly stage = viewChild<ElementRef<HTMLElement>>('stage');
@@ -40,7 +42,7 @@ export class PlayerScreen {
     this.initiative.ordered().map((c) => ({
       id: c.id,
       name: c.name,
-      image: creatureType(c.type)?.image,
+      image: this.creatures.findById(c.type)?.image,
       player: c.side === 'player',
       active: c.id === this.initiative.activeId(),
       down: c.down === true,

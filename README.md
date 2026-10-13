@@ -44,6 +44,10 @@ To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use th
 ng test
 ```
 
+## Application structure
+
+Domain services live in `src/app/services/`. Creature defaults are stored as JSON in `src/assets/creatures/` and accessed through `CreatureService`, keeping the data source centralized for a future API integration.
+
 ## Running end-to-end tests
 
 For end-to-end (e2e) testing, run:

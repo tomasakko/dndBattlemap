@@ -1,0 +1,64 @@
+@let s = stats();
+<div class="grid">
+  <label
+    >Statblock name <input type="text" [value]="s.name" (input)="emitText('name', $event)"
+  /></label>
+  <label>Size <input type="text" [value]="s.size" (input)="emitText('size', $event)" /></label>
+  <label>Type <input type="text" [value]="s.type" (input)="emitText('type', $event)" /></label>
+  <label
+    >Alignment <input type="text" [value]="s.alignment" (input)="emitText('alignment', $event)"
+  /></label>
+  <label
+    >Armor class
+    <input type="number" [value]="s.armorClass" (input)="emitNumber('armorClass', $event)"
+  /></label>
+  <label
+    >Armor note <input type="text" [value]="s.armorNote" (input)="emitText('armorNote', $event)"
+  /></label>
+  <label
+    >Hit points
+    <input type="number" [value]="s.hitPoints" (input)="emitNumber('hitPoints', $event)"
+  /></label>
+  <label
+    >Hit dice <input type="text" [value]="s.hitDice" (input)="emitText('hitDice', $event)"
+  /></label>
+  @for (movement of movements; track movement) {
+    <label
+      >{{ movementLabel(movement) }}
+      <input type="text" [value]="s.speed[movement]" (input)="emitSpeed(movement, $event)"
+    /></label>
+  }
+</div>
+<div class="abilities">
+  @for (ability of abilities; track ability) {
+    <label>
+      {{ ability.toUpperCase() }}
+      <input type="number" [value]="s.abilities[ability]" (input)="emitAbility(ability, $event)" />
+    </label>
+  }
+</div>
+<div class="grid">
+  <label
+    >Skills <input type="text" [value]="s.skills" (input)="emitText('skills', $event)"
+  /></label>
+  <label
+    >Senses <input type="text" [value]="s.senses" (input)="emitText('senses', $event)"
+  /></label>
+  <label
+    >Languages <input type="text" [value]="s.languages" (input)="emitText('languages', $event)"
+  /></label>
+</div>
+@for (section of sections(); track section.key) {
+  <app-statblock-entries
+    [title]="section.title"
+    [entries]="s[section.key]"
+    [editing]="true"
+    (entryChanged)="updateEntry(section.key, $event)"
+    (entryAdded)="entryAdded.emit(section.key)"
+    (entryRemoved)="entryRemoved.emit({ key: section.key, index: $event })"
+  />
+}
+<footer>
+  <button type="button" class="primary" (click)="saved.emit()">Save</button>
+  <button type="button" (click)="cancelled.emit()">Cancel</button>
+</footer>

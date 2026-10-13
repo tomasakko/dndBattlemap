@@ -19,6 +19,8 @@ export interface MapImage {
   height: number;
 }
 
+export type MapIcon = 'castle' | 'forest' | 'city';
+
 /** Zoom factor (1 = whole map) and the map coordinate shown at the centre of the screen. */
 export interface View {
   zoom: number;
@@ -29,6 +31,7 @@ export interface View {
 export interface MapEntry {
   id: string;
   name: string;
+  icon: MapIcon;
   map: MapImage;
   rooms: Room[];
   view: View;
@@ -141,13 +144,14 @@ export class BattlemapService {
     this.post({ type: 'request' });
   }
 
-  async addMap(file: File): Promise<void> {
+  async addMap(file: File, name: string, icon: MapIcon): Promise<void> {
     const url = await readAsDataUrl(file);
     const { width, height } = await measure(url);
     this.syncCurrent();
     const entry: MapEntry = {
       id: crypto.randomUUID(),
-      name: file.name.replace(/\.[^.]+$/, '') || 'Map',
+      name,
+      icon,
       map: { url, width, height },
       rooms: [],
       view: { zoom: 1, cx: width / 2, cy: height / 2 },
@@ -363,7 +367,7 @@ export class BattlemapService {
         view?: View;
         shared?: boolean;
       };
-      let maps = saved.maps ?? [];
+      let maps = (saved.maps ?? []).map((entry) => ({ ...entry, icon: entry.icon ?? 'castle' as MapIcon }));
       let sharedId = saved.sharedId ?? null;
       if (!saved.maps && saved.map) {
         const id = crypto.randomUUID();
@@ -371,6 +375,7 @@ export class BattlemapService {
           {
             id,
             name: 'Map 1',
+            icon: 'castle',
             map: saved.map,
             rooms: saved.rooms ?? [],
             view: saved.view ?? { zoom: 1, cx: saved.map.width / 2, cy: saved.map.height / 2 },

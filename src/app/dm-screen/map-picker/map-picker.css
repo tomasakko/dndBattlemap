@@ -1,0 +1,105 @@
+:host {
+  display: block;
+  color: var(--leather);
+}
+
+details {
+  background: var(--parchment);
+  border: 1px solid var(--leather-line);
+  border-radius: 6px;
+  box-shadow: 0 4px 18px rgb(0 0 0 / 45%);
+}
+
+summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0 0.65rem;
+  list-style: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+}
+
+.map-name {
+  overflow: hidden;
+  flex: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expand {
+  margin-left: auto;
+}
+
+.map-options {
+  max-height: 50vh;
+  overflow: auto;
+  border-top: 1px solid var(--leather-line);
+}
+
+.map-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  border-bottom: 1px solid rgb(90 61 54 / 25%);
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 0.45rem 0.65rem;
+    color: var(--leather);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    text-align: left;
+
+    &:first-child {
+      flex: 1;
+    }
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--gold) 25%, transparent);
+    }
+  }
+
+  &.current button:first-child {
+    background: color-mix(in srgb, var(--gold) 25%, transparent);
+  }
+
+  .map-remove {
+    padding-inline: 0.45rem;
+  }
+}
+
+.no-maps,
+.map-note {
+  margin: 0;
+  padding: 0.6rem;
+  font-size: 0.8rem;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

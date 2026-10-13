@@ -1,0 +1,33 @@
+<h3>{{ title() }}</h3>
+@if (editing()) {
+  @for (entry of entries(); track $index) {
+    <div class="entry-edit">
+      <input
+        type="text"
+        [attr.aria-label]="title() + ' name'"
+        placeholder="Name"
+        [value]="entry.name"
+        (input)="updateEntry($index, 'name', $event)"
+      />
+      <textarea
+        rows="3"
+        [attr.aria-label]="title() + ' description'"
+        placeholder="Description"
+        [value]="entry.description"
+        (input)="updateEntry($index, 'description', $event)"
+      ></textarea>
+      <button type="button" class="danger" (click)="entryRemoved.emit($index)">Remove</button>
+    </div>
+  }
+  <button type="button" (click)="entryAdded.emit()">
+    Add {{ title().toLowerCase().slice(0, -1) }}
+  </button>
+} @else {
+  @for (entry of entries(); track $index) {
+    <p class="entry">
+      <strong>{{ entry.name }}.</strong> {{ entry.description }}
+    </p>
+  } @empty {
+    <p class="empty">None listed.</p>
+  }
+}

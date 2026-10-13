@@ -1,0 +1,47 @@
+<nav aria-label="Maps">
+  <details #dropdown>
+    <summary>
+      @if (currentIcon(); as icon) {
+        <span class="material-symbols-outlined" aria-hidden="true">{{ icon }}</span>
+      }
+      <span class="map-name">{{ currentName() }}</span>
+      <span class="material-symbols-outlined expand" aria-hidden="true">expand_more</span>
+    </summary>
+    <div class="map-options">
+      @for (entry of maps(); track entry.id) {
+        <div class="map-option" [class.current]="entry.id === currentId()">
+          <button
+            type="button"
+            [attr.aria-current]="entry.id === currentId() ? 'true' : null"
+            [disabled]="locked() && entry.id !== currentId()"
+            (click)="selected.emit(entry.id)"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">{{
+              iconName(entry.icon)
+            }}</span>
+            {{ entry.name }}
+            @if (entry.id === sharedId()) {
+              <span class="material-symbols-outlined" role="img" aria-label="Shown to players"
+                >visibility</span
+              >
+            }
+          </button>
+          <button
+            type="button"
+            class="map-remove"
+            [attr.aria-label]="'Remove map ' + entry.name"
+            [disabled]="locked()"
+            (click)="removed.emit({ id: entry.id, name: entry.name })"
+          >
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </div>
+      } @empty {
+        <p class="no-maps">No maps uploaded</p>
+      }
+      @if (locked()) {
+        <p class="map-note">End combat to switch maps.</p>
+      }
+    </div>
+  </details>
+</nav>
