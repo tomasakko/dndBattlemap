@@ -22,7 +22,10 @@ export class MapPicker {
   readonly removed = output<{ id: string; name: string }>();
 
   protected iconName(icon: MapIcon): string {
-    return icon === 'city' ? 'location_city' : icon;
+    if (icon === 'city') {
+      return 'location_city';
+    }
+    return icon === 'cave' ? 'landscape' : icon;
   }
 
   protected closeOnOutsideClick(event: MouseEvent): void {

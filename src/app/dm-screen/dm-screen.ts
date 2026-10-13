@@ -71,7 +71,10 @@ export class DmScreen {
   protected readonly pendingMapFile = signal<File | null>(null);
   protected readonly currentMapIcon = computed(() => {
     const icon = this.maps().find((entry) => entry.id === this.currentId())?.icon;
-    return icon === 'city' ? 'location_city' : (icon ?? null);
+    if (icon === 'city') {
+      return 'location_city';
+    }
+    return icon === 'cave' ? 'landscape' : (icon ?? null);
   });
   protected readonly mapTitle = signal('');
   protected readonly mapIcon = signal<MapIcon>('castle');

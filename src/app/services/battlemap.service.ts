@@ -19,7 +19,7 @@ export interface MapImage {
   height: number;
 }
 
-export type MapIcon = 'castle' | 'forest' | 'city';
+export type MapIcon = 'castle' | 'forest' | 'city' | 'cave';
 
 /** Zoom factor (1 = whole map) and the map coordinate shown at the centre of the screen. */
 export interface View {

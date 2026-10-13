@@ -52,6 +52,17 @@
         <span class="material-symbols-outlined" aria-hidden="true">location_city</span>
         City
       </label>
+      <label [class.selected]="icon() === 'cave'">
+        <input
+          type="radio"
+          name="map-icon"
+          value="cave"
+          [checked]="icon() === 'cave'"
+          (change)="iconSelected.emit('cave')"
+        />
+        <span class="material-symbols-outlined" aria-hidden="true">landscape</span>
+        Cave
+      </label>
     </fieldset>
     <div class="map-upload-actions">
       <button type="button" (click)="cancelled.emit()">Cancel</button>
