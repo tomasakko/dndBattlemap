@@ -65,6 +65,7 @@ export class DmScreen {
 
   protected readonly panelWidth = signal(320);
   protected readonly shared = this.battlemap.shared;
+  protected readonly initiativeShared = this.initiative.shared;
   protected readonly maps = this.battlemap.maps;
   protected readonly currentId = this.battlemap.currentId;
   protected readonly currentMapName = computed(() => this.maps().find((entry) => entry.id === this.currentId())?.name ?? 'Choose Map');
@@ -84,6 +85,9 @@ export class DmScreen {
     this.shared() ? 'Hide map from players' : this.sharedId() ? 'Show this map to players' : 'Share map with players',
   );
   protected readonly shareDisabled = computed(() => !this.map() || (!this.shared() && !this.battlemap.canShare()));
+  protected readonly initiativeShareLabel = computed(() =>
+    this.initiativeShared() ? 'Hide initiative tracker from players' : 'Show initiative tracker to players',
+  );
   protected readonly resizing = signal(false);
   protected readonly initiativeWidth = signal(280);
   protected readonly resizingInitiative = signal(false);
@@ -317,10 +321,61 @@ export class DmScreen {
       case 'reset':
         this.resetView();
         break;
+      case 'save':
+        this.saveToFile();
+        break;
+      case 'load':
+        this.loadInput()?.nativeElement.click();
+        break;
+      case 'initiative-share':
+        this.battlemap.setInitiativeShared(!this.initiativeShared());
+        break;
       case 'initiative':
       case 'area':
         this.togglePanel(action);
         break;
+    }
+  }
+
+  private readonly loadInput = viewChild<ElementRef<HTMLInputElement>>('loadInput');
+
+  private saveToFile(): void {
+    const data = { app: 'dnd-battlemap', version: 2, battlemap: this.battlemap.exportState() };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'battlemap-save.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  protected async onLoadFile(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || !confirm('Loading "' + file.name + '" replaces all current maps and the initiative. Continue?')) {
+      return;
+    }
+    try {
+      const data = JSON.parse(await file.text());
+      if (!data?.battlemap) {
+        throw new Error('Not a battlemap save file');
+      }
+      if (!Array.isArray(data.battlemap.maps)) {
+        throw new Error('Not a battlemap save file');
+      }
+      // Migrate files from the previous format, where initiative was global.
+      if (data.initiative && data.battlemap.currentId) {
+        const current = data.battlemap.maps.find((map: { id: string }) => map.id === data.battlemap.currentId);
+        if (current && !current.initiative) {
+          current.initiative = data.initiative;
+        }
+      }
+      this.cancelDraft();
+      this.battlemap.importState(data.battlemap);
+      this.fitDmView();
+    } catch (error) {
+      alert('Could not load file: ' + (error instanceof Error ? error.message : 'invalid file'));
     }
   }
 

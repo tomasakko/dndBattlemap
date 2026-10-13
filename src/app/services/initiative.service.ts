@@ -18,25 +18,32 @@ export interface Combatant {
   down?: boolean;
 }
 
-type Message = { type: 'request' } | { type: 'state'; combatants: Combatant[]; activeId: string | null };
+export interface InitiativeState {
+  combatants: Combatant[];
+  activeId: string | null;
+}
+
+type Message =
+  | { type: 'request' }
+  | { type: 'state'; combatants: Combatant[]; activeId: string | null; shared: boolean };
 
 const CHANNEL_NAME = 'dnd-initiative';
-const STORAGE_KEY = 'dnd-initiative';
 
 /** Initiative order. Same host/viewer split as the battlemap: the DM screen owns it, the player screen mirrors it. */
 @Service()
 export class InitiativeService {
   readonly combatants = signal<Combatant[]>([]);
   readonly activeId = signal<string | null>(null);
+  readonly shared = signal(false);
 
   /** Highest initiative first. The sort is stable, so ties keep the order they were added in. */
   readonly ordered = computed(() => [...this.combatants()].sort((a, b) => b.initiative - a.initiative));
 
   private readonly creatures = inject(CreatureService);
   private channel?: BroadcastChannel;
+  private onChange?: () => void;
 
   startHost(): void {
-    this.restore();
     this.open((message) => {
       if (message.type === 'request') {
         this.broadcast();
@@ -49,9 +56,19 @@ export class InitiativeService {
       if (message.type === 'state') {
         this.combatants.set(message.combatants);
         this.activeId.set(message.activeId);
+        this.shared.set(message.shared);
       }
     });
     this.channel?.postMessage({ type: 'request' } satisfies Message);
+  }
+
+  setChangeHandler(handler: () => void): void {
+    this.onChange = handler;
+  }
+
+  setShared(shared: boolean): void {
+    this.shared.set(shared);
+    this.commit();
   }
 
   add(name: string, initiative: number, type: string, side: Side): void {
@@ -133,29 +150,42 @@ export class InitiativeService {
     return order[(index + direction + order.length) % order.length].id;
   }
 
-  private commit(): void {
-    this.broadcast();
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ combatants: this.combatants(), activeId: this.activeId() }),
-      );
-    } catch {
-      // Storage unavailable; live sync still works.
-    }
+  /** The initiative order and custom combatants as saved to a file. */
+  exportState(): InitiativeState {
+    return { combatants: this.combatants(), activeId: this.activeId() };
   }
 
-  private restore(): void {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const saved = JSON.parse(raw) as { combatants: Combatant[]; activeId: string | null };
-        this.combatants.set(saved.combatants.map((c) => ({ ...c, side: c.side ?? 'enemy' })));
-        this.activeId.set(saved.activeId);
-      }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
+  /** Replaces the initiative with the given saved state. Throws if it isn't valid. */
+  importState(saved: unknown, shared = false): void {
+    const data = saved as { combatants?: unknown; activeId?: unknown } | null;
+    if (!data || !Array.isArray(data.combatants)) {
+      throw new Error('No initiative in file');
     }
+    const combatants = (data.combatants as Combatant[]).map((c) => {
+      if (!c || typeof c.id !== 'string' || typeof c.name !== 'string' || typeof c.initiative !== 'number') {
+        throw new Error('Invalid combatant data');
+      }
+      return { ...c, side: c.side ?? 'enemy' };
+    });
+    this.combatants.set(combatants);
+    this.activeId.set(combatants.some((c) => c.id === data.activeId) ? (data.activeId as string) : null);
+    this.shared.set(shared);
+    this.commit();
+  }
+
+  loadState(saved: InitiativeState | undefined, shared: boolean): void {
+    this.combatants.set(saved?.combatants ?? []);
+    this.activeId.set(saved?.activeId ?? null);
+    this.shared.set(shared);
+  }
+
+  publish(): void {
+    this.broadcast();
+  }
+
+  private commit(): void {
+    this.broadcast();
+    this.onChange?.();
   }
 
   private broadcast(): void {
@@ -166,6 +196,7 @@ export class InitiativeService {
         down: this.maxHp(rest) > 0 && this.currentHp({ ...rest, hp: _hp, stats: _stats }) === 0,
       })),
       activeId: this.activeId(),
+      shared: this.shared(),
     } satisfies Message);
   }
 

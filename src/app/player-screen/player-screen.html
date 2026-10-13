@@ -1,4 +1,6 @@
-<app-player-initiative-bar [turns]="turnOrder()" />
+@if (initiative.shared() && map()) {
+  <app-player-initiative-bar [turns]="turnOrder()" />
+}
 
 <div class="stage" #stage>
 @if (map(); as m) {

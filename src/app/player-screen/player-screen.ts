@@ -19,7 +19,7 @@ import { PlayerInitiativeBar } from './player-initiative-bar/player-initiative-b
 export class PlayerScreen {
   private readonly document = inject(DOCUMENT);
   private readonly battlemap = inject(BattlemapService);
-  private readonly initiative = inject(InitiativeService);
+  protected readonly initiative = inject(InitiativeService);
   private readonly creatures = inject(CreatureService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);

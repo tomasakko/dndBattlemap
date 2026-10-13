@@ -1,5 +1,6 @@
 import { Service, computed, inject, signal } from '@angular/core';
 import { InitiativeService } from './initiative.service';
+import type { InitiativeState } from './initiative.service';
 
 export interface Point {
   x: number;
@@ -35,6 +36,8 @@ export interface MapEntry {
   map: MapImage;
   rooms: Room[];
   view: View;
+  initiative?: InitiativeState;
+  initiativeShared?: boolean;
 }
 
 export const MIN_ZOOM = 1;
@@ -108,6 +111,7 @@ export class BattlemapService {
   private persistTimer?: ReturnType<typeof setTimeout>;
 
   startHost(): void {
+    this.initiative.setChangeHandler(() => this.persist());
     this.restore();
     this.open((message) => {
       if (message.type === 'request') {
@@ -201,6 +205,15 @@ export class BattlemapService {
     }
     this.sharedId.set(shared ? this.currentId() : null);
     this.broadcastAll();
+    this.initiative.publish();
+    this.persist();
+  }
+
+  setInitiativeShared(shared: boolean): void {
+    if (!this.currentId()) {
+      return;
+    }
+    this.initiative.setShared(shared);
     this.persist();
   }
 
@@ -277,6 +290,7 @@ export class BattlemapService {
     this.map.set(entry?.map ?? null);
     this.rooms.set(entry?.rooms ?? []);
     this.view.set(entry?.view ?? { zoom: 1, cx: 0, cy: 0 });
+    this.initiative.loadState(entry?.initiative, entry?.initiativeShared ?? false);
   }
 
   /** Copies the working copy back into the current map's entry. */
@@ -284,7 +298,20 @@ export class BattlemapService {
     const id = this.currentId();
     const map = this.map();
     if (id && map) {
-      this.maps.update((maps) => maps.map((m) => (m.id === id ? { ...m, map, rooms: this.rooms(), view: this.view() } : m)));
+      this.maps.update((maps) =>
+        maps.map((m) =>
+          m.id === id
+            ? {
+                ...m,
+                map,
+                rooms: this.rooms(),
+                view: this.view(),
+                initiative: this.initiative.exportState(),
+                initiativeShared: this.initiative.shared(),
+              }
+            : m,
+        ),
+      );
     }
   }
 
@@ -357,17 +384,46 @@ export class BattlemapService {
       if (!raw) {
         return;
       }
-      const saved = JSON.parse(raw) as {
-        maps?: MapEntry[];
-        currentId?: string | null;
-        sharedId?: string | null;
-        // Single-map format from before maps could be switched.
-        map?: MapImage | null;
-        rooms?: Room[];
-        view?: View;
-        shared?: boolean;
-      };
-      let maps = (saved.maps ?? []).map((entry) => ({ ...entry, icon: entry.icon ?? 'castle' as MapIcon }));
+      this.apply(JSON.parse(raw));
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+
+  /** The maps (name, icon, image, shapes, view) as saved to a file. */
+  exportState(): { maps: MapEntry[]; currentId: string | null; sharedId: string | null } {
+    this.syncCurrent();
+    return { maps: this.maps(), currentId: this.currentId(), sharedId: this.sharedId() };
+  }
+
+  /** Replaces all maps with the given saved state. Throws if it isn't valid. */
+  importState(saved: unknown): void {
+    const data = saved as { maps?: unknown } | null;
+    if (!data || !Array.isArray(data.maps)) {
+      throw new Error('No maps in file');
+    }
+    const valid = data.maps.every(
+      (m) =>
+        m && typeof m.id === 'string' && typeof m.name === 'string' && Array.isArray(m.rooms) &&
+        m.map && typeof m.map.url === 'string' && m.map.width > 0 && m.map.height > 0,
+    );
+    if (!valid) {
+      throw new Error('Invalid map data');
+    }
+    this.apply(saved as SavedState);
+    this.broadcastAll();
+    this.initiative.publish();
+    this.persist();
+  }
+
+  private apply(saved: SavedState): void {
+    {
+      let maps = (saved.maps ?? []).map((entry) => ({
+        ...entry,
+        icon: entry.icon ?? ('castle' as MapIcon),
+        view: entry.view ?? { zoom: 1, cx: entry.map.width / 2, cy: entry.map.height / 2 },
+        initiativeShared: entry.initiativeShared ?? false,
+      }));
       let sharedId = saved.sharedId ?? null;
       if (!saved.maps && saved.map) {
         const id = crypto.randomUUID();
@@ -379,6 +435,7 @@ export class BattlemapService {
             map: saved.map,
             rooms: saved.rooms ?? [],
             view: saved.view ?? { zoom: 1, cx: saved.map.width / 2, cy: saved.map.height / 2 },
+            initiativeShared: false,
           },
         ];
         sharedId = saved.shared ? id : null;
@@ -387,11 +444,21 @@ export class BattlemapService {
       this.maps.set(maps);
       this.sharedId.set(maps.some((m) => m.id === sharedId) ? sharedId : null);
       this.load(current && { ...current, view: clampView(current.map, current.view, this.playerAspect()) });
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
     }
   }
 }
+
+interface SavedState {
+  maps?: MapEntry[];
+  currentId?: string | null;
+  sharedId?: string | null;
+  // Single-map format from before maps could be switched.
+  map?: MapImage | null;
+  rooms?: Room[];
+  view?: View;
+  shared?: boolean;
+}
+
 function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

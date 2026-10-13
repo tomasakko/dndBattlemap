@@ -50,6 +50,35 @@
     <button
       type="button"
       class="icon-button"
+      aria-label="Save maps and initiative to file"
+      (click)="action.emit('save')"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">download</span>
+    </button>
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Load maps and initiative from file"
+      (click)="action.emit('load')"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">upload_file</span>
+    </button>
+    <button
+      type="button"
+      class="icon-button"
+      [class.on]="initiativeShared()"
+      [attr.aria-pressed]="initiativeShared()"
+      [attr.aria-label]="initiativeShareLabel()"
+      [disabled]="!hasMap()"
+      (click)="action.emit('initiative-share')"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">{{
+        initiativeShared() ? 'list_alt' : 'list'
+      }}</span>
+    </button>
+    <button
+      type="button"
+      class="icon-button"
       [class.on]="panels().initiative.visible"
       [attr.aria-pressed]="panels().initiative.visible"
       [attr.aria-label]="

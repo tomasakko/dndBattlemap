@@ -171,6 +171,7 @@
       />
     }
 
+  <input #loadInput type="file" accept=".json,application/json" hidden (change)="onLoadFile($event)" />
   <app-control-dock
     [panelOrder]="panelOrder()"
     [panels]="panels()"
@@ -179,6 +180,8 @@
     [shareDisabled]="shareDisabled()"
     [shareLabel]="shareLabel()"
     [hasMap]="!!map()"
+    [initiativeShared]="initiativeShared()"
+    [initiativeShareLabel]="initiativeShareLabel()"
     [rooms]="rooms()"
     [revealedCount]="revealedCount()"
     (action)="onDockAction($event)"

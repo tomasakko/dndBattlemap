@@ -13,7 +13,7 @@ export interface PanelState {
   z: number;
 }
 
-export type DockAction = 'share' | 'fit' | 'reset' | PanelId;
+export type DockAction = 'share' | 'fit' | 'reset' | 'save' | 'load' | 'initiative-share' | PanelId;
 
 @Component({
   selector: 'app-control-dock',
@@ -31,6 +31,8 @@ export class ControlDock {
   readonly rooms = input.required<Room[]>();
   readonly revealedCount = input.required<number>();
   readonly hasMap = input.required<boolean>();
+  readonly initiativeShared = input.required<boolean>();
+  readonly initiativeShareLabel = input.required<string>();
 
   readonly action = output<DockAction>();
   readonly showTip = output<Event>();
