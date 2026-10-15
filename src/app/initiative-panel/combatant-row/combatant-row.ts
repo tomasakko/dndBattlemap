@@ -53,7 +53,7 @@ export class CombatantRow {
 
   protected typeLabel(): string {
     const type = this.combatant().type;
-    return this.creatures.findById(type)?.label ?? type;
+    return (this.creatures.findById(type)?.label ?? type) || 'Character';
   }
 
   protected setActive(): void {

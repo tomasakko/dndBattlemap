@@ -1,0 +1,70 @@
+<p class="hint">Save player characters here, then enter their initiative score when adding them to the current order.</p>
+
+<form class="add-player" (ngSubmit)="addPlayer()">
+  <label>
+    Player name
+    <input
+      type="text"
+      maxlength="80"
+      autocomplete="off"
+      [value]="name()"
+      (input)="setName($event)"
+      required
+    />
+  </label>
+  <button type="submit" class="primary">
+    <span class="material-symbols-outlined" aria-hidden="true">person_add</span>
+    Save player
+  </button>
+</form>
+
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}
+
+<div class="players-header" aria-hidden="true">
+  <span>Player</span>
+  <span>Initiative</span>
+  <span></span>
+  <span></span>
+</div>
+<ul class="players">
+  @for (player of players(); track player.id) {
+    <li>
+      <strong class="name">{{ player.name }}</strong>
+      <label class="score">
+        <input
+          type="number"
+          inputmode="numeric"
+          step="1"
+          [value]="initiativeValues()[player.id] ?? ''"
+          [attr.aria-label]="'Initiative score for ' + player.name"
+          (input)="setInitiative(player.id, $event)"
+        />
+      </label>
+      <button
+        type="button"
+        class="add-to-order"
+        [disabled]="isInInitiative(player.id)"
+        (click)="addToInitiative(player)"
+      >
+        @if (isInInitiative(player.id)) {
+          In order
+        } @else {
+          Add to order
+        }
+      </button>
+      <button
+        type="button"
+        class="remove"
+        [attr.aria-label]="'Remove ' + player.name + ' from saved players'"
+        title="Remove saved player"
+        (click)="removePlayer(player.id)"
+      >
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    </li>
+  } @empty {
+    <li class="empty">No saved players yet.</li>
+  }
+</ul>

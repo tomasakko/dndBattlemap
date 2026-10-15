@@ -2,9 +2,10 @@ import { Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { InitiativePanel } from '../../initiative-panel/initiative-panel';
 import type { Room } from '../../services/battlemap.service';
+import { PlayerRoster } from '../../player-roster/player-roster';
 import { AreaEditor } from '../area-editor/area-editor';
 
-export type PanelId = 'initiative' | 'area';
+export type PanelId = 'initiative' | 'area' | 'players';
 export interface PanelState {
   visible: boolean;
   floating: boolean;
@@ -17,7 +18,7 @@ export type DockAction = 'share' | 'fit' | 'reset' | 'save' | 'load' | 'initiati
 
 @Component({
   selector: 'app-control-dock',
-  imports: [RouterLink, InitiativePanel, AreaEditor],
+  imports: [RouterLink, InitiativePanel, AreaEditor, PlayerRoster],
   templateUrl: './control-dock.html',
   styleUrl: './control-dock.css',
 })

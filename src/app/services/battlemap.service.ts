@@ -40,6 +40,11 @@ export interface MapEntry {
   initiativeShared?: boolean;
 }
 
+export interface PlayerPreset {
+  id: string;
+  name: string;
+}
+
 export const MIN_ZOOM = 1;
 export const MAX_ZOOM = 10;
 
@@ -99,6 +104,8 @@ export class BattlemapService {
 
   /** All maps, each keeping its own shapes and view. The current map's entry is refreshed from the working copy on save. */
   readonly maps = signal<MapEntry[]>([]);
+  /** Player characters kept ready to add to any map's initiative order. */
+  readonly players = signal<PlayerPreset[]>([]);
   readonly currentId = signal<string | null>(null);
   /** The map players see, if any. Players only see a map once the DM shares it, so it can be prepared in private first. */
   readonly sharedId = signal<string | null>(null);
@@ -189,6 +196,20 @@ export class BattlemapService {
     if (this.currentId() === id) {
       this.load(this.maps()[0] ?? null);
     }
+    this.persist();
+  }
+
+  addPlayer(name: string): void {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      throw new Error('A player name is required');
+    }
+    this.players.update((players) => [...players, { id: crypto.randomUUID(), name: trimmedName }]);
+    this.persist();
+  }
+
+  removePlayer(id: string): void {
+    this.players.update((players) => players.filter((player) => player.id !== id));
     this.persist();
   }
 
@@ -371,7 +392,12 @@ export class BattlemapService {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ maps: this.maps(), currentId: this.currentId(), sharedId: this.sharedId() }),
+        JSON.stringify({
+          maps: this.maps(),
+          players: this.players(),
+          currentId: this.currentId(),
+          sharedId: this.sharedId(),
+        }),
       );
     } catch {
       // Large images can exceed the storage quota; live sync still works.
@@ -390,15 +416,20 @@ export class BattlemapService {
     }
   }
 
-  /** The maps (name, icon, image, shapes, view) as saved to a file. */
-  exportState(): { maps: MapEntry[]; currentId: string | null; sharedId: string | null } {
+  /** The maps and saved player roster as exported to a file. */
+  exportState(): {
+    maps: MapEntry[];
+    currentId: string | null;
+    sharedId: string | null;
+    players: PlayerPreset[];
+  } {
     this.syncCurrent();
-    return { maps: this.maps(), currentId: this.currentId(), sharedId: this.sharedId() };
+    return { maps: this.maps(), currentId: this.currentId(), sharedId: this.sharedId(), players: this.players() };
   }
 
   /** Replaces all maps with the given saved state. Throws if it isn't valid. */
   importState(saved: unknown): void {
-    const data = saved as { maps?: unknown } | null;
+    const data = saved as { maps?: unknown; players?: unknown } | null;
     if (!data || !Array.isArray(data.maps)) {
       throw new Error('No maps in file');
     }
@@ -417,6 +448,7 @@ export class BattlemapService {
   }
 
   private apply(saved: SavedState): void {
+    const players = saved.players === undefined ? undefined : validatePlayers(saved.players);
     {
       let maps = (saved.maps ?? []).map((entry) => ({
         ...entry,
@@ -442,6 +474,9 @@ export class BattlemapService {
       }
       const current = maps.find((m) => m.id === saved.currentId) ?? maps[0] ?? null;
       this.maps.set(maps);
+      if (players !== undefined) {
+        this.players.set(players);
+      }
       this.sharedId.set(maps.some((m) => m.id === sharedId) ? sharedId : null);
       this.load(current && { ...current, view: clampView(current.map, current.view, this.playerAspect()) });
     }
@@ -450,6 +485,7 @@ export class BattlemapService {
 
 interface SavedState {
   maps?: MapEntry[];
+  players?: PlayerPreset[];
   currentId?: string | null;
   sharedId?: string | null;
   // Single-map format from before maps could be switched.
@@ -457,6 +493,22 @@ interface SavedState {
   rooms?: Room[];
   view?: View;
   shared?: boolean;
+}
+
+function validatePlayers(saved: unknown): PlayerPreset[] {
+  if (!Array.isArray(saved)) {
+    throw new Error('Invalid player data');
+  }
+  return saved.map((player: unknown) => {
+    if (!player || typeof player !== 'object') {
+      throw new Error('Invalid player data');
+    }
+    const data = player as { id?: unknown; name?: unknown };
+    if (typeof data.id !== 'string' || !data.id.trim() || typeof data.name !== 'string' || !data.name.trim()) {
+      throw new Error('Invalid player data');
+    }
+    return { id: data.id, name: data.name.trim() };
+  });
 }
 
 function readAsDataUrl(file: File): Promise<string> {

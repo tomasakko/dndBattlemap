@@ -1,6 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { InitiativePanel } from '../initiative-panel/initiative-panel';
+import { PlayerRoster } from '../player-roster/player-roster';
 import { BattlemapService, MapIcon, MAX_ZOOM, MIN_ZOOM, Point, Room, View, viewRect } from '../services/battlemap.service';
 import { InitiativeService } from '../services/initiative.service';
 import { AreaEditor } from './area-editor/area-editor';
@@ -13,7 +14,7 @@ type Tool = 'draw' | 'view';
 
 const DRAG_THRESHOLD = 4;
 const PANEL_SNAP_DISTANCE = 40;
-const DEFAULT_PANEL_ORDER: PanelId[] = ['initiative', 'area'];
+const DEFAULT_PANEL_ORDER: PanelId[] = ['initiative', 'area', 'players'];
 const ZOOM_STEP = 1.25;
 const MIN_PANEL_WIDTH = 240;
 const MAX_PANEL_WIDTH = 720;
@@ -21,7 +22,7 @@ const GOLDEN_ANGLE = 137.508;
 
 @Component({
   selector: 'app-dm-screen',
-  imports: [InitiativePanel, NgTemplateOutlet, AreaEditor, MapPicker, MapUploadDialog, ControlDock],
+  imports: [InitiativePanel, PlayerRoster, NgTemplateOutlet, AreaEditor, MapPicker, MapUploadDialog, ControlDock],
   templateUrl: './dm-screen.html',
   styleUrl: './dm-screen.css',
   host: {
@@ -44,6 +45,7 @@ export class DmScreen {
   protected readonly panels = signal<Record<PanelId, PanelState>>({
     initiative: { visible: true, floating: false, x: 0, y: 0, z: 10 },
     area: { visible: true, floating: false, x: 0, y: 0, z: 10 },
+    players: { visible: false, floating: false, x: 0, y: 0, z: 10 },
   });
   private readonly dockedPanelOrder = signal<PanelId[]>([...DEFAULT_PANEL_ORDER]);
   protected readonly panelOrder = this.dockedPanelOrder.asReadonly();
@@ -332,6 +334,7 @@ export class DmScreen {
         break;
       case 'initiative':
       case 'area':
+      case 'players':
         this.togglePanel(action);
         break;
     }
@@ -340,7 +343,7 @@ export class DmScreen {
   private readonly loadInput = viewChild<ElementRef<HTMLInputElement>>('loadInput');
 
   private saveToFile(): void {
-    const data = { app: 'dnd-battlemap', version: 2, battlemap: this.battlemap.exportState() };
+    const data = { app: 'dnd-battlemap', version: 3, battlemap: this.battlemap.exportState() };
     const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
     const link = document.createElement('a');
     link.href = url;
@@ -353,7 +356,7 @@ export class DmScreen {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
-    if (!file || !confirm('Loading "' + file.name + '" replaces all current maps and the initiative. Continue?')) {
+    if (!file || !confirm('Loading "' + file.name + '" replaces all current maps, initiative, and any saved players in the file. Continue?')) {
       return;
     }
     try {

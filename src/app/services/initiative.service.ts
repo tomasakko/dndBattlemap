@@ -6,6 +6,7 @@ export type Side = 'player' | 'enemy';
 
 export interface Combatant {
   id: string;
+  playerId?: string;
   name: string;
   initiative: number;
   type: string;
@@ -73,6 +74,22 @@ export class InitiativeService {
 
   add(name: string, initiative: number, type: string, side: Side): void {
     const combatant: Combatant = { id: crypto.randomUUID(), name, initiative, type, side };
+    this.combatants.update((list) => [...list, combatant]);
+    this.commit();
+  }
+
+  addPlayer(playerId: string, name: string, initiative: number): void {
+    if (this.combatants().some((combatant) => combatant.playerId === playerId)) {
+      return;
+    }
+    const combatant: Combatant = {
+      id: crypto.randomUUID(),
+      playerId,
+      name,
+      initiative,
+      type: 'Character',
+      side: 'player',
+    };
     this.combatants.update((list) => [...list, combatant]);
     this.commit();
   }

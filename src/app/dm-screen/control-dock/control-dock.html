@@ -98,6 +98,16 @@
     >
       <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
     </button>
+    <button
+      type="button"
+      class="icon-button"
+      [class.on]="panels().players.visible"
+      [attr.aria-pressed]="panels().players.visible"
+      [attr.aria-label]="panels().players.visible ? 'Hide saved players' : 'Show saved players'"
+      (click)="action.emit('players')"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">groups</span>
+    </button>
   </div>
 
   @for (id of panelOrder(); track id; let index = $index) {
@@ -114,7 +124,7 @@
             </header>
             <app-initiative-panel class="initiative" />
           </div>
-        } @else {
+        } @else if (id === 'area') {
           <section class="area-editor panel" data-panel="area">
             <header
               class="section-heading drag-handle"
@@ -131,6 +141,17 @@
               (toggled)="toggled.emit($event)"
               (removed)="removed.emit($event)"
             />
+          </section>
+        } @else {
+          <section class="player-roster-wrap panel" data-panel="players">
+            <header
+              class="section-heading drag-handle"
+              title="Drag to move or detach"
+              (pointerdown)="panelDragStart.emit({ id, event: $event })"
+            >
+              <h2>Saved Players</h2>
+            </header>
+            <app-player-roster class="player-roster" />
           </section>
         }
       </div>

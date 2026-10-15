@@ -220,6 +220,12 @@
       />
     </section>
   </ng-template>
+  <ng-template #playersTpl>
+    <section class="player-roster-wrap panel" data-panel="players">
+      <ng-container *ngTemplateOutlet="panelHead; context: { id: 'players', title: 'Saved Players' }" />
+      <app-player-roster class="player-roster" />
+    </section>
+  </ng-template>
   @if (tip(); as t) {
     <div class="tooltip" role="tooltip" [style.left.px]="t.x" [style.top.px]="t.y">{{ t.text }}</div>
   }
@@ -232,6 +238,11 @@
   @if (panels().area.visible && panels().area.floating) {
     <div class="floating-panel" [class.snap-ready]="snapReady() === 'area'" [class.snap-top]="snapReady() === 'area' && snapEdge() === 'top'" [style.left.px]="panels().area.x" [style.top.px]="panels().area.y" [style.z-index]="panels().area.z" (pointerdown)="raisePanel('area')">
       <ng-container *ngTemplateOutlet="areaTpl" />
+    </div>
+  }
+  @if (panels().players.visible && panels().players.floating) {
+    <div class="floating-panel" [class.snap-ready]="snapReady() === 'players'" [class.snap-top]="snapReady() === 'players' && snapEdge() === 'top'" [style.left.px]="panels().players.x" [style.top.px]="panels().players.y" [style.z-index]="panels().players.z" (pointerdown)="raisePanel('players')">
+      <ng-container *ngTemplateOutlet="playersTpl" />
     </div>
   }
 </div>

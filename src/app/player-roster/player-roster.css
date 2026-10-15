@@ -1,0 +1,150 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 0.65rem 0.8rem;
+  color: var(--leather);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+input {
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.35rem 0.5rem;
+  color: var(--leather);
+  background: #fffdf8;
+  border: 1px solid var(--leather-line);
+  border-radius: 6px;
+
+  &:focus-visible {
+    outline: 3px solid var(--gold);
+  }
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.55rem;
+  color: var(--parchment);
+  background: var(--leather-raised);
+  border: 1px solid var(--leather-line);
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #4a2f2a;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.primary {
+  color: var(--leather);
+  background: var(--gold);
+  border-color: var(--gold);
+
+  &:hover:not(:disabled) {
+    background: #e2c15a;
+  }
+}
+
+.hint,
+.error {
+  margin: 0 0 0.65rem;
+  font-size: 0.8rem;
+}
+
+.error {
+  color: #8b1e1e;
+}
+
+.add-player {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--leather-line);
+}
+
+.players {
+  display: grid;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0.65rem 0 0;
+
+  li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 4.5rem 6rem 1.75rem;
+    align-items: center;
+    gap: 0.45rem;
+  }
+}
+
+.players-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5rem 6rem 1.75rem;
+  align-items: end;
+  gap: 0.45rem;
+  padding-top: 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.name {
+  align-self: center;
+  overflow-wrap: anywhere;
+}
+
+.score {
+  input {
+    width: 100%;
+  }
+}
+
+.add-to-order {
+  width: 100%;
+  align-self: center;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.remove {
+  width: 100%;
+  align-self: center;
+  padding: 0.3rem;
+
+  .material-symbols-outlined {
+    font-size: 1.15rem;
+  }
+}
+
+.empty {
+  font-size: 0.8rem;
+  color: #5a3d36;
+}
