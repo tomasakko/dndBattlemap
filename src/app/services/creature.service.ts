@@ -53,6 +53,7 @@ export class CreatureService {
     return {
       id: `${source}-${slugify(label)}`,
       label,
+      image: monster.hasToken ? tokenUrl(source, label) : undefined,
       statblock: {
         name: label,
         size: (monster.size ?? []).map(sizeLabel).join(', '),
@@ -91,7 +92,12 @@ export class CreatureService {
   }
 }
 
+function tokenUrl(source: string, name: string): string {
+  return `https://5e.tools/img/bestiary/tokens/${encodeURIComponent(source)}/${encodeURIComponent(name)}.webp`;
+}
+
 interface MonsterData {
+  hasToken?: boolean;
   name?: string;
   source?: string;
   size?: string[];
