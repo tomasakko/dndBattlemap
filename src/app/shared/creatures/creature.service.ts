@@ -1,6 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID, Service, inject, signal } from '@angular/core';
-import type { Statblock } from '../models/statblock';
+import type { Statblock } from './statblock';
 
 export interface Creature {
   id: string;

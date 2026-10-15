@@ -116,6 +116,9 @@ export class BattlemapService {
   private readonly initiative = inject(InitiativeService);
   private channel?: BroadcastChannel;
   private persistTimer?: ReturnType<typeof setTimeout>;
+  private restored = false;
+  /** Increments whenever a saved state replaces the current one, so open screens can reset their local state. */
+  readonly importCount = signal(0);
 
   startHost(): void {
     this.initiative.setChangeHandler(() => this.persist());
@@ -404,7 +407,15 @@ export class BattlemapService {
     }
   }
 
+  /** Loads the persisted state once, so it can be exported or replaced while the DM screen is closed. */
+  ensureRestored(): void {
+    if (!this.restored) {
+      this.restore();
+    }
+  }
+
   private restore(): void {
+    this.restored = true;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) {
@@ -445,6 +456,7 @@ export class BattlemapService {
     this.broadcastAll();
     this.initiative.publish();
     this.persist();
+    this.importCount.update((n) => n + 1);
   }
 
   private apply(saved: SavedState): void {

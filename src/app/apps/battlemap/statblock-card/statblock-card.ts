@@ -1,8 +1,8 @@
 import { Component, ElementRef, afterNextRender, computed, inject, input, output, signal, viewChild } from '@angular/core';
-import { CreatureService } from '../services/creature.service';
+import { CreatureService } from '../../../shared/creatures/creature.service';
 import { InitiativeService } from '../services/initiative.service';
 import type { Combatant } from '../services/initiative.service';
-import type { Ability, Movement, Statblock } from '../models/statblock';
+import type { Ability, Movement, Statblock } from '../../../shared/creatures/statblock';
 import type { EntryChange } from './statblock-entries/statblock-entries';
 import { StatblockDetails } from './statblock-details/statblock-details';
 import { StatblockEditor } from './statblock-editor/statblock-editor';

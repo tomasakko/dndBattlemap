@@ -1,0 +1,27 @@
+<main class="portal">
+  <header class="portal-header">
+    <h1>Dungeons &amp; Dragons Suite</h1>
+    <p>Everything a Dungeon Master needs, in one place.</p>
+  </header>
+
+  <ul class="app-grid">
+    @for (app of apps; track app.id) {
+      <li>
+        @if (app.route; as route) {
+          <a class="app-tile" [routerLink]="route">
+            <span class="material-symbols-outlined" aria-hidden="true">{{ app.icon }}</span>
+            <h2>{{ app.name }}</h2>
+            <p>{{ app.description }}</p>
+          </a>
+        } @else {
+          <div class="app-tile disabled" aria-disabled="true">
+            <span class="material-symbols-outlined" aria-hidden="true">{{ app.icon }}</span>
+            <h2>{{ app.name }}</h2>
+            <p>{{ app.description }}</p>
+            <span class="badge">Coming soon</span>
+          </div>
+        }
+      </li>
+    }
+  </ul>
+</main>

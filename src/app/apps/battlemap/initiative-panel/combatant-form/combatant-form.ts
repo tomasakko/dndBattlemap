@@ -1,7 +1,7 @@
 import { Component, ElementRef, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InitiativeService, Side } from '../../services/initiative.service';
-import { CreatureService } from '../../services/creature.service';
+import { CreatureService } from '../../../../shared/creatures/creature.service';
 
 @Component({
   selector: 'app-combatant-form',

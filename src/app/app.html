@@ -1,1 +1,6 @@
-<router-outlet />
+@if (!tabs.standalone()) {
+  <app-topbar />
+}
+<div class="content">
+  <router-outlet />
+</div>

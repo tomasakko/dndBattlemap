@@ -1,6 +1,6 @@
 import { Component, ElementRef, inject, input, output, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { CreatureService } from '../../services/creature.service';
+import { CreatureService } from '../../../../shared/creatures/creature.service';
 import { InitiativeService } from '../../services/initiative.service';
 import type { Combatant } from '../../services/initiative.service';
 

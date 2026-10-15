@@ -1,6 +1,6 @@
 import { Service, computed, inject, signal } from '@angular/core';
-import { CreatureService } from './creature.service';
-import type { Statblock } from '../models/statblock';
+import { CreatureService } from '../../../shared/creatures/creature.service';
+import type { Statblock } from '../../../shared/creatures/statblock';
 
 export type Side = 'player' | 'enemy';
 

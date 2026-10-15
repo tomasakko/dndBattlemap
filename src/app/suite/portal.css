@@ -1,0 +1,80 @@
+.portal {
+  box-sizing: border-box;
+  min-height: 100%;
+  padding: 3rem 1.5rem;
+  color: var(--parchment);
+  background: var(--leather);
+}
+
+.portal-header {
+  max-width: 64rem;
+  margin: 0 auto 2rem;
+}
+
+.portal-header h1 {
+  margin: 0 0 0.25rem;
+  color: var(--gold);
+  font-size: 2rem;
+}
+
+.portal-header p {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.app-tile {
+  position: relative;
+  display: grid;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 1.25rem;
+  color: inherit;
+  text-decoration: none;
+  background: var(--leather-raised);
+  border: 1px solid var(--leather-line);
+  border-radius: 6px;
+}
+
+a.app-tile:hover,
+a.app-tile:focus-visible {
+  border-color: var(--gold);
+  outline: none;
+}
+
+.app-tile .material-symbols-outlined {
+  color: var(--gold);
+  font-size: 2.5rem;
+}
+
+.app-tile h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.app-tile p {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.app-tile.disabled {
+  opacity: 0.55;
+}
+
+.badge {
+  justify-self: start;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  background: var(--crimson);
+  border-radius: 999px;
+}

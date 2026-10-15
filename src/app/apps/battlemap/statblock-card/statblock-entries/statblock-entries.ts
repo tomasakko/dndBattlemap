@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import type { StatEntry } from '../../models/statblock';
+import type { StatEntry } from '../../../../shared/creatures/statblock';
 
 export interface EntryChange {
   index: number;

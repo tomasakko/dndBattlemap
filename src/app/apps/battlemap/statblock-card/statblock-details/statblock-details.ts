@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
-import { ABILITIES, MOVEMENTS, abilityModifier } from '../../models/statblock';
-import type { Movement, Statblock } from '../../models/statblock';
+import { ABILITIES, MOVEMENTS, abilityModifier } from '../../../../shared/creatures/statblock';
+import type { Movement, Statblock } from '../../../../shared/creatures/statblock';
 import { StatblockEntries } from '../statblock-entries/statblock-entries';
 import type { StatblockSection } from '../statblock-editor/statblock-editor';
 

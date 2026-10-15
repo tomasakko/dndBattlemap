@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { InitiativePanel } from '../initiative-panel/initiative-panel';
 import { PlayerRoster } from '../player-roster/player-roster';
 import { BattlemapService, MapIcon, MAX_ZOOM, MIN_ZOOM, Point, Room, View, viewRect } from '../services/battlemap.service';
@@ -170,6 +170,14 @@ export class DmScreen {
     if (map) {
       this.fitDmView();
     }
+    effect(() => {
+      if (this.battlemap.importCount() > 0) {
+        untracked(() => {
+          this.cancelDraft();
+          this.fitDmView();
+        });
+      }
+    });
   }
 
   protected onFileSelected(event: Event): void {
@@ -323,12 +331,6 @@ export class DmScreen {
       case 'reset':
         this.resetView();
         break;
-      case 'save':
-        this.saveToFile();
-        break;
-      case 'load':
-        this.loadInput()?.nativeElement.click();
-        break;
       case 'initiative-share':
         this.battlemap.setInitiativeShared(!this.initiativeShared());
         break;
@@ -337,48 +339,6 @@ export class DmScreen {
       case 'players':
         this.togglePanel(action);
         break;
-    }
-  }
-
-  private readonly loadInput = viewChild<ElementRef<HTMLInputElement>>('loadInput');
-
-  private saveToFile(): void {
-    const data = { app: 'dnd-battlemap', version: 3, battlemap: this.battlemap.exportState() };
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'battlemap-save.json';
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
-  protected async onLoadFile(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file || !confirm('Loading "' + file.name + '" replaces all current maps, initiative, and any saved players in the file. Continue?')) {
-      return;
-    }
-    try {
-      const data = JSON.parse(await file.text());
-      if (!data?.battlemap) {
-        throw new Error('Not a battlemap save file');
-      }
-      if (!Array.isArray(data.battlemap.maps)) {
-        throw new Error('Not a battlemap save file');
-      }
-      // Migrate files from the previous format, where initiative was global.
-      if (data.initiative && data.battlemap.currentId) {
-        const current = data.battlemap.maps.find((map: { id: string }) => map.id === data.battlemap.currentId);
-        if (current && !current.initiative) {
-          current.initiative = data.initiative;
-        }
-      }
-      this.cancelDraft();
-      this.battlemap.importState(data.battlemap);
-      this.fitDmView();
-    } catch (error) {
-      alert('Could not load file: ' + (error instanceof Error ? error.message : 'invalid file'));
     }
   }
 

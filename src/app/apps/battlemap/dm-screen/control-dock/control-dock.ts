@@ -14,7 +14,7 @@ export interface PanelState {
   z: number;
 }
 
-export type DockAction = 'share' | 'fit' | 'reset' | 'save' | 'load' | 'initiative-share' | PanelId;
+export type DockAction = 'share' | 'fit' | 'reset' | 'initiative-share' | PanelId;
 
 @Component({
   selector: 'app-control-dock',

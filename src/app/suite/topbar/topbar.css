@@ -1,0 +1,103 @@
+:host {
+  display: block;
+  position: relative;
+  z-index: 2000;
+}
+
+.topbar {
+  display: flex;
+  align-items: stretch;
+  gap: 0.25rem;
+  height: var(--topbar-height);
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+  color: var(--parchment);
+  background: var(--leather);
+  border-bottom: 1px solid var(--gold);
+}
+
+.home,
+.tab-label,
+.tab-close,
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.home {
+  padding: 0 0.6rem;
+  color: var(--gold);
+}
+
+.home.active {
+  background: var(--leather-raised);
+}
+
+.tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.25rem;
+  min-width: 0;
+  padding-top: 0.3rem;
+  overflow-x: auto;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--leather-line);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+  white-space: nowrap;
+}
+
+.tab.active {
+  color: var(--leather);
+  background: var(--parchment);
+  border-color: var(--gold);
+}
+
+.tab-label {
+  padding: 0.3rem 0.4rem 0.3rem 0.7rem;
+}
+
+.tab-close {
+  padding: 0.3rem 0.4rem;
+  opacity: 0.7;
+}
+
+.tab-close:hover {
+  opacity: 1;
+}
+
+.project-actions {
+  display: flex;
+  align-items: stretch;
+  margin-left: auto;
+}
+
+.action {
+  padding: 0 0.6rem;
+  color: var(--gold);
+}
+
+.action:hover {
+  background: var(--leather-raised);
+}
+
+.material-symbols-outlined {
+  font-size: 1.15rem;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}

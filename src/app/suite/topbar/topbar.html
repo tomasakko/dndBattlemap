@@ -1,0 +1,29 @@
+<header class="topbar">
+  <a class="home" routerLink="/" aria-label="Portal" title="Portal" [class.active]="tabs.activeId() === null">
+    <span class="material-symbols-outlined" aria-hidden="true">home</span>
+  </a>
+
+  <nav class="tabs" aria-label="Open apps">
+    @for (tab of tabs.tabs(); track tab.app.id) {
+      <div class="tab" [class.active]="tab.app.id === tabs.activeId()">
+        <button type="button" class="tab-label" (click)="tabs.activate(tab)">
+          <span class="material-symbols-outlined" aria-hidden="true">{{ tab.app.icon }}</span>
+          {{ tab.app.name }}
+        </button>
+        <button type="button" class="tab-close" [attr.aria-label]="'Close ' + tab.app.name" (click)="tabs.close(tab)">
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </div>
+    }
+  </nav>
+
+  <div class="project-actions">
+    <button type="button" class="action" aria-label="Save project to file" title="Save project" (click)="save()">
+      <span class="material-symbols-outlined" aria-hidden="true">download</span>
+    </button>
+    <button type="button" class="action" aria-label="Load project from file" title="Load project" (click)="openFilePicker()">
+      <span class="material-symbols-outlined" aria-hidden="true">upload_file</span>
+    </button>
+    <input #fileInput type="file" accept=".json,application/json" hidden (change)="onFileSelected($event)" />
+  </div>
+</header>

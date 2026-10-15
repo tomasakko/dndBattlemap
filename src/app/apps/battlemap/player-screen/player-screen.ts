@@ -2,7 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { BattlemapService, viewBoxFor, viewRect } from '../services/battlemap.service';
 import { InitiativeService } from '../services/initiative.service';
-import { CreatureService } from '../services/creature.service';
+import { CreatureService } from '../../../shared/creatures/creature.service';
 import { PlayerInitiativeBar } from './player-initiative-bar/player-initiative-bar';
 
 @Component({
