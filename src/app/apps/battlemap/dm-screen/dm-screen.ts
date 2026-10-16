@@ -59,6 +59,7 @@ export class DmScreen {
   protected readonly tool = signal<Tool>('view');
   protected readonly shapeDraft = signal<Point[]>([]);
   protected readonly error = signal('');
+  protected readonly persistenceError = this.battlemap.persistenceError;
   protected readonly highlightedId = signal<string | null>(null);
 
   /** The DM's own zoom/pan. Independent from what the players see. */

@@ -16,7 +16,7 @@ export const SUITE_APPS: readonly SuiteApp[] = [
   {
     id: 'battlemap',
     name: 'Battlemap',
-    description: 'Maps, areas, initiative tracker and a shared player screen.',
+    description: ' ',
     icon: 'map',
     route: '/battlemap',
     loadStorage: () => import('../apps/battlemap/battlemap.storage').then((m) => m.battlemapStorage),

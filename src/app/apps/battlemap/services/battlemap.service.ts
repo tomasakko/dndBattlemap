@@ -86,6 +86,10 @@ type Message =
 
 const CHANNEL_NAME = 'dnd-battlemap';
 const STORAGE_KEY = 'dnd-battlemap';
+const DATABASE_NAME = 'dnd-battlemap';
+const DATABASE_VERSION = 1;
+const DATABASE_STORE = 'state';
+const DATABASE_RECORD = 'current';
 const PERSIST_DELAY_MS = 400;
 
 /**
@@ -110,30 +114,34 @@ export class BattlemapService {
   /** The map players see, if any. Players only see a map once the DM shares it, so it can be prepared in private first. */
   readonly sharedId = signal<string | null>(null);
   readonly shared = computed(() => this.sharedId() !== null && this.sharedId() === this.currentId());
+  readonly persistenceError = signal<string | null>(null);
   /** Maps can't be switched while a fight is running. */
   readonly locked = computed(() => this.initiative.activeId() !== null);
 
   private readonly initiative = inject(InitiativeService);
   private channel?: BroadcastChannel;
   private persistTimer?: ReturnType<typeof setTimeout>;
+  private persistQueue: Promise<void> = Promise.resolve();
   private restored = false;
+  private restorePromise?: Promise<void>;
   /** Increments whenever a saved state replaces the current one, so open screens can reset their local state. */
   readonly importCount = signal(0);
 
   startHost(): void {
     this.initiative.setChangeHandler(() => this.persist());
-    this.restore();
-    this.open((message) => {
-      if (message.type === 'request') {
-        this.broadcastMap();
-        this.broadcastRooms();
-        this.broadcastView();
-      } else if (message.type === 'aspect' && message.ratio > 0) {
-        this.playerAspect.set(message.ratio);
-        this.setView(this.view());
-      } else if (message.type === 'pan') {
-        this.panView(message.dx, message.dy);
-      }
+    void this.ensureRestored().then(() => {
+      this.open((message) => {
+        if (message.type === 'request') {
+          this.broadcastMap();
+          this.broadcastRooms();
+          this.broadcastView();
+        } else if (message.type === 'aspect' && message.ratio > 0) {
+          this.playerAspect.set(message.ratio);
+          this.setView(this.view());
+        } else if (message.type === 'pan') {
+          this.panView(message.dx, message.dy);
+        }
+      });
     });
   }
 
@@ -159,6 +167,7 @@ export class BattlemapService {
   }
 
   async addMap(file: File, name: string, icon: MapIcon): Promise<void> {
+    await this.ensureRestored();
     const url = await readAsDataUrl(file);
     const { width, height } = await measure(url);
     this.syncCurrent();
@@ -172,7 +181,7 @@ export class BattlemapService {
     };
     this.maps.update((maps) => [...maps, entry]);
     this.load(entry);
-    this.persist();
+    await this.persist();
   }
 
   /** Switches the map the DM is working on. Players keep seeing the shared map. */
@@ -314,7 +323,10 @@ export class BattlemapService {
     this.map.set(entry?.map ?? null);
     this.rooms.set(entry?.rooms ?? []);
     this.view.set(entry?.view ?? { zoom: 1, cx: 0, cy: 0 });
-    this.initiative.loadState(entry?.initiative, entry?.initiativeShared ?? false);
+    this.initiative.loadState(
+      entry?.initiative ?? { combatants: [], activeId: null },
+      entry?.initiativeShared ?? false,
+    );
   }
 
   /** Copies the working copy back into the current map's entry. */
@@ -389,41 +401,69 @@ export class BattlemapService {
     this.persistTimer = setTimeout(() => this.persist(), PERSIST_DELAY_MS);
   }
 
-  private persist(): void {
+  private persist(): Promise<void> {
     clearTimeout(this.persistTimer);
     this.syncCurrent();
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          maps: this.maps(),
-          players: this.players(),
-          currentId: this.currentId(),
-          sharedId: this.sharedId(),
-        }),
-      );
-    } catch {
-      // Large images can exceed the storage quota; live sync still works.
-    }
+    const state = JSON.stringify({
+      maps: this.maps(),
+      players: this.players(),
+      currentId: this.currentId(),
+      sharedId: this.sharedId(),
+      initiative: this.initiative.exportState(),
+      initiativeShared: this.initiative.shared(),
+    });
+    this.persistQueue = this.persistQueue
+      .then(() => savePersistedState(state))
+      .then(() => this.persistenceError.set(null))
+      .catch((error: unknown) => {
+        console.error('Could not save battlemap state', error);
+        this.persistenceError.set('Battlemap data could not be saved. It may be lost when you leave this page.');
+      });
+    return this.persistQueue;
   }
 
-  /** Loads the persisted state once, so it can be exported or replaced while the DM screen is closed. */
-  ensureRestored(): void {
-    if (!this.restored) {
-      this.restore();
+  /** Loads persisted state once before the DM screen or project tools use it. */
+  ensureRestored(): Promise<void> {
+    if (this.restored) {
+      return Promise.resolve();
     }
+    if (!this.restorePromise) {
+      this.restorePromise = this.restore();
+    }
+    return this.restorePromise;
   }
 
-  private restore(): void {
-    this.restored = true;
+  private async restore(): Promise<void> {
+    if (typeof window === 'undefined') {
+      this.restored = true;
+      return;
+    }
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        return;
+      let raw: string | null = null;
+      try {
+        raw = await readIndexedState();
+      } catch (error) {
+        console.error('Could not read battlemap state from IndexedDB', error);
       }
-      this.apply(JSON.parse(raw));
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
+      if (!raw) {
+        raw = localStorage.getItem(STORAGE_KEY);
+      }
+      if (raw) {
+        this.apply(JSON.parse(raw));
+        if (typeof indexedDB !== 'undefined') {
+          try {
+            await writeIndexedState(raw);
+            localStorage.removeItem(STORAGE_KEY);
+          } catch (error) {
+            console.error('Could not migrate battlemap state to IndexedDB', error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Could not restore battlemap state', error);
+      this.persistenceError.set('Saved battlemap data could not be restored.');
+    } finally {
+      this.restored = true;
     }
   }
 
@@ -433,9 +473,18 @@ export class BattlemapService {
     currentId: string | null;
     sharedId: string | null;
     players: PlayerPreset[];
+    initiative: InitiativeState;
+    initiativeShared: boolean;
   } {
     this.syncCurrent();
-    return { maps: this.maps(), currentId: this.currentId(), sharedId: this.sharedId(), players: this.players() };
+    return {
+      maps: this.maps(),
+      currentId: this.currentId(),
+      sharedId: this.sharedId(),
+      players: this.players(),
+      initiative: this.initiative.exportState(),
+      initiativeShared: this.initiative.shared(),
+    };
   }
 
   /** Replaces all maps with the given saved state. Throws if it isn't valid. */
@@ -460,6 +509,8 @@ export class BattlemapService {
   }
 
   private apply(saved: SavedState): void {
+    const initiative = saved.initiative ?? this.initiative.exportState();
+    const initiativeShared = saved.initiativeShared ?? this.initiative.shared();
     const players = saved.players === undefined ? undefined : validatePlayers(saved.players);
     {
       let maps = (saved.maps ?? []).map((entry) => ({
@@ -484,15 +535,100 @@ export class BattlemapService {
         ];
         sharedId = saved.shared ? id : null;
       }
-      const current = maps.find((m) => m.id === saved.currentId) ?? maps[0] ?? null;
+      let current = maps.find((m) => m.id === saved.currentId) ?? maps[0] ?? null;
+      if (current && current.initiative === undefined) {
+        const currentId = current.id;
+        current = { ...current, initiative, initiativeShared };
+        maps = maps.map((entry) => (entry.id === currentId ? current! : entry));
+      }
       this.maps.set(maps);
       if (players !== undefined) {
         this.players.set(players);
       }
       this.sharedId.set(maps.some((m) => m.id === sharedId) ? sharedId : null);
-      this.load(current && { ...current, view: clampView(current.map, current.view, this.playerAspect()) });
+      if (current) {
+        this.load({ ...current, view: clampView(current.map, current.view, this.playerAspect()) });
+      } else {
+        this.load(null);
+        this.initiative.loadState(initiative, initiativeShared);
+      }
     }
   }
+}
+
+async function savePersistedState(state: string): Promise<void> {
+  if (typeof indexedDB !== 'undefined') {
+    try {
+      await writeIndexedState(state);
+      return;
+    } catch (indexedDbError) {
+      try {
+        localStorage.setItem(STORAGE_KEY, state);
+        console.error('IndexedDB is unavailable; saved battlemap state in localStorage instead', indexedDbError);
+        return;
+      } catch (localStorageError) {
+        throw new Error('Could not save battlemap state in IndexedDB or localStorage', { cause: localStorageError });
+      }
+    }
+  }
+  localStorage.setItem(STORAGE_KEY, state);
+}
+
+function readIndexedState(): Promise<string | null> {
+  if (typeof indexedDB === 'undefined') {
+    return Promise.resolve(null);
+  }
+  return openStateDatabase().then(
+    (database) =>
+      new Promise<string | null>((resolve, reject) => {
+        const transaction = database.transaction(DATABASE_STORE, 'readonly');
+        const request = transaction.objectStore(DATABASE_STORE).get(DATABASE_RECORD);
+        request.onsuccess = () => resolve(typeof request.result === 'string' ? request.result : null);
+        request.onerror = () => reject(request.error ?? new Error('Could not read battlemap state'));
+        transaction.oncomplete = () => database.close();
+        transaction.onabort = () => {
+          database.close();
+          reject(transaction.error ?? new Error('Reading battlemap state was aborted'));
+        };
+        transaction.onerror = () => {
+          database.close();
+          reject(transaction.error ?? new Error('Could not read battlemap state'));
+        };
+      }),
+  );
+}
+
+function writeIndexedState(state: string): Promise<void> {
+  return openStateDatabase().then(
+    (database) =>
+      new Promise<void>((resolve, reject) => {
+        const transaction = database.transaction(DATABASE_STORE, 'readwrite');
+        transaction.objectStore(DATABASE_STORE).put(state, DATABASE_RECORD);
+        transaction.oncomplete = () => {
+          database.close();
+          resolve();
+        };
+        transaction.onerror = () => {
+          database.close();
+          reject(transaction.error ?? new Error('Could not save battlemap state'));
+        };
+        transaction.onabort = () => {
+          database.close();
+          reject(transaction.error ?? new Error('Saving battlemap state was aborted'));
+        };
+      }),
+  );
+}
+
+function openStateDatabase(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore(DATABASE_STORE);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? new Error('Could not open battlemap state database'));
+  });
 }
 
 interface SavedState {
@@ -505,6 +641,8 @@ interface SavedState {
   rooms?: Room[];
   view?: View;
   shared?: boolean;
+  initiative?: InitiativeState;
+  initiativeShared?: boolean;
 }
 
 function validatePlayers(saved: unknown): PlayerPreset[] {

@@ -67,6 +67,17 @@ a.app-tile:focus-visible {
   opacity: 0.8;
 }
 
+.app-tile .app-summary {
+  color: var(--gold);
+  opacity: 1;
+}
+
+.summary-error {
+  max-width: 64rem;
+  margin: 1rem auto 0;
+  color: var(--crimson);
+}
+
 .app-tile.disabled {
   opacity: 0.55;
 }

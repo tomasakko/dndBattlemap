@@ -158,6 +158,9 @@
     @if (error()) {
       <p class="error" role="alert">{{ error() }}</p>
     }
+    @if (persistenceError(); as message) {
+      <p class="error" role="alert">{{ message }}</p>
+    }
   </header>
 
     @if (pendingMapFile()) {

@@ -15,8 +15,12 @@ export class Topbar {
   private readonly fileInput = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
 
   protected async save(): Promise<void> {
+    const name = prompt('Choose a name for the project file:', 'dnd-suite-project')?.trim();
+    if (!name) {
+      return;
+    }
     try {
-      await this.project.save();
+      await this.project.save(name);
     } catch (error) {
       alert('Could not save project: ' + this.message(error));
     }

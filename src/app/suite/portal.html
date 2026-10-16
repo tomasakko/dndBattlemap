@@ -12,16 +12,37 @@
             <span class="material-symbols-outlined" aria-hidden="true">{{ app.icon }}</span>
             <h2>{{ app.name }}</h2>
             <p>{{ app.description }}</p>
+            @if (project.summaries()[app.id]; as summary) {
+              @if (summary.length > 0) {
+                <p class="app-summary">
+                  @for (item of summary; track item.label; let last = $last) {
+                    {{ item.count }} {{ item.label }}{{ last ? '' : ', ' }}
+                  }
+                </p>
+              }
+            }
           </a>
         } @else {
           <div class="app-tile disabled" aria-disabled="true">
             <span class="material-symbols-outlined" aria-hidden="true">{{ app.icon }}</span>
             <h2>{{ app.name }}</h2>
             <p>{{ app.description }}</p>
+            @if (project.summaries()[app.id]; as summary) {
+              @if (summary.length > 0) {
+                <p class="app-summary">
+                  @for (item of summary; track item.label; let last = $last) {
+                    {{ item.count }} {{ item.label }}{{ last ? '' : ', ' }}
+                  }
+                </p>
+              }
+            }
             <span class="badge">Coming soon</span>
           </div>
         }
       </li>
     }
   </ul>
+  @if (project.summaryError(); as error) {
+    <p class="summary-error">Could not load project summaries: {{ error }}</p>
+  }
 </main>
