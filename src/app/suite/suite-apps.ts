@@ -20,5 +20,13 @@ export const SUITE_APPS: readonly SuiteApp[] = [
     icon: 'map',
     route: '/battlemap',
     loadStorage: () => import('../apps/battlemap/battlemap.storage').then((m) => m.battlemapStorage),
-  }
+  },
+  {
+    id: 'worldmap',
+    name: 'Worldmap',
+    description: ' ',
+    icon: 'public',
+    route: '/worldmap',
+    loadStorage: () => import('../apps/worldmap/worldmap.storage').then((m) => m.worldmapStorage),
+  },
 ];

@@ -15,8 +15,8 @@ export const battlemapStorage: AppStorage = {
     const { maps } = battlemap.exportState();
     const combats = maps.filter((map) => (map.initiative?.combatants.length ?? 0) > 0).length;
     return [
-      { count: maps.length, label: 'maps' },
-      { count: combats, label: 'combats' },
+      { count: maps.length, label: maps.length === 1 ? 'map' : 'maps' },
+      { count: combats, label: combats === 1 ? 'combat' : 'combats' },
     ].filter((item) => item.count > 0);
   },
 

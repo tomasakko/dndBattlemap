@@ -1,5 +1,6 @@
 @import 'material-symbols/outlined.css';
 @import '@fontsource-variable/cinzel';
+@import 'leaflet/dist/leaflet.css';
 
 :root {
   --parchment: #f4efe6;

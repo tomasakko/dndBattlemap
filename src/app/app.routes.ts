@@ -11,6 +11,10 @@ export const routes: Routes = [
     path: 'battlemap',
     loadChildren: () => import('./apps/battlemap/battlemap.routes').then((m) => m.BATTLEMAP_ROUTES),
   },
+  {
+    path: 'worldmap',
+    loadChildren: () => import('./apps/worldmap/worldmap.routes').then((m) => m.WORLDMAP_ROUTES),
+  },
   // Legacy URLs from before the suite existed.
   { path: 'dm', redirectTo: 'battlemap/dm' },
   { path: 'player', redirectTo: 'battlemap/player' },
