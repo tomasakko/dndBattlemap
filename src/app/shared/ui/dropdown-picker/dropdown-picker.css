@@ -29,7 +29,7 @@ summary {
   }
 }
 
-.map-name {
+.picker-label {
   overflow: hidden;
   flex: 1;
   text-overflow: ellipsis;
@@ -40,13 +40,13 @@ summary {
   margin-left: auto;
 }
 
-.map-options {
+.picker-options {
   max-height: 50vh;
   overflow: auto;
   border-top: 1px solid var(--leather-line);
 }
 
-.map-option {
+.picker-option {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   border-bottom: 1px solid rgb(90 61 54 / 25%);
@@ -54,7 +54,6 @@ summary {
   button {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 0.5rem;
     min-width: 0;
     padding: 0.45rem 0.65rem;
@@ -64,26 +63,28 @@ summary {
     border-radius: 0;
     text-align: left;
 
-    &:first-child {
-      flex: 1;
-    }
-
     &:hover:not(:disabled) {
       background: color-mix(in srgb, var(--gold) 25%, transparent);
     }
+  }
+
+  .item-label {
+    overflow: hidden;
+    flex: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &.current button:first-child {
     background: color-mix(in srgb, var(--gold) 25%, transparent);
   }
 
-  .map-remove {
+  .picker-remove {
     padding-inline: 0.45rem;
   }
 }
 
-.no-maps,
-.map-note {
+.picker-note {
   margin: 0;
   padding: 0.6rem;
   font-size: 0.8rem;

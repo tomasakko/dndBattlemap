@@ -7,8 +7,13 @@ import { InitiativeService } from '../services/initiative.service';
 import { AreaEditor } from './area-editor/area-editor';
 import { ControlDock } from './control-dock/control-dock';
 import type { DockAction, PanelId, PanelState } from './control-dock/control-dock';
-import { MapPicker } from './map-picker/map-picker';
-import { MapUploadDialog } from './map-upload-dialog/map-upload-dialog';
+import { DropdownPicker } from '../../../shared/ui/dropdown-picker/dropdown-picker';
+import type { PickerItem } from '../../../shared/ui/dropdown-picker/dropdown-picker';
+import { ConfirmService } from '../../../shared/ui/confirm-dialog/confirm.service';
+import { FileButton } from '../../../shared/ui/file-button/file-button';
+import { MapUploadDialog } from '../../../shared/ui/map-upload-dialog/map-upload-dialog';
+import type { IconChoice } from '../../../shared/ui/map-upload-dialog/map-upload-dialog';
+import { titleFromFileName } from '../../../shared/util/text';
 
 type Tool = 'draw' | 'view';
 
@@ -20,9 +25,20 @@ const MIN_PANEL_WIDTH = 240;
 const MAX_PANEL_WIDTH = 720;
 const GOLDEN_ANGLE = 137.508;
 
+const MAP_ICON_CHOICES: IconChoice[] = [
+  { id: 'castle', label: 'Castle', glyph: 'castle' },
+  { id: 'forest', label: 'Forest', glyph: 'forest' },
+  { id: 'city', label: 'City', glyph: 'location_city' },
+  { id: 'cave', label: 'Cave', glyph: 'landscape' },
+];
+
+function iconGlyph(icon: MapIcon): string {
+  return MAP_ICON_CHOICES.find((choice) => choice.id === icon)?.glyph ?? icon;
+}
+
 @Component({
   selector: 'app-dm-screen',
-  imports: [InitiativePanel, PlayerRoster, NgTemplateOutlet, AreaEditor, MapPicker, MapUploadDialog, ControlDock],
+  imports: [InitiativePanel, PlayerRoster, NgTemplateOutlet, AreaEditor, DropdownPicker, MapUploadDialog, FileButton, ControlDock],
   templateUrl: './dm-screen.html',
   styleUrl: './dm-screen.css',
   host: {
@@ -36,6 +52,7 @@ const GOLDEN_ANGLE = 137.508;
 export class DmScreen {
   private readonly battlemap = inject(BattlemapService);
   private readonly initiative = inject(InitiativeService);
+  private readonly confirm = inject(ConfirmService);
   private readonly svg = viewChild<ElementRef<SVGSVGElement>>('board');
   private panelZ = 10;
   private panelDrag: { id: PanelId; startX: number; startY: number; offsetX: number; offsetY: number; width: number; height: number; moved: boolean } | null = null;
@@ -75,11 +92,17 @@ export class DmScreen {
   protected readonly pendingMapFile = signal<File | null>(null);
   protected readonly currentMapIcon = computed(() => {
     const icon = this.maps().find((entry) => entry.id === this.currentId())?.icon;
-    if (icon === 'city') {
-      return 'location_city';
-    }
-    return icon === 'cave' ? 'landscape' : (icon ?? null);
+    return icon ? iconGlyph(icon) : null;
   });
+  protected readonly mapItems = computed<PickerItem[]>(() =>
+    this.maps().map((entry) => ({
+      id: entry.id,
+      label: entry.name,
+      icon: iconGlyph(entry.icon),
+      ...(entry.id === this.sharedId() ? { badgeIcon: 'visibility', badgeLabel: 'Shown to players' } : {}),
+    })),
+  );
+  protected readonly mapIconChoices = MAP_ICON_CHOICES;
   protected readonly mapTitle = signal('');
   protected readonly mapIcon = signal<MapIcon>('castle');
   protected readonly sharedId = this.battlemap.sharedId;
@@ -181,21 +204,15 @@ export class DmScreen {
     });
   }
 
-  protected onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file) {
-      return;
-    }
+  protected onFileSelected(file: File): void {
     this.error.set('');
     this.pendingMapFile.set(file);
-    this.mapTitle.set(file.name.replace(/\.[^.]+$/, '') || 'Map');
+    this.mapTitle.set(titleFromFileName(file.name, 'Map'));
     this.mapIcon.set('castle');
   }
 
-  protected setMapIcon(icon: MapIcon): void {
-    this.mapIcon.set(icon);
+  protected setMapIcon(icon: string): void {
+    this.mapIcon.set(icon as MapIcon);
   }
 
   protected cancelMapUpload(): void {
@@ -309,8 +326,8 @@ export class DmScreen {
     this.fitDmView();
   }
 
-  protected removeMap(id: string, name: string): void {
-    if (confirm('Remove the map "' + name + '" and its shapes?')) {
+  protected async removeMap(id: string, name: string): Promise<void> {
+    if (await this.confirm.ask('Remove the map "' + name + '" and its shapes?')) {
       this.cancelDraft();
       this.battlemap.removeMap(id);
       this.fitDmView();

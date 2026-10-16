@@ -1,0 +1,39 @@
+.map-icon-options {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+
+  legend {
+    margin-bottom: 0.4rem;
+  }
+
+  label {
+    display: grid;
+    justify-items: center;
+    gap: 0.2rem;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.5rem 0.25rem;
+    border: 1px solid var(--leather-line);
+    border-radius: 4px;
+    cursor: pointer;
+
+    &.selected {
+      background: color-mix(in srgb, var(--gold) 30%, var(--parchment));
+      outline: 2px solid var(--gold);
+    }
+  }
+
+  input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .material-symbols-outlined {
+    font-size: 1.5rem;
+  }
+}

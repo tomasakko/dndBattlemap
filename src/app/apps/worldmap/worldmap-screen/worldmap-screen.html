@@ -7,58 +7,34 @@
     </div>
   }
 
-  <nav class="map-picker" aria-label="World maps">
-    <details>
-      <summary>
-        <span class="material-symbols-outlined" aria-hidden="true">public</span>
-        <span class="map-name">{{ current()?.name ?? 'Choose Map' }}</span>
-        <span class="material-symbols-outlined expand" aria-hidden="true">expand_more</span>
-      </summary>
-      <div class="map-options">
-        @for (entry of maps(); track entry.id) {
-          <div class="map-option" [class.current]="entry.id === current()?.id">
-            <button
-              type="button"
-              [attr.aria-current]="entry.id === current()?.id ? 'true' : null"
-              (click)="selectMap(entry.id)"
-            >
-              {{ entry.name }}
-            </button>
-            <button
-              type="button"
-              class="map-remove"
-              [attr.aria-label]="'Remove map ' + entry.name"
-              (click)="removeMap(entry.id, entry.name)"
-            >
-              <span class="material-symbols-outlined" aria-hidden="true">close</span>
-            </button>
-          </div>
-        } @empty {
-          <p class="no-maps">No maps uploaded</p>
-        }
-      </div>
-    </details>
-  </nav>
+  <app-dropdown-picker
+    class="map-picker"
+    ariaLabel="World maps"
+    emptyText="No maps uploaded"
+    removeLabel="Remove map "
+    icon="public"
+    [items]="mapItems()"
+    [currentId]="current()?.id ?? null"
+    [label]="current()?.name ?? 'Choose Map'"
+    (selected)="selectMap($event)"
+    (removed)="removeMap($event.id, $event.name)"
+  />
 
   <header class="top-actions">
-    <label class="button primary upload-button" for="worldmap-file">
-      <span class="material-symbols-outlined" aria-hidden="true">upload</span>
-      Upload Map
-    </label>
-    <input id="worldmap-file" class="visually-hidden" type="file" accept="image/*" (change)="onFileSelected($event)" />
+    <app-file-button label="Upload Map" icon="upload" (fileSelected)="onFileSelected($event)" />
     @if (error()) {
-      <p class="error" role="alert">{{ error() }}</p>
+      <p class="ui-error" role="alert">{{ error() }}</p>
     }
     @if (persistenceError(); as message) {
-      <p class="error" role="alert">{{ message }}</p>
+      <p class="ui-error" role="alert">{{ message }}</p>
     }
   </header>
 
   @if (current()) {
-    <div class="toolbar" role="toolbar" aria-label="World map tools">
+    <div class="ui-toolbar" role="toolbar" aria-label="World map tools">
       <button
         type="button"
-        class="icon-button"
+        class="ui-btn ui-icon-btn"
         title="Add marker"
         aria-label="Add marker"
         [attr.aria-pressed]="placing()"
@@ -66,7 +42,7 @@
       >
         <span class="material-symbols-outlined" aria-hidden="true">add_location_alt</span>
       </button>
-      <button type="button" class="icon-button" title="Reset view" aria-label="Reset view" (click)="resetView()">
+      <button type="button" class="ui-btn ui-icon-btn" title="Reset view" aria-label="Reset view" (click)="resetView()">
         <span class="material-symbols-outlined" aria-hidden="true">fit_screen</span>
       </button>
       @if (placing()) {
@@ -76,30 +52,11 @@
   }
 
   @if (pendingFile()) {
-    <div class="map-upload-backdrop">
-      <form
-        class="map-upload-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="worldmap-upload-title"
-        (submit)="$event.preventDefault(); confirmUpload()"
-      >
-        <h2 id="worldmap-upload-title">Add Map</h2>
-        <label for="worldmap-title">Map title</label>
-        <input
-          id="worldmap-title"
-          class="map-title-input"
-          type="text"
-          required
-          maxlength="80"
-          [value]="mapTitle()"
-          (input)="updateTitle($event)"
-        />
-        <div class="map-upload-actions">
-          <button type="button" (click)="cancelUpload()">Cancel</button>
-          <button type="submit" class="primary">Add map</button>
-        </div>
-      </form>
-    </div>
+    <app-map-upload-dialog
+      [title]="mapTitle()"
+      (titleChanged)="mapTitle.set($event)"
+      (cancelled)="cancelUpload()"
+      (submitted)="confirmUpload()"
+    />
   }
 </div>

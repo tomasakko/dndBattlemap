@@ -1,4 +1,7 @@
 import { Service, computed, signal } from '@angular/core';
+import { IndexedDbStore, SaveQueue } from '../../shared/storage/indexed-db-store';
+import { newId } from '../../shared/util/id';
+import { loadImageFile } from '../../shared/util/image';
 
 export interface WorldmapImage {
   url: string;
@@ -27,9 +30,7 @@ export interface WorldmapState {
   currentId: string | null;
 }
 
-const DATABASE_NAME = 'dnd-worldmap';
-const DATABASE_STORE = 'state';
-const DATABASE_RECORD = 'current';
+const store = new IndexedDbStore('dnd-worldmap');
 
 const EMPTY_STATE: WorldmapState = { maps: [], currentId: null };
 
@@ -43,7 +44,7 @@ export class WorldmapService {
   readonly persistenceError = signal<string | null>(null);
 
   private restorePromise?: Promise<void>;
-  private persistQueue: Promise<void> = Promise.resolve();
+  private readonly saves = new SaveQueue();
 
   ensureRestored(): Promise<void> {
     this.restorePromise ??= this.restore();
@@ -52,14 +53,8 @@ export class WorldmapService {
 
   async addMap(file: File, name: string): Promise<void> {
     await this.ensureRestored();
-    const url = await readAsDataUrl(file);
-    const { width, height } = await measure(url);
-    const entry: WorldmapEntry = {
-      id: crypto.randomUUID(),
-      name,
-      image: { url, width, height },
-      markers: [],
-    };
+    const image = await loadImageFile(file);
+    const entry: WorldmapEntry = { id: newId(), name, image, markers: [] };
     this.state.update((state) => ({ maps: [...state.maps, entry], currentId: entry.id }));
     await this.persist();
   }
@@ -86,7 +81,7 @@ export class WorldmapService {
       return null;
     }
     const marker: WorldmapMarker = {
-      id: crypto.randomUUID(),
+      id: newId(),
       name: `Marker ${current.markers.length + 1}`,
       x,
       y,
@@ -135,22 +130,22 @@ export class WorldmapService {
 
   private persist(): Promise<void> {
     const serialised = JSON.stringify(this.state());
-    this.persistQueue = this.persistQueue
-      .then(() => writeState(serialised))
-      .then(() => this.persistenceError.set(null))
-      .catch((error: unknown) => {
+    return this.saves.enqueue(
+      () => store.write(serialised),
+      () => this.persistenceError.set(null),
+      (error) => {
         console.error('Could not save world maps', error);
         this.persistenceError.set('The world maps could not be saved. They may be lost when you leave this page.');
-      });
-    return this.persistQueue;
+      },
+    );
   }
 
   private async restore(): Promise<void> {
-    if (typeof indexedDB === 'undefined') {
+    if (!store.available) {
       return;
     }
     try {
-      const raw = await readState();
+      const raw = await store.read();
       if (raw) {
         this.state.set(validate(JSON.parse(raw)));
       }
@@ -198,13 +193,13 @@ function validate(saved: unknown): WorldmapState {
     if (!data.image) {
       return EMPTY_STATE;
     }
-    const entry = validateEntry(data, crypto.randomUUID());
+    const entry = validateEntry(data, newId());
     return { maps: [entry], currentId: entry.id };
   }
   if (!Array.isArray(data.maps)) {
     throw new Error('Invalid world maps');
   }
-  const maps = data.maps.map((entry) => validateEntry(entry, crypto.randomUUID()));
+  const maps = data.maps.map((entry) => validateEntry(entry, newId()));
   if (new Set(maps.map((entry) => entry.id)).size !== maps.length) {
     throw new Error('Duplicate world map ids');
   }
@@ -212,63 +207,4 @@ function validate(saved: unknown): WorldmapState {
     maps,
     currentId: maps.some((entry) => entry.id === data.currentId) ? (data.currentId as string) : (maps[0]?.id ?? null),
   };
-}
-
-function openDatabase(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DATABASE_NAME, 1);
-    request.onupgradeneeded = () => request.result.createObjectStore(DATABASE_STORE);
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error('Could not open world map database'));
-  });
-}
-
-async function readState(): Promise<string | null> {
-  const database = await openDatabase();
-  return new Promise((resolve, reject) => {
-    const transaction = database.transaction(DATABASE_STORE, 'readonly');
-    const request = transaction.objectStore(DATABASE_STORE).get(DATABASE_RECORD);
-    transaction.oncomplete = () => {
-      database.close();
-      resolve(typeof request.result === 'string' ? request.result : null);
-    };
-    transaction.onerror = transaction.onabort = () => {
-      database.close();
-      reject(transaction.error ?? new Error('Could not read world maps'));
-    };
-  });
-}
-
-async function writeState(serialised: string): Promise<void> {
-  const database = await openDatabase();
-  return new Promise((resolve, reject) => {
-    const transaction = database.transaction(DATABASE_STORE, 'readwrite');
-    transaction.objectStore(DATABASE_STORE).put(serialised, DATABASE_RECORD);
-    transaction.oncomplete = () => {
-      database.close();
-      resolve();
-    };
-    transaction.onerror = transaction.onabort = () => {
-      database.close();
-      reject(transaction.error ?? new Error('Could not save world maps'));
-    };
-  });
-}
-
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
-
-function measure(url: string): Promise<{ width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
-    image.onerror = () => reject(new Error('Could not load image'));
-    image.src = url;
-  });
 }

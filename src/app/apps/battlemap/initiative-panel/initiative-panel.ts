@@ -1,4 +1,5 @@
 import { Component, ElementRef, afterRenderEffect, computed, inject, signal } from '@angular/core';
+import { ConfirmService } from '../../../shared/ui/confirm-dialog/confirm.service';
 import { InitiativeService } from '../services/initiative.service';
 import type { Combatant } from '../services/initiative.service';
 import { StatblockCard } from '../statblock-card/statblock-card';
@@ -13,6 +14,7 @@ import { CombatantRow } from './combatant-row/combatant-row';
 })
 export class InitiativePanel {
   private readonly initiative = inject(InitiativeService);
+  private readonly confirm = inject(ConfirmService);
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -57,8 +59,8 @@ export class InitiativePanel {
     this.initiative.remove(combatant.id);
   }
 
-  protected clear(): void {
-    if (confirm('Remove everyone from the initiative order?')) {
+  protected async clear(): Promise<void> {
+    if (await this.confirm.ask('Remove everyone from the initiative order?', 'Remove all')) {
       this.initiative.clear();
     }
   }

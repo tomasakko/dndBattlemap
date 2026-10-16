@@ -1,6 +1,7 @@
 @import 'material-symbols/outlined.css';
 @import '@fontsource-variable/cinzel';
 @import 'leaflet/dist/leaflet.css';
+@import './app/shared/ui/ui.css';
 
 :root {
   --parchment: #f4efe6;
@@ -21,83 +22,6 @@ body {
   color: var(--leather);
   font-family: 'Cinzel Variable', Georgia, serif;
   font-size: 0.9rem;
-}
-
-.map-upload-backdrop {
-  position: fixed;
-  z-index: 1000;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  background: rgb(0 0 0 / 60%);
-}
-
-.map-upload-dialog {
-  display: grid;
-  gap: 0.65rem;
-  box-sizing: border-box;
-  width: min(32rem, 100%);
-  padding: 1.25rem;
-  color: var(--leather);
-  background: var(--parchment);
-  border: 1px solid var(--leather-line);
-  border-radius: 6px;
-  box-shadow: 0 8px 28px rgb(0 0 0 / 55%);
-}
-
-.map-upload-dialog h2 {
-  margin: 0;
-}
-
-.map-upload-dialog .map-title-input {
-  min-width: 0;
-  padding: 0.5rem;
-  color: var(--leather);
-  background: #fff;
-  border: 1px solid var(--leather-line);
-  border-radius: 4px;
-  font: inherit;
-}
-
-.map-icon-options {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  min-width: 0;
-}
-
-.map-icon-options legend {
-  margin-bottom: 0.4rem;
-}
-
-.map-icon-options label {
-  display: grid;
-  justify-items: center;
-  gap: 0.2rem;
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 0.5rem 0.25rem;
-  border: 1px solid var(--leather-line);
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.map-icon-options label.selected {
-  background: color-mix(in srgb, var(--gold) 30%, var(--parchment));
-  outline: 2px solid var(--gold);
-}
-
-.map-icon-options input {
-  position: absolute;
-  opacity: 0;
-}
-
-.map-icon-options .material-symbols-outlined {
-  font-size: 1.5rem;
 }
 
 .draft-action {
@@ -128,28 +52,6 @@ body {
 .draft-action.disabled {
   opacity: 0.4;
   pointer-events: none;
-}
-
-.map-upload-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
-}
-
-.map-upload-actions button {
-  padding: 0.4rem 0.75rem;
-  color: var(--parchment);
-  background: var(--leather-raised);
-  border: 1px solid var(--leather-line);
-  border-radius: 4px;
-  font: inherit;
-  cursor: pointer;
-}
-
-.map-upload-actions button.primary {
-  color: var(--leather);
-  background: var(--gold);
 }
 
 .docked-panel {

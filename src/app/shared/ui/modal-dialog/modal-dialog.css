@@ -1,0 +1,48 @@
+.backdrop {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 60%);
+}
+
+.dialog {
+  display: grid;
+  gap: 0.65rem;
+  box-sizing: border-box;
+  width: min(32rem, 100%);
+  padding: 1.25rem;
+  color: var(--leather);
+  background: var(--parchment);
+  border: 1px solid var(--leather-line);
+  border-radius: 6px;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 55%);
+}
+
+h2 {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.actions button {
+  padding: 0.4rem 0.75rem;
+  color: var(--parchment);
+  background: var(--leather-raised);
+  border: 1px solid var(--leather-line);
+  border-radius: 4px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.actions button.primary {
+  color: var(--leather);
+  background: var(--gold);
+}

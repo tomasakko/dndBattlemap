@@ -1,4 +1,7 @@
 import { Service, computed, inject, signal } from '@angular/core';
+import { IndexedDbStore, SaveQueue } from '../../../shared/storage/indexed-db-store';
+import { newId } from '../../../shared/util/id';
+import { loadImageFile } from '../../../shared/util/image';
 import { InitiativeService } from './initiative.service';
 import type { InitiativeState } from './initiative.service';
 
@@ -86,10 +89,7 @@ type Message =
 
 const CHANNEL_NAME = 'dnd-battlemap';
 const STORAGE_KEY = 'dnd-battlemap';
-const DATABASE_NAME = 'dnd-battlemap';
-const DATABASE_VERSION = 1;
-const DATABASE_STORE = 'state';
-const DATABASE_RECORD = 'current';
+const store = new IndexedDbStore('dnd-battlemap');
 const PERSIST_DELAY_MS = 400;
 
 /**
@@ -121,7 +121,7 @@ export class BattlemapService {
   private readonly initiative = inject(InitiativeService);
   private channel?: BroadcastChannel;
   private persistTimer?: ReturnType<typeof setTimeout>;
-  private persistQueue: Promise<void> = Promise.resolve();
+  private readonly saves = new SaveQueue();
   private restored = false;
   private restorePromise?: Promise<void>;
   /** Increments whenever a saved state replaces the current one, so open screens can reset their local state. */
@@ -168,11 +168,10 @@ export class BattlemapService {
 
   async addMap(file: File, name: string, icon: MapIcon): Promise<void> {
     await this.ensureRestored();
-    const url = await readAsDataUrl(file);
-    const { width, height } = await measure(url);
+    const { url, width, height } = await loadImageFile(file);
     this.syncCurrent();
     const entry: MapEntry = {
-      id: crypto.randomUUID(),
+      id: newId(),
       name,
       icon,
       map: { url, width, height },
@@ -216,7 +215,7 @@ export class BattlemapService {
     if (!trimmedName) {
       throw new Error('A player name is required');
     }
-    this.players.update((players) => [...players, { id: crypto.randomUUID(), name: trimmedName }]);
+    this.players.update((players) => [...players, { id: newId(), name: trimmedName }]);
     this.persist();
   }
 
@@ -283,7 +282,7 @@ export class BattlemapService {
 
   addRoom(points: Point[]): void {
     const name = `Room ${this.rooms().length + 1}`;
-    this.rooms.update((rooms) => [...rooms, { id: crypto.randomUUID(), name, points, revealed: false }]);
+    this.rooms.update((rooms) => [...rooms, { id: newId(), name, points, revealed: false }]);
     this.commit();
   }
 
@@ -412,14 +411,14 @@ export class BattlemapService {
       initiative: this.initiative.exportState(),
       initiativeShared: this.initiative.shared(),
     });
-    this.persistQueue = this.persistQueue
-      .then(() => savePersistedState(state))
-      .then(() => this.persistenceError.set(null))
-      .catch((error: unknown) => {
+    return this.saves.enqueue(
+      () => savePersistedState(state),
+      () => this.persistenceError.set(null),
+      (error) => {
         console.error('Could not save battlemap state', error);
         this.persistenceError.set('Battlemap data could not be saved. It may be lost when you leave this page.');
-      });
-    return this.persistQueue;
+      },
+    );
   }
 
   /** Loads persisted state once before the DM screen or project tools use it. */
@@ -441,7 +440,7 @@ export class BattlemapService {
     try {
       let raw: string | null = null;
       try {
-        raw = await readIndexedState();
+        raw = await store.read();
       } catch (error) {
         console.error('Could not read battlemap state from IndexedDB', error);
       }
@@ -450,9 +449,9 @@ export class BattlemapService {
       }
       if (raw) {
         this.apply(JSON.parse(raw));
-        if (typeof indexedDB !== 'undefined') {
+        if (store.available) {
           try {
-            await writeIndexedState(raw);
+            await store.write(raw);
             localStorage.removeItem(STORAGE_KEY);
           } catch (error) {
             console.error('Could not migrate battlemap state to IndexedDB', error);
@@ -521,7 +520,7 @@ export class BattlemapService {
       }));
       let sharedId = saved.sharedId ?? null;
       if (!saved.maps && saved.map) {
-        const id = crypto.randomUUID();
+        const id = newId();
         maps = [
           {
             id,
@@ -557,9 +556,9 @@ export class BattlemapService {
 }
 
 async function savePersistedState(state: string): Promise<void> {
-  if (typeof indexedDB !== 'undefined') {
+  if (store.available) {
     try {
-      await writeIndexedState(state);
+      await store.write(state);
       return;
     } catch (indexedDbError) {
       try {
@@ -572,63 +571,6 @@ async function savePersistedState(state: string): Promise<void> {
     }
   }
   localStorage.setItem(STORAGE_KEY, state);
-}
-
-function readIndexedState(): Promise<string | null> {
-  if (typeof indexedDB === 'undefined') {
-    return Promise.resolve(null);
-  }
-  return openStateDatabase().then(
-    (database) =>
-      new Promise<string | null>((resolve, reject) => {
-        const transaction = database.transaction(DATABASE_STORE, 'readonly');
-        const request = transaction.objectStore(DATABASE_STORE).get(DATABASE_RECORD);
-        request.onsuccess = () => resolve(typeof request.result === 'string' ? request.result : null);
-        request.onerror = () => reject(request.error ?? new Error('Could not read battlemap state'));
-        transaction.oncomplete = () => database.close();
-        transaction.onabort = () => {
-          database.close();
-          reject(transaction.error ?? new Error('Reading battlemap state was aborted'));
-        };
-        transaction.onerror = () => {
-          database.close();
-          reject(transaction.error ?? new Error('Could not read battlemap state'));
-        };
-      }),
-  );
-}
-
-function writeIndexedState(state: string): Promise<void> {
-  return openStateDatabase().then(
-    (database) =>
-      new Promise<void>((resolve, reject) => {
-        const transaction = database.transaction(DATABASE_STORE, 'readwrite');
-        transaction.objectStore(DATABASE_STORE).put(state, DATABASE_RECORD);
-        transaction.oncomplete = () => {
-          database.close();
-          resolve();
-        };
-        transaction.onerror = () => {
-          database.close();
-          reject(transaction.error ?? new Error('Could not save battlemap state'));
-        };
-        transaction.onabort = () => {
-          database.close();
-          reject(transaction.error ?? new Error('Saving battlemap state was aborted'));
-        };
-      }),
-  );
-}
-
-function openStateDatabase(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
-    request.onupgradeneeded = () => {
-      request.result.createObjectStore(DATABASE_STORE);
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error('Could not open battlemap state database'));
-  });
 }
 
 interface SavedState {
@@ -658,23 +600,5 @@ function validatePlayers(saved: unknown): PlayerPreset[] {
       throw new Error('Invalid player data');
     }
     return { id: data.id, name: data.name.trim() };
-  });
-}
-
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
-
-function measure(url: string): Promise<{ width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
-    image.onerror = () => reject(new Error('Could not load image'));
-    image.src = url;
   });
 }

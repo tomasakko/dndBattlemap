@@ -1,6 +1,7 @@
 import { Service, computed, inject, signal } from '@angular/core';
 import { CreatureService } from '../../../shared/creatures/creature.service';
 import type { Statblock } from '../../../shared/creatures/statblock';
+import { newId } from '../../../shared/util/id';
 
 export type Side = 'player' | 'enemy';
 
@@ -73,7 +74,7 @@ export class InitiativeService {
   }
 
   add(name: string, initiative: number, type: string, side: Side): void {
-    const combatant: Combatant = { id: crypto.randomUUID(), name, initiative, type, side };
+    const combatant: Combatant = { id: newId(), name, initiative, type, side };
     this.combatants.update((list) => [...list, combatant]);
     this.commit();
   }
@@ -83,7 +84,7 @@ export class InitiativeService {
       return;
     }
     const combatant: Combatant = {
-      id: crypto.randomUUID(),
+      id: newId(),
       playerId,
       name,
       initiative,

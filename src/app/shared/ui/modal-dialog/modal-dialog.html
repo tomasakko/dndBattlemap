@@ -1,0 +1,16 @@
+<div class="backdrop" (keydown.escape)="cancelled.emit()">
+  <form
+    class="dialog"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="headingId"
+    (submit)="$event.preventDefault(); submitted.emit()"
+  >
+    <h2 [id]="headingId">{{ heading() }}</h2>
+    <ng-content />
+    <div class="actions">
+      <button type="button" (click)="cancelled.emit()">{{ cancelLabel() }}</button>
+      <button type="submit" class="primary">{{ submitLabel() }}</button>
+    </div>
+  </form>
+</div>

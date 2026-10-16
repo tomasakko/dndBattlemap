@@ -1,0 +1,90 @@
+/* Shared building blocks for every app. Opt in by class so nothing leaks onto unrelated elements. */
+
+.ui-btn {
+  font: inherit;
+  color: var(--parchment);
+  background: var(--leather-raised);
+  border: 1px solid var(--leather-line);
+  border-radius: 4px;
+  padding: 0.35rem 0.55rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.ui-btn:hover:not(:disabled) {
+  background: #4a2f2a;
+}
+
+.ui-btn:focus-visible,
+.ui-text-input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.ui-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* A square icon-only button meant for a .ui-toolbar. */
+.ui-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  color: var(--leather);
+  background: transparent;
+  border-color: transparent;
+}
+
+.ui-icon-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--gold) 40%, var(--parchment));
+}
+
+.ui-icon-btn[aria-pressed='true'] {
+  background: var(--gold);
+}
+
+.ui-toolbar {
+  position: absolute;
+  z-index: var(--ui-overlay-z, 3);
+  bottom: 1rem;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: calc(100vw - 1rem);
+  padding: 0.35rem;
+  transform: translateX(-50%);
+  color: var(--leather);
+  background: var(--parchment);
+  border: 1px solid var(--leather-line);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 45%);
+}
+
+.ui-toolbar-separator {
+  width: 1px;
+  height: 1.5rem;
+  margin: 0 0.2rem;
+  background: var(--leather-line);
+}
+
+.ui-error {
+  margin: 0.4rem 0 0;
+  padding: 0.45rem 0.7rem;
+  color: var(--parchment);
+  background: var(--crimson);
+  border-radius: 4px;
+}
+
+.ui-text-input {
+  min-width: 0;
+  padding: 0.5rem;
+  color: var(--leather);
+  background: #fff;
+  border: 1px solid var(--leather-line);
+  border-radius: 4px;
+  font: inherit;
+}

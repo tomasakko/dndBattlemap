@@ -1,5 +1,12 @@
-import { Component, DestroyRef, ElementRef, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import * as L from 'leaflet';
+import { ConfirmService } from '../../../shared/ui/confirm-dialog/confirm.service';
+import { DropdownPicker } from '../../../shared/ui/dropdown-picker/dropdown-picker';
+import type { PickerItem } from '../../../shared/ui/dropdown-picker/dropdown-picker';
+import { FileButton } from '../../../shared/ui/file-button/file-button';
+import { MapUploadDialog } from '../../../shared/ui/map-upload-dialog/map-upload-dialog';
+import { clamp } from '../../../shared/util/math';
+import { escapeHtml, titleFromFileName } from '../../../shared/util/text';
 import { WorldmapService } from '../worldmap.service';
 import type { WorldmapImage, WorldmapMarker } from '../worldmap.service';
 
@@ -7,14 +14,19 @@ const ZOOM_LIMIT = 20;
 
 @Component({
   selector: 'app-worldmap-screen',
+  imports: [DropdownPicker, FileButton, MapUploadDialog],
   templateUrl: './worldmap-screen.html',
   styleUrl: './worldmap-screen.css',
 })
 export class WorldmapScreen {
   private readonly worldmap = inject(WorldmapService);
+  private readonly confirm = inject(ConfirmService);
   private readonly container = viewChild.required<ElementRef<HTMLDivElement>>('map');
 
   protected readonly maps = this.worldmap.maps;
+  protected readonly mapItems = computed<PickerItem[]>(() =>
+    this.maps().map((entry) => ({ id: entry.id, label: entry.name })),
+  );
   protected readonly current = this.worldmap.current;
   protected readonly persistenceError = this.worldmap.persistenceError;
   protected readonly placing = signal(false);
@@ -45,20 +57,10 @@ export class WorldmapScreen {
     });
   }
 
-  protected onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file) {
-      return;
-    }
+  protected onFileSelected(file: File): void {
     this.error.set('');
     this.pendingFile.set(file);
-    this.mapTitle.set(file.name.replace(/\.[^.]+$/, '') || 'World map');
-  }
-
-  protected updateTitle(event: Event): void {
-    this.mapTitle.set((event.target as HTMLInputElement).value);
+    this.mapTitle.set(titleFromFileName(file.name, 'World map'));
   }
 
   protected cancelUpload(): void {
@@ -87,8 +89,8 @@ export class WorldmapScreen {
     this.worldmap.selectMap(id);
   }
 
-  protected removeMap(id: string, name: string): void {
-    if (confirm('Remove the map "' + name + '" and its markers?')) {
+  protected async removeMap(id: string, name: string): Promise<void> {
+    if (await this.confirm.ask('Remove the map "' + name + '" and its markers?')) {
       this.placing.set(false);
       this.worldmap.removeMap(id);
     }
@@ -253,10 +255,3 @@ function pinIcon(): L.DivIcon {
   });
 }
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
-}
-
-function escapeHtml(text: string): string {
-  return text.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
-}

@@ -1,5 +1,6 @@
 import { Component, ElementRef, afterNextRender, computed, inject, input, output, signal, viewChild } from '@angular/core';
 import { CreatureService } from '../../../shared/creatures/creature.service';
+import { ConfirmService } from '../../../shared/ui/confirm-dialog/confirm.service';
 import { InitiativeService } from '../services/initiative.service';
 import type { Combatant } from '../services/initiative.service';
 import type { Ability, Movement, Statblock } from '../../../shared/creatures/statblock';
@@ -23,6 +24,7 @@ type NumberKey = 'armorClass' | 'hitPoints';
 export class StatblockCard {
   private readonly initiative = inject(InitiativeService);
   private readonly creatures = inject(CreatureService);
+  private readonly confirm = inject(ConfirmService);
   private readonly closeButton = viewChild<ElementRef<HTMLButtonElement>>('close');
 
   readonly combatant = input.required<Combatant>();
@@ -72,8 +74,8 @@ export class StatblockCard {
     this.editing.set(false);
   }
 
-  protected resetToDefault(): void {
-    if (confirm('Discard your changes and use the standard stats for this creature?')) {
+  protected async resetToDefault(): Promise<void> {
+    if (await this.confirm.ask('Discard your changes and use the standard stats for this creature?', 'Discard')) {
       this.initiative.setStats(this.combatant().id, undefined);
       this.stopEditing();
     }

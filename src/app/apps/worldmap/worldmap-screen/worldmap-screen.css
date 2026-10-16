@@ -1,34 +1,11 @@
-:host { display: block; height: 100%; overflow: hidden; }
+:host { display: block; height: 100%; overflow: hidden; --ui-overlay-z: 1000; }
 .workspace { position: absolute; inset: 0; overflow: hidden; color: var(--parchment); }
 .map { position: absolute; inset: 0; background: #1c110f; font-family: inherit; }
 .map.placing { cursor: crosshair; }
 .empty { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; color: var(--parchment); pointer-events: none; }
 .empty p { margin: 0; }
+.map-picker { position: absolute; z-index: 1000; top: 1rem; left: 4.5rem; width: min(260px, calc(100vw - 6rem)); }
 .top-actions { position: absolute; z-index: 1000; top: 1rem; left: 50%; transform: translateX(-50%); text-align: center; }
-.button, button { font: inherit; color: var(--parchment); background: var(--leather-raised); border: 1px solid var(--leather-line); border-radius: 4px; padding: 0.35rem 0.55rem; cursor: pointer; }
-.button:hover, button:hover { background: #4a2f2a; }
-.button:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-.button.primary { display: flex; align-items: center; justify-content: center; gap: 0.35rem; min-width: 7.5rem; background: var(--gold); border-color: var(--gold); color: var(--leather); }
-.button.primary:hover { background: #e2c15a; }
-.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.map-picker { position: absolute; z-index: 1000; top: 1rem; left: 4.5rem; width: min(260px, calc(100vw - 6rem)); color: var(--leather); }
-.map-picker details { background: var(--parchment); border: 1px solid var(--leather-line); border-radius: 6px; box-shadow: 0 4px 18px rgb(0 0 0 / 45%); }
-.map-picker summary { display: flex; align-items: center; gap: 0.5rem; min-height: 2.5rem; padding: 0 0.65rem; list-style: none; cursor: pointer; }
-.map-picker summary::-webkit-details-marker { display: none; }
-.map-picker summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-.map-name { overflow: hidden; flex: 1; text-overflow: ellipsis; white-space: nowrap; }
-.map-options { max-height: 50vh; overflow: auto; border-top: 1px solid var(--leather-line); }
-.map-option { display: grid; grid-template-columns: minmax(0, 1fr) auto; border-bottom: 1px solid rgb(90 61 54 / 25%); }
-.map-option button { min-width: 0; padding: 0.45rem 0.65rem; color: var(--leather); background: transparent; border: 0; border-radius: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.map-option button:hover { background: color-mix(in srgb, var(--gold) 25%, transparent); }
-.map-option.current button:first-child { background: color-mix(in srgb, var(--gold) 25%, transparent); }
-.map-option .map-remove { display: grid; place-items: center; padding-inline: 0.45rem; }
-.no-maps { margin: 0; padding: 0.6rem; font-size: 0.8rem; }
-.error { margin: 0.4rem 0 0; padding: 0.45rem 0.7rem; color: var(--parchment); background: var(--crimson); border-radius: 4px; }
-.toolbar { position: absolute; z-index: 1000; bottom: 1rem; left: 50%; display: flex; align-items: center; gap: 0.25rem; padding: 0.35rem; transform: translateX(-50%); color: var(--leather); background: var(--parchment); border: 1px solid var(--leather-line); border-radius: 6px; box-shadow: 0 4px 16px rgb(0 0 0 / 45%); }
-.icon-button { display: grid; place-items: center; width: 2rem; height: 2rem; padding: 0; color: var(--leather); background: transparent; border-color: transparent; }
-.icon-button:hover { background: color-mix(in srgb, var(--gold) 40%, var(--parchment)); }
-.icon-button[aria-pressed='true'] { background: var(--gold); }
 .hint { padding: 0 0.5rem; font-size: 0.78rem; white-space: nowrap; }
 .material-symbols-outlined { font-size: 1.2rem; }
 

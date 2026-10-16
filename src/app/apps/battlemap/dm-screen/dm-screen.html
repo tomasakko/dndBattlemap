@@ -92,10 +92,10 @@
         }
       </svg>
 
-      <div class="bottom-toolbar" role="toolbar" aria-label="Map tools and player zoom">
+      <div class="ui-toolbar" role="toolbar" aria-label="Map tools and player zoom">
         <button
           type="button"
-          class="icon-button"
+          class="ui-btn ui-icon-btn"
           aria-label="Draw shape"
           title="Draw shape"
           [attr.aria-pressed]="tool() === 'draw'"
@@ -105,7 +105,7 @@
         </button>
         <button
           type="button"
-          class="icon-button"
+          class="ui-btn ui-icon-btn"
           aria-label="Move player view"
           title="Move player view"
           [attr.aria-pressed]="tool() === 'view'"
@@ -113,7 +113,7 @@
         >
           <span class="material-symbols-outlined" aria-hidden="true">open_with</span>
         </button>
-        <span class="separator" aria-hidden="true"></span>
+        <span class="ui-toolbar-separator" aria-hidden="true"></span>
         <label class="player-zoom">
           <span>Player Zoom</span>
           <input
@@ -137,35 +137,35 @@
     }
   </main>
 
-  <app-map-picker
+  <app-dropdown-picker
     class="map-picker"
-    [maps]="maps()"
+    ariaLabel="Maps"
+    emptyText="No maps uploaded"
+    removeLabel="Remove map "
+    lockedNote="End combat to switch maps."
+    [items]="mapItems()"
     [currentId]="currentId()"
-    [currentName]="currentMapName()"
-    [currentIcon]="currentMapIcon()"
-    [sharedId]="sharedId()"
+    [label]="currentMapName()"
+    [icon]="currentMapIcon()"
     [locked]="locked()"
     (selected)="selectMap($event)"
     (removed)="removeMap($event.id, $event.name)"
   />
 
   <header class="top-actions">
-    <label class="button primary upload-button" for="map-file">
-      <span class="material-symbols-outlined" aria-hidden="true">upload</span>
-      Upload Map
-    </label>
-    <input id="map-file" class="visually-hidden" type="file" accept="image/*" (change)="onFileSelected($event)" />
+    <app-file-button label="Upload Map" icon="upload" (fileSelected)="onFileSelected($event)" />
     @if (error()) {
-      <p class="error" role="alert">{{ error() }}</p>
+      <p class="ui-error" role="alert">{{ error() }}</p>
     }
     @if (persistenceError(); as message) {
-      <p class="error" role="alert">{{ message }}</p>
+      <p class="ui-error" role="alert">{{ message }}</p>
     }
   </header>
 
     @if (pendingMapFile()) {
       <app-map-upload-dialog
         [title]="mapTitle()"
+        [icons]="mapIconChoices"
         [icon]="mapIcon()"
         (titleChanged)="mapTitle.set($event)"
         (iconSelected)="setMapIcon($event)"

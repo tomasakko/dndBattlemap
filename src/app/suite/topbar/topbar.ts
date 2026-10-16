@@ -1,5 +1,6 @@
 import { Component, ElementRef, inject, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ConfirmService } from '../../shared/ui/confirm-dialog/confirm.service';
 import { ProjectService } from '../project.service';
 import { TabService } from '../tab.service';
 
@@ -12,6 +13,7 @@ import { TabService } from '../tab.service';
 export class Topbar {
   protected readonly tabs = inject(TabService);
   private readonly project = inject(ProjectService);
+  private readonly confirm = inject(ConfirmService);
   private readonly fileInput = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
 
   protected async save(): Promise<void> {
@@ -34,7 +36,11 @@ export class Topbar {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
-    if (!file || !confirm('Loading "' + file.name + '" replaces the current data of every app in the file. Continue?')) {
+    if (!file) {
+      return;
+    }
+    const message = 'Loading "' + file.name + '" replaces the current data of every app in the file. Continue?';
+    if (!(await this.confirm.ask(message, 'Load'))) {
       return;
     }
     try {

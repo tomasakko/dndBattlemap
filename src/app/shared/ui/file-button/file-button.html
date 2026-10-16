@@ -1,0 +1,7 @@
+<input [id]="inputId" class="hidden" type="file" [accept]="accept()" (change)="onChange($event)" />
+<label class="button" [for]="inputId">
+  @if (icon(); as glyph) {
+    <span class="material-symbols-outlined" aria-hidden="true">{{ glyph }}</span>
+  }
+  {{ label() }}
+</label>
