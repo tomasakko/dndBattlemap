@@ -113,7 +113,9 @@ export class BattlemapService {
   readonly currentId = signal<string | null>(null);
   /** The map players see, if any. Players only see a map once the DM shares it, so it can be prepared in private first. */
   readonly sharedId = signal<string | null>(null);
-  readonly shared = computed(() => this.sharedId() !== null && this.sharedId() === this.currentId());
+  readonly shared = computed(
+    () => this.sharedId() !== null && this.sharedId() === this.currentId(),
+  );
   readonly persistenceError = signal<string | null>(null);
   /** Maps can't be switched while a fight is running. */
   readonly locked = computed(() => this.initiative.activeId() !== null);
@@ -121,6 +123,7 @@ export class BattlemapService {
   private readonly initiative = inject(InitiativeService);
   private channel?: BroadcastChannel;
   private persistTimer?: ReturnType<typeof setTimeout>;
+  private linkedPlayerMapId: string | null = null;
   private readonly saves = new SaveQueue();
   private restored = false;
   private restorePromise?: Promise<void>;
@@ -142,6 +145,8 @@ export class BattlemapService {
           this.panView(message.dx, message.dy);
         }
       });
+      this.broadcastAll();
+      this.initiative.publish();
     });
   }
 
@@ -189,14 +194,46 @@ export class BattlemapService {
     if (!entry || id === this.currentId() || this.locked()) {
       return;
     }
+    this.clearLinkedPlayerMap();
     this.syncCurrent();
     this.load(this.maps().find((m) => m.id === id) ?? entry);
     this.persist();
   }
 
+  /** Loads a map linked from a world-map marker and shares a player-safe view of it. */
+  openLinkedMap(id: string): boolean {
+    const entry = this.maps().find((map) => map.id === id);
+    if (!entry || (this.currentId() !== id && this.locked())) {
+      return false;
+    }
+    if (this.currentId() !== id) {
+      this.syncCurrent();
+      this.load(entry);
+    }
+    this.linkedPlayerMapId = id;
+    this.initiative.setPlayerVisibilityOverride(true);
+    this.broadcastAll();
+    this.initiative.publish();
+    void this.persist();
+    return true;
+  }
+
+  clearLinkedPlayerMap(): void {
+    if (!this.linkedPlayerMapId) {
+      return;
+    }
+    this.linkedPlayerMapId = null;
+    this.initiative.setPlayerVisibilityOverride(false);
+    this.broadcastAll();
+    this.initiative.publish();
+  }
+
   removeMap(id: string): void {
     if (this.locked()) {
       return;
+    }
+    if (this.linkedPlayerMapId === id) {
+      this.clearLinkedPlayerMap();
     }
     this.syncCurrent();
     this.maps.update((maps) => maps.filter((m) => m.id !== id));
@@ -227,7 +264,9 @@ export class BattlemapService {
   /** Whether the players can be pointed at the current map right now. */
   canShare(): boolean {
     const sharedId = this.sharedId();
-    return this.map() !== null && (sharedId === null || sharedId === this.currentId() || !this.locked());
+    return (
+      this.map() !== null && (sharedId === null || sharedId === this.currentId() || !this.locked())
+    );
   }
 
   /** Shares the current map with the players (replacing whatever they saw), or hides it again. */
@@ -235,6 +274,7 @@ export class BattlemapService {
     if (shared ? !this.canShare() : this.sharedId() !== this.currentId()) {
       return;
     }
+    this.clearLinkedPlayerMap();
     this.sharedId.set(shared ? this.currentId() : null);
     this.broadcastAll();
     this.initiative.publish();
@@ -308,7 +348,9 @@ export class BattlemapService {
   }
 
   private patchRoom(id: string, patch: Partial<Room>): void {
-    this.rooms.update((rooms) => rooms.map((room) => (room.id === id ? { ...room, ...patch } : room)));
+    this.rooms.update((rooms) =>
+      rooms.map((room) => (room.id === id ? { ...room, ...patch } : room)),
+    );
     this.commit();
   }
 
@@ -352,6 +394,14 @@ export class BattlemapService {
 
   /** What the players should see: the working copy if the current map is shared, otherwise the stored entry. */
   private sharedContent(): { map: MapImage; rooms: Room[]; view: View } | null {
+    const linkedId = this.linkedPlayerMapId;
+    if (linkedId !== null) {
+      const map = this.map();
+      if (linkedId === this.currentId() && map) {
+        return { map, rooms: this.rooms(), view: this.view() };
+      }
+      return this.maps().find((entry) => entry.id === linkedId) ?? null;
+    }
     const sharedId = this.sharedId();
     if (sharedId === null) {
       return null;
@@ -384,7 +434,14 @@ export class BattlemapService {
   }
 
   private broadcastRooms(): void {
-    this.post({ type: 'rooms', rooms: this.sharedContent()?.rooms ?? [] });
+    const rooms = this.sharedContent()?.rooms ?? [];
+    this.post({
+      type: 'rooms',
+      rooms:
+        this.linkedPlayerMapId !== null
+          ? rooms.map((room) => ({ ...room, revealed: false }))
+          : rooms,
+    });
   }
 
   private broadcastView(): void {
@@ -416,7 +473,9 @@ export class BattlemapService {
       () => this.persistenceError.set(null),
       (error) => {
         console.error('Could not save battlemap state', error);
-        this.persistenceError.set('Battlemap data could not be saved. It may be lost when you leave this page.');
+        this.persistenceError.set(
+          'Battlemap data could not be saved. It may be lost when you leave this page.',
+        );
       },
     );
   }
@@ -494,13 +553,22 @@ export class BattlemapService {
     }
     const valid = data.maps.every(
       (m) =>
-        m && typeof m.id === 'string' && typeof m.name === 'string' && Array.isArray(m.rooms) &&
-        m.map && typeof m.map.url === 'string' && m.map.width > 0 && m.map.height > 0,
+        m &&
+        typeof m.id === 'string' &&
+        typeof m.name === 'string' &&
+        Array.isArray(m.rooms) &&
+        m.map &&
+        typeof m.map.url === 'string' &&
+        m.map.width > 0 &&
+        m.map.height > 0,
     );
     if (!valid) {
       throw new Error('Invalid map data');
     }
     this.apply(saved as SavedState);
+    if (this.linkedPlayerMapId && !this.maps().some((map) => map.id === this.linkedPlayerMapId)) {
+      this.clearLinkedPlayerMap();
+    }
     this.broadcastAll();
     this.initiative.publish();
     this.persist();
@@ -563,10 +631,15 @@ async function savePersistedState(state: string): Promise<void> {
     } catch (indexedDbError) {
       try {
         localStorage.setItem(STORAGE_KEY, state);
-        console.error('IndexedDB is unavailable; saved battlemap state in localStorage instead', indexedDbError);
+        console.error(
+          'IndexedDB is unavailable; saved battlemap state in localStorage instead',
+          indexedDbError,
+        );
         return;
       } catch (localStorageError) {
-        throw new Error('Could not save battlemap state in IndexedDB or localStorage', { cause: localStorageError });
+        throw new Error('Could not save battlemap state in IndexedDB or localStorage', {
+          cause: localStorageError,
+        });
       }
     }
   }
@@ -596,7 +669,12 @@ function validatePlayers(saved: unknown): PlayerPreset[] {
       throw new Error('Invalid player data');
     }
     const data = player as { id?: unknown; name?: unknown };
-    if (typeof data.id !== 'string' || !data.id.trim() || typeof data.name !== 'string' || !data.name.trim()) {
+    if (
+      typeof data.id !== 'string' ||
+      !data.id.trim() ||
+      typeof data.name !== 'string' ||
+      !data.name.trim()
+    ) {
       throw new Error('Invalid player data');
     }
     return { id: data.id, name: data.name.trim() };

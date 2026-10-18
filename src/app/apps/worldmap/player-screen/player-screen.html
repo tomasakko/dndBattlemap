@@ -1,0 +1,46 @@
+@if (linkedBattlemapId()) {
+  <app-player-screen />
+} @else {
+  <main class="stage">
+    @if (current(); as entry) {
+      <svg class="map" #stage [attr.viewBox]="viewBox()" role="img" [attr.aria-label]="entry.name">
+        <image
+          [attr.href]="entry.image.url"
+          x="0"
+          y="0"
+          [attr.width]="entry.image.width"
+          [attr.height]="entry.image.height"
+        />
+        @for (marker of entry.markers; track marker.id) {
+          <g class="marker" [attr.transform]="'translate(' + marker.x + ' ' + marker.y + ')'">
+            <title>{{ marker.name }}</title>
+            <text
+              class="marker-icon material-symbols-outlined"
+              text-anchor="middle"
+              [attr.y]="radius() * 0.55"
+              [attr.font-size]="radius() * 1.25"
+              [attr.fill]="marker.iconColor"
+              [attr.stroke]="marker.borderColor"
+            >
+              {{ markerGlyph(marker.icon) }}
+            </text>
+            <text
+              class="marker-name"
+              text-anchor="middle"
+              [attr.y]="-radius() * 1.5"
+              [attr.font-size]="radius() * 1.5"
+            >
+              {{ marker.name }}
+            </text>
+          </g>
+        }
+      </svg>
+    } @else {
+      <p class="waiting" role="status">Waiting for the Dungeon Master to share a world map.</p>
+    }
+  </main>
+
+  <button type="button" class="fullscreen" (click)="toggleFullscreen()">
+    {{ isFullscreen() ? 'Exit full screen' : 'Full screen' }}
+  </button>
+}

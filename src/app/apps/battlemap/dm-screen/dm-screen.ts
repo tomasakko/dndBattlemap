@@ -1,8 +1,29 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, ElementRef, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 import { InitiativePanel } from '../initiative-panel/initiative-panel';
 import { PlayerRoster } from '../player-roster/player-roster';
-import { BattlemapService, MapIcon, MAX_ZOOM, MIN_ZOOM, Point, Room, View, viewRect } from '../services/battlemap.service';
+import {
+  BattlemapService,
+  MapIcon,
+  MAX_ZOOM,
+  MIN_ZOOM,
+  Point,
+  Room,
+  View,
+  viewRect,
+} from '../services/battlemap.service';
 import { InitiativeService } from '../services/initiative.service';
 import { AreaEditor } from './area-editor/area-editor';
 import { ControlDock } from './control-dock/control-dock';
@@ -14,6 +35,7 @@ import { FileButton } from '../../../shared/ui/file-button/file-button';
 import { MapUploadDialog } from '../../../shared/ui/map-upload-dialog/map-upload-dialog';
 import type { IconChoice } from '../../../shared/ui/map-upload-dialog/map-upload-dialog';
 import { titleFromFileName } from '../../../shared/util/text';
+import { WorldmapService } from '../../worldmap/worldmap.service';
 
 type Tool = 'draw' | 'view';
 
@@ -38,7 +60,16 @@ function iconGlyph(icon: MapIcon): string {
 
 @Component({
   selector: 'app-dm-screen',
-  imports: [InitiativePanel, PlayerRoster, NgTemplateOutlet, AreaEditor, DropdownPicker, MapUploadDialog, FileButton, ControlDock],
+  imports: [
+    InitiativePanel,
+    PlayerRoster,
+    NgTemplateOutlet,
+    AreaEditor,
+    DropdownPicker,
+    MapUploadDialog,
+    FileButton,
+    ControlDock,
+  ],
   templateUrl: './dm-screen.html',
   styleUrl: './dm-screen.css',
   host: {
@@ -52,10 +83,22 @@ function iconGlyph(icon: MapIcon): string {
 export class DmScreen {
   private readonly battlemap = inject(BattlemapService);
   private readonly initiative = inject(InitiativeService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly worldmap = inject(WorldmapService);
   private readonly confirm = inject(ConfirmService);
   private readonly svg = viewChild<ElementRef<SVGSVGElement>>('board');
   private panelZ = 10;
-  private panelDrag: { id: PanelId; startX: number; startY: number; offsetX: number; offsetY: number; width: number; height: number; moved: boolean } | null = null;
+  private panelDrag: {
+    id: PanelId;
+    startX: number;
+    startY: number;
+    offsetX: number;
+    offsetY: number;
+    width: number;
+    height: number;
+    moved: boolean;
+  } | null = null;
   protected readonly snapReady = signal<PanelId | null>(null);
   protected readonly snapEdge = signal<'top' | 'bottom'>('bottom');
 
@@ -88,7 +131,9 @@ export class DmScreen {
   protected readonly initiativeShared = this.initiative.shared;
   protected readonly maps = this.battlemap.maps;
   protected readonly currentId = this.battlemap.currentId;
-  protected readonly currentMapName = computed(() => this.maps().find((entry) => entry.id === this.currentId())?.name ?? 'Choose Map');
+  protected readonly currentMapName = computed(
+    () => this.maps().find((entry) => entry.id === this.currentId())?.name ?? 'Choose Map',
+  );
   protected readonly pendingMapFile = signal<File | null>(null);
   protected readonly currentMapIcon = computed(() => {
     const icon = this.maps().find((entry) => entry.id === this.currentId())?.icon;
@@ -99,7 +144,9 @@ export class DmScreen {
       id: entry.id,
       label: entry.name,
       icon: iconGlyph(entry.icon),
-      ...(entry.id === this.sharedId() ? { badgeIcon: 'visibility', badgeLabel: 'Shown to players' } : {}),
+      ...(entry.id === this.sharedId()
+        ? { badgeIcon: 'visibility', badgeLabel: 'Shown to players' }
+        : {}),
     })),
   );
   protected readonly mapIconChoices = MAP_ICON_CHOICES;
@@ -108,11 +155,19 @@ export class DmScreen {
   protected readonly sharedId = this.battlemap.sharedId;
   protected readonly locked = this.battlemap.locked;
   protected readonly shareLabel = computed(() =>
-    this.shared() ? 'Hide map from players' : this.sharedId() ? 'Show this map to players' : 'Share map with players',
+    this.shared()
+      ? 'Hide map from players'
+      : this.sharedId()
+        ? 'Show this map to players'
+        : 'Share map with players',
   );
-  protected readonly shareDisabled = computed(() => !this.map() || (!this.shared() && !this.battlemap.canShare()));
+  protected readonly shareDisabled = computed(
+    () => !this.map() || (!this.shared() && !this.battlemap.canShare()),
+  );
   protected readonly initiativeShareLabel = computed(() =>
-    this.initiativeShared() ? 'Hide initiative tracker from players' : 'Show initiative tracker to players',
+    this.initiativeShared()
+      ? 'Hide initiative tracker from players'
+      : 'Show initiative tracker to players',
   );
   protected readonly resizing = signal(false);
   protected readonly initiativeWidth = signal(280);
@@ -190,6 +245,17 @@ export class DmScreen {
   constructor() {
     this.battlemap.startHost();
     this.initiative.startHost();
+    this.worldmap.startHost();
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const linkedMapId = params.get('linkedMapId');
+      if (linkedMapId) {
+        this.worldmap.showLinkedBattlemap(linkedMapId);
+        this.battlemap.openLinkedMap(linkedMapId);
+      } else {
+        this.worldmap.clearLinkedBattlemap();
+        this.battlemap.clearLinkedPlayerMap();
+      }
+    });
     const map = this.map();
     if (map) {
       this.fitDmView();
@@ -250,7 +316,12 @@ export class DmScreen {
     if (event.button === 1) {
       event.preventDefault();
       svg.setPointerCapture(event.pointerId);
-      this.panOrigin = { x: event.clientX, y: event.clientY, view: this.dmView(), scale: svg.getScreenCTM()!.a };
+      this.panOrigin = {
+        x: event.clientX,
+        y: event.clientY,
+        view: this.dmView(),
+        scale: svg.getScreenCTM()!.a,
+      };
       this.dragging.set('pan');
       return;
     }
@@ -297,13 +368,25 @@ export class DmScreen {
     const step = steps[event.key];
     const target = event.target as HTMLElement | null;
     const typing = !!target?.closest('input, select, textarea, [contenteditable], summary');
-    if (!map || !step || this.tool() !== 'view' || typing || event.altKey || event.ctrlKey || event.metaKey) {
+    if (
+      !map ||
+      !step ||
+      this.tool() !== 'view' ||
+      typing ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey
+    ) {
       return;
     }
     event.preventDefault();
     const view = this.view();
-    const amount = (event.shiftKey ? 0.1 : 0.02) * map.width / view.zoom;
-    this.battlemap.setView({ ...view, cx: view.cx + step[0] * amount, cy: view.cy + step[1] * amount });
+    const amount = ((event.shiftKey ? 0.1 : 0.02) * map.width) / view.zoom;
+    this.battlemap.setView({
+      ...view,
+      cx: view.cx + step[0] * amount,
+      cy: view.cy + step[1] * amount,
+    });
   }
 
   protected onBoardPointerUp(): void {
@@ -407,7 +490,9 @@ export class DmScreen {
   }
 
   protected onPanelDragStart(id: PanelId, event: PointerEvent): void {
-    const panel = (event.target as HTMLElement).closest<HTMLElement>('.floating-panel, .docked-panel');
+    const panel = (event.target as HTMLElement).closest<HTMLElement>(
+      '.floating-panel, .docked-panel',
+    );
     if (!panel || event.button !== 0) {
       return;
     }
@@ -431,7 +516,10 @@ export class DmScreen {
     if (!drag) {
       return;
     }
-    if (!drag.moved && Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) < DRAG_THRESHOLD) {
+    if (
+      !drag.moved &&
+      Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) < DRAG_THRESHOLD
+    ) {
       return;
     }
     drag.moved = true;
@@ -440,7 +528,12 @@ export class DmScreen {
     const near = this.isNearDock(x, y, drag.width, drag.height);
     this.snapReady.set(near ? drag.id : null);
     this.snapEdge.set(near ? this.dockEdge(y + drag.height / 2) : 'bottom');
-    this.patchPanel(drag.id, { floating: true, x: Math.round(x), y: Math.round(y), z: ++this.panelZ });
+    this.patchPanel(drag.id, {
+      floating: true,
+      x: Math.round(x),
+      y: Math.round(y),
+      z: ++this.panelZ,
+    });
   }
 
   protected onPanelDragEnd(): void {
@@ -495,7 +588,11 @@ export class DmScreen {
       return;
     }
     const rect = el.getBoundingClientRect();
-    this.tip.set({ text, x: Math.round(rect.left + rect.width / 2), y: Math.round(rect.bottom + 6) });
+    this.tip.set({
+      text,
+      x: Math.round(rect.left + rect.width / 2),
+      y: Math.round(rect.bottom + 6),
+    });
   }
 
   protected hideTip(): void {
@@ -573,7 +670,9 @@ export class DmScreen {
   }
 
   private setInitiativeWidth(width: number): void {
-    this.initiativeWidth.set(Math.round(Math.min(MAX_PANEL_WIDTH, Math.max(MIN_PANEL_WIDTH, width))));
+    this.initiativeWidth.set(
+      Math.round(Math.min(MAX_PANEL_WIDTH, Math.max(MIN_PANEL_WIDTH, width))),
+    );
   }
 
   private setPanelWidth(width: number): void {
@@ -599,7 +698,11 @@ export class DmScreen {
     const points = this.shapeDraft();
     const first = points[0];
     const closeDistance = this.handleRadius() * 2;
-    if (first && points.length >= 3 && Math.hypot(point.x - first.x, point.y - first.y) <= closeDistance) {
+    if (
+      first &&
+      points.length >= 3 &&
+      Math.hypot(point.x - first.x, point.y - first.y) <= closeDistance
+    ) {
       this.finishShape();
     } else {
       this.shapeDraft.set([...points, point]);
@@ -634,7 +737,10 @@ function centroid(points: Point[]): Point {
   if (Math.abs(area) < 1e-6) {
     const xs = points.map((p) => p.x);
     const ys = points.map((p) => p.y);
-    return { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 };
+    return {
+      x: (Math.min(...xs) + Math.max(...xs)) / 2,
+      y: (Math.min(...ys) + Math.max(...ys)) / 2,
+    };
   }
   return { x: cx / (3 * area), y: cy / (3 * area) };
 }

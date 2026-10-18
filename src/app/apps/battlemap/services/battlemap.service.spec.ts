@@ -25,7 +25,10 @@ describe('BattlemapService initiative persistence', () => {
     initiative.addPlayer('fighter-id', 'Fighter', 12);
     battlemap.importState({ maps: [map('first')], currentId: 'first' });
 
-    expect(initiative.combatants().map((combatant) => combatant.name)).toEqual(['Goblin', 'Fighter']);
+    expect(initiative.combatants().map((combatant) => combatant.name)).toEqual([
+      'Goblin',
+      'Fighter',
+    ]);
   });
 
   it('keeps each map initiative separate when switching between maps', () => {
@@ -41,10 +44,28 @@ describe('BattlemapService initiative persistence', () => {
 
     initiative.add('Orc', 10, 'Orc', 'enemy');
     battlemap.selectMap('first');
-    expect(initiative.combatants().map((combatant) => combatant.name)).toEqual(['Goblin', 'Fighter']);
+    expect(initiative.combatants().map((combatant) => combatant.name)).toEqual([
+      'Goblin',
+      'Fighter',
+    ]);
 
     battlemap.selectMap('second');
     expect(initiative.combatants().map((combatant) => combatant.name)).toEqual(['Orc']);
+  });
+
+  it('opens a linked map with saved rooms and initiative intact', () => {
+    const target = {
+      ...map('target'),
+      rooms: [{ id: 'room', name: 'Room', points: [], revealed: true }],
+      initiativeShared: true,
+    };
+    battlemap.importState({ maps: [map('first'), target], currentId: 'first' });
+
+    expect(battlemap.openLinkedMap('target')).toBe(true);
+    expect(battlemap.currentId()).toBe('target');
+    expect(battlemap.sharedId()).toBeNull();
+    expect(battlemap.rooms()[0].revealed).toBe(true);
+    expect(initiative.shared()).toBe(true);
   });
 
   it('includes initiative data in project exports even when no map is selected', () => {

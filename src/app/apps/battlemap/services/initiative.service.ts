@@ -39,11 +39,14 @@ export class InitiativeService {
   readonly shared = signal(false);
 
   /** Highest initiative first. The sort is stable, so ties keep the order they were added in. */
-  readonly ordered = computed(() => [...this.combatants()].sort((a, b) => b.initiative - a.initiative));
+  readonly ordered = computed(() =>
+    [...this.combatants()].sort((a, b) => b.initiative - a.initiative),
+  );
 
   private readonly creatures = inject(CreatureService);
   private channel?: BroadcastChannel;
   private onChange?: () => void;
+  private playerVisibilityOverride = false;
 
   startHost(): void {
     this.open((message) => {
@@ -69,8 +72,14 @@ export class InitiativeService {
   }
 
   setShared(shared: boolean): void {
+    this.playerVisibilityOverride = false;
     this.shared.set(shared);
     this.commit();
+  }
+
+  setPlayerVisibilityOverride(hidden: boolean): void {
+    this.playerVisibilityOverride = hidden;
+    this.broadcast();
   }
 
   add(name: string, initiative: number, type: string, side: Side): void {
@@ -102,7 +111,11 @@ export class InitiativeService {
 
   /** Maximum hit points from the (possibly edited) statblock. 0 when no hit points are filled in. */
   maxHp(combatant: Combatant): number {
-    return combatant.stats?.hitPoints ?? this.creatures.findById(combatant.type)?.statblock.hitPoints ?? 0;
+    return (
+      combatant.stats?.hitPoints ??
+      this.creatures.findById(combatant.type)?.statblock.hitPoints ??
+      0
+    );
   }
 
   currentHp(combatant: Combatant): number {
@@ -154,7 +167,11 @@ export class InitiativeService {
     if (order.length === 0) {
       return;
     }
-    this.activeId.set(active ? this.neighbourOf(active, direction) : order[direction === 1 ? 0 : order.length - 1].id);
+    this.activeId.set(
+      active
+        ? this.neighbourOf(active, direction)
+        : order[direction === 1 ? 0 : order.length - 1].id,
+    );
     this.commit();
   }
 
@@ -180,13 +197,20 @@ export class InitiativeService {
       throw new Error('No initiative in file');
     }
     const combatants = (data.combatants as Combatant[]).map((c) => {
-      if (!c || typeof c.id !== 'string' || typeof c.name !== 'string' || typeof c.initiative !== 'number') {
+      if (
+        !c ||
+        typeof c.id !== 'string' ||
+        typeof c.name !== 'string' ||
+        typeof c.initiative !== 'number'
+      ) {
         throw new Error('Invalid combatant data');
       }
       return { ...c, side: c.side ?? 'enemy' };
     });
     this.combatants.set(combatants);
-    this.activeId.set(combatants.some((c) => c.id === data.activeId) ? (data.activeId as string) : null);
+    this.activeId.set(
+      combatants.some((c) => c.id === data.activeId) ? (data.activeId as string) : null,
+    );
     this.shared.set(shared);
     this.commit();
   }
@@ -214,7 +238,7 @@ export class InitiativeService {
         down: this.maxHp(rest) > 0 && this.currentHp({ ...rest, hp: _hp, stats: _stats }) === 0,
       })),
       activeId: this.activeId(),
-      shared: this.shared(),
+      shared: this.shared() && !this.playerVisibilityOverride,
     } satisfies Message);
   }
 

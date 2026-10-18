@@ -1,5 +1,17 @@
-import { Component, DestroyRef, ElementRef, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import * as L from 'leaflet';
+import { BattlemapService } from '../../battlemap/services/battlemap.service';
 import { ConfirmService } from '../../../shared/ui/confirm-dialog/confirm.service';
 import { DropdownPicker } from '../../../shared/ui/dropdown-picker/dropdown-picker';
 import type { PickerItem } from '../../../shared/ui/dropdown-picker/dropdown-picker';
@@ -8,18 +20,21 @@ import { MapUploadDialog } from '../../../shared/ui/map-upload-dialog/map-upload
 import { clamp } from '../../../shared/util/math';
 import { escapeHtml, titleFromFileName } from '../../../shared/util/text';
 import { WorldmapService } from '../worldmap.service';
-import type { WorldmapImage, WorldmapMarker } from '../worldmap.service';
+import { WORLDMAP_MARKER_ICONS } from '../worldmap.service';
+import type { WorldmapImage, WorldmapMarker, WorldmapMarkerIcon } from '../worldmap.service';
 
 const ZOOM_LIMIT = 20;
 
 @Component({
   selector: 'app-worldmap-screen',
-  imports: [DropdownPicker, FileButton, MapUploadDialog],
+  imports: [DropdownPicker, FileButton, MapUploadDialog, RouterLink],
   templateUrl: './worldmap-screen.html',
   styleUrl: './worldmap-screen.css',
 })
 export class WorldmapScreen {
   private readonly worldmap = inject(WorldmapService);
+  private readonly battlemap = inject(BattlemapService);
+  private readonly router = inject(Router);
   private readonly confirm = inject(ConfirmService);
   private readonly container = viewChild.required<ElementRef<HTMLDivElement>>('map');
 
@@ -28,6 +43,9 @@ export class WorldmapScreen {
     this.maps().map((entry) => ({ id: entry.id, label: entry.name })),
   );
   protected readonly current = this.worldmap.current;
+  protected readonly battlemaps = this.battlemap.maps;
+  protected readonly battlemapLocked = this.battlemap.locked;
+  protected readonly markerIcons = WORLDMAP_MARKER_ICONS;
   protected readonly persistenceError = this.worldmap.persistenceError;
   protected readonly placing = signal(false);
   protected readonly error = signal('');
@@ -37,11 +55,15 @@ export class WorldmapScreen {
   private map?: L.Map;
   private overlay?: L.ImageOverlay;
   private shownImage: WorldmapImage | null = null;
+  private restoringView = false;
   private readonly pins = new Map<string, L.Marker>();
   /** A freshly placed marker's popup opens once the marker has been drawn. */
   private openAfterSync: string | null = null;
 
   constructor() {
+    this.worldmap.startHost();
+    this.worldmap.clearLinkedBattlemap();
+    this.battlemap.clearLinkedPlayerMap();
     inject(DestroyRef).onDestroy(() => {
       this.map?.remove();
       this.map = undefined;
@@ -112,6 +134,7 @@ export class WorldmapScreen {
       attributionControl: false,
       doubleClickZoom: false,
     });
+    map.on('moveend zoomend', () => this.publishView());
     map.on('click', (event: L.LeafletMouseEvent) => {
       const image = this.shownImage;
       if (!this.placing() || !image) {
@@ -141,10 +164,39 @@ export class WorldmapScreen {
     }
     const bounds = imageBounds(image);
     this.overlay = L.imageOverlay(image.url, bounds).addTo(map);
+    const savedView = this.worldmap.viewFor(this.worldmap.currentId());
+    this.restoringView = true;
     // Lift the previous image's limits so they can't constrain fitting the new one.
     map.setMaxBounds(L.latLngBounds([-1e7, -1e7], [1e7, 1e7]));
     this.fit();
     map.setMaxBounds(bounds.pad(0.25));
+    if (savedView) {
+      const fitZoom = map.getBoundsZoom(bounds);
+      const zoom = Math.max(
+        map.getMinZoom(),
+        Math.min(map.getMaxZoom(), fitZoom + Math.log2(savedView.zoom)),
+      );
+      map.setView([image.height * (1 - savedView.centerY), image.width * savedView.centerX], zoom, {
+        animate: false,
+      });
+    }
+    this.restoringView = false;
+    this.publishView();
+  }
+
+  private publishView(): void {
+    const map = this.map;
+    const image = this.shownImage;
+    if (!map || !image || this.restoringView) {
+      return;
+    }
+    const center = map.getCenter();
+    const fitZoom = map.getBoundsZoom(imageBounds(image));
+    this.worldmap.publishView({
+      centerX: center.lng / image.width,
+      centerY: 1 - center.lat / image.height,
+      zoom: 2 ** (map.getZoom() - fitZoom),
+    });
   }
 
   private fit(): void {
@@ -185,10 +237,22 @@ export class WorldmapScreen {
       if (existing) {
         existing.setLatLng(position);
         existing.setTooltipContent(escapeHtml(marker.name));
+        existing.setIcon(pinIcon(marker.icon, marker.iconColor, marker.borderColor));
+        existing.setOpacity(marker.visible ? 1 : 0.45);
+        existing.options.title = marker.name;
         continue;
       }
-      const pin = L.marker(position, { draggable: true, icon: pinIcon(), title: marker.name })
-        .bindTooltip(escapeHtml(marker.name), { permanent: true, direction: 'right', offset: [10, -14] })
+      const pin = L.marker(position, {
+        draggable: true,
+        icon: pinIcon(marker.icon, marker.iconColor, marker.borderColor),
+        title: marker.name,
+        opacity: marker.visible ? 1 : 0.45,
+      })
+        .bindTooltip(escapeHtml(marker.name), {
+          permanent: true,
+          direction: 'top',
+          offset: [0, -22],
+        })
         .bindPopup(() => this.popupFor(marker.id), { minWidth: 180 })
         .addTo(map);
       pin.on('dragend', () => {
@@ -223,11 +287,104 @@ export class WorldmapScreen {
         this.pins.get(id)?.closePopup();
       }
     });
+    const icon = document.createElement('select');
+    icon.setAttribute('aria-label', 'Marker icon');
+    for (const choice of WORLDMAP_MARKER_ICONS) {
+      const option = document.createElement('option');
+      option.value = choice.id;
+      option.textContent = choice.label;
+      option.selected = choice.id === marker?.icon;
+      icon.append(option);
+    }
+    icon.addEventListener('change', () => {
+      const selected = WORLDMAP_MARKER_ICONS.find((choice) => choice.id === icon.value);
+      if (selected) {
+        this.worldmap.setMarkerIcon(id, selected.id);
+      }
+    });
+    const iconColor = document.createElement('input');
+    iconColor.type = 'color';
+    iconColor.value = marker?.iconColor ?? '#5c1d24';
+    iconColor.setAttribute('aria-label', 'Icon color');
+    const iconColorLabel = document.createElement('label');
+    iconColorLabel.className = 'marker-color';
+    iconColorLabel.append(document.createTextNode('Icon color'), iconColor);
+    const borderColor = document.createElement('input');
+    borderColor.type = 'color';
+    borderColor.value = marker?.borderColor ?? '#f4efe6';
+    borderColor.setAttribute('aria-label', 'Border color');
+    const borderColorLabel = document.createElement('label');
+    borderColorLabel.className = 'marker-color';
+    borderColorLabel.append(document.createTextNode('Border color'), borderColor);
+    const saveColors = () => this.worldmap.setMarkerColors(id, iconColor.value, borderColor.value);
+    iconColor.addEventListener('input', saveColors);
+    borderColor.addEventListener('input', saveColors);
+    const battlemapPicker = document.createElement('select');
+    battlemapPicker.setAttribute('aria-label', 'Linked battlemap');
+    const noBattlemap = document.createElement('option');
+    noBattlemap.value = '';
+    noBattlemap.textContent = 'No linked battlemap';
+    battlemapPicker.append(noBattlemap);
+    const hasLinkedBattlemap = this.battlemaps().some((entry) => entry.id === marker?.battlemapId);
+    if (marker?.battlemapId && !hasLinkedBattlemap) {
+      const unavailable = document.createElement('option');
+      unavailable.value = marker.battlemapId;
+      unavailable.textContent = 'Linked battlemap unavailable';
+      battlemapPicker.append(unavailable);
+    }
+    for (const entry of this.battlemaps()) {
+      const option = document.createElement('option');
+      option.value = entry.id;
+      option.textContent = entry.name;
+      option.selected = entry.id === marker?.battlemapId;
+      battlemapPicker.append(option);
+    }
+    battlemapPicker.value = marker?.battlemapId ?? '';
+    const openBattlemap = document.createElement('button');
+    openBattlemap.type = 'button';
+    openBattlemap.textContent = 'Open linked battlemap';
+    openBattlemap.disabled =
+      !this.battlemaps().some((entry) => entry.id === marker?.battlemapId) ||
+      (this.battlemapLocked() && this.battlemap.currentId() !== marker?.battlemapId);
+    battlemapPicker.addEventListener('change', () => {
+      this.worldmap.setMarkerBattlemap(id, battlemapPicker.value || null);
+      openBattlemap.disabled =
+        !this.battlemaps().some((entry) => entry.id === battlemapPicker.value) ||
+        (this.battlemapLocked() && this.battlemap.currentId() !== battlemapPicker.value);
+    });
+    openBattlemap.addEventListener('click', () => {
+      const battlemapId = battlemapPicker.value;
+      if (
+        this.battlemaps().some((entry) => entry.id === battlemapId) &&
+        (!this.battlemapLocked() || this.battlemap.currentId() === battlemapId)
+      ) {
+        this.worldmap.showLinkedBattlemap(battlemapId);
+        void this.router.navigate(['/battlemap/dm'], { queryParams: { linkedMapId: battlemapId } });
+      }
+    });
+    const visibilityLabel = document.createElement('label');
+    visibilityLabel.className = 'marker-visibility';
+    const visibility = document.createElement('input');
+    visibility.type = 'checkbox';
+    visibility.checked = marker?.visible ?? true;
+    visibilityLabel.append(visibility, document.createTextNode(' Visible to players'));
+    visibility.addEventListener('change', () =>
+      this.worldmap.setMarkerVisibility(id, visibility.checked),
+    );
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.textContent = 'Delete';
     remove.addEventListener('click', () => this.worldmap.removeMarker(id));
-    form.append(input, remove);
+    form.append(
+      input,
+      icon,
+      iconColorLabel,
+      borderColorLabel,
+      battlemapPicker,
+      openBattlemap,
+      visibilityLabel,
+      remove,
+    );
     return form;
   }
 }
@@ -245,13 +402,13 @@ function imageBounds(image: WorldmapImage): L.LatLngBounds {
   return L.latLngBounds([0, 0], [image.height, image.width]);
 }
 
-function pinIcon(): L.DivIcon {
+function pinIcon(icon: WorldmapMarkerIcon, iconColor: string, borderColor: string): L.DivIcon {
+  const glyph = WORLDMAP_MARKER_ICONS.find((choice) => choice.id === icon)?.glyph ?? 'castle';
   return L.divIcon({
     className: 'world-pin',
-    html: '<span class="material-symbols-outlined" aria-hidden="true">location_on</span>',
+    html: `<span class="material-symbols-outlined" aria-hidden="true" style="color:${iconColor};-webkit-text-stroke:1px ${borderColor}">${glyph}</span>`,
     iconSize: [28, 28],
     iconAnchor: [14, 26],
     popupAnchor: [0, -24],
   });
 }
-
