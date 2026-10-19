@@ -1,14 +1,14 @@
 .map-icon-options {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0.5rem;
+  gap: var(--space-4);
   margin: 0;
   padding: 0;
   border: 0;
   min-width: 0;
 
   legend {
-    margin-bottom: 0.4rem;
+    margin-bottom: var(--space-3);
   }
 
   label {
@@ -17,14 +17,14 @@
     gap: 0.2rem;
     flex: 1 1 0;
     min-width: 0;
-    padding: 0.5rem 0.25rem;
-    border: 1px solid var(--leather-line);
-    border-radius: 4px;
+    padding: var(--space-4) var(--space-1);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
     cursor: pointer;
 
     &.selected {
-      background: color-mix(in srgb, var(--gold) 30%, var(--parchment));
-      outline: 2px solid var(--gold);
+      background: color-mix(in srgb, var(--surface-accent) 30%, var(--surface-base));
+      outline: 2px solid var(--focus-ring);
     }
   }
 

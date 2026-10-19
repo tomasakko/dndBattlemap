@@ -2,8 +2,8 @@
   box-sizing: border-box;
   min-height: 100%;
   padding: 3rem 1.5rem;
-  color: var(--parchment);
-  background: var(--leather);
+  color: var(--text-inverse);
+  background: var(--surface-inverse);
 }
 
 .portal-header {
@@ -12,8 +12,8 @@
 }
 
 .portal-header h1 {
-  margin: 0 0 0.25rem;
-  color: var(--gold);
+  margin: 0 0 var(--space-1);
+  color: var(--surface-accent);
   font-size: 2rem;
 }
 
@@ -25,7 +25,7 @@
 .app-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-  gap: 1rem;
+  gap: var(--space-5);
   max-width: 64rem;
   margin: 0 auto;
   padding: 0;
@@ -35,25 +35,25 @@
 .app-tile {
   position: relative;
   display: grid;
-  gap: 0.5rem;
+  gap: var(--space-4);
   box-sizing: border-box;
   height: 100%;
   padding: 1.25rem;
   color: inherit;
   text-decoration: none;
-  background: var(--leather-raised);
-  border: 1px solid var(--leather-line);
-  border-radius: 6px;
+  background: var(--surface-inverse-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
 }
 
 a.app-tile:hover,
 a.app-tile:focus-visible {
-  border-color: var(--gold);
+  border-color: var(--surface-accent);
   outline: none;
 }
 
 .app-tile .material-symbols-outlined {
-  color: var(--gold);
+  color: var(--surface-accent);
   font-size: 2.5rem;
 }
 
@@ -68,14 +68,14 @@ a.app-tile:focus-visible {
 }
 
 .app-tile .app-summary {
-  color: var(--gold);
+  color: var(--surface-accent);
   opacity: 1;
 }
 
 .summary-error {
   max-width: 64rem;
-  margin: 1rem auto 0;
-  color: var(--crimson);
+  margin: var(--space-5) auto 0;
+  color: var(--surface-danger);
 }
 
 .app-tile.disabled {
@@ -84,8 +84,8 @@ a.app-tile:focus-visible {
 
 .badge {
   justify-self: start;
-  padding: 0.1rem 0.5rem;
+  padding: 0.1rem var(--space-4);
   font-size: 0.75rem;
-  background: var(--crimson);
-  border-radius: 999px;
+  background: var(--surface-danger);
+  border-radius: var(--radius-pill);
 }

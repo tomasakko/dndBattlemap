@@ -7,13 +7,13 @@
 .topbar {
   display: flex;
   align-items: stretch;
-  gap: 0.25rem;
+  gap: var(--space-1);
   height: var(--topbar-height);
   box-sizing: border-box;
-  padding: 0 0.5rem;
-  color: var(--parchment);
-  background: var(--leather);
-  border-bottom: 1px solid var(--gold);
+  padding: 0 var(--space-4);
+  color: var(--text-inverse);
+  background: var(--surface-inverse);
+  border-bottom: 1px solid var(--surface-accent);
 }
 
 .home,
@@ -22,7 +22,7 @@
 .action {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--space-2);
   color: inherit;
   font: inherit;
   text-decoration: none;
@@ -33,17 +33,17 @@
 
 .home {
   padding: 0 0.6rem;
-  color: var(--gold);
+  color: var(--surface-accent);
 }
 
 .home.active {
-  background: var(--leather-raised);
+  background: var(--surface-inverse-raised);
 }
 
 .tabs {
   display: flex;
   align-items: flex-end;
-  gap: 0.25rem;
+  gap: var(--space-1);
   min-width: 0;
   padding-top: 0.3rem;
   overflow-x: auto;
@@ -52,24 +52,24 @@
 .tab {
   display: flex;
   align-items: center;
-  border: 1px solid var(--leather-line);
+  border: 1px solid var(--border-default);
   border-bottom: 0;
-  border-radius: 6px 6px 0 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
   white-space: nowrap;
 }
 
 .tab.active {
-  color: var(--leather);
-  background: var(--parchment);
-  border-color: var(--gold);
+  color: var(--text-default);
+  background: var(--surface-base);
+  border-color: var(--surface-accent);
 }
 
 .tab-label {
-  padding: 0.3rem 0.4rem 0.3rem 0.7rem;
+  padding: 0.3rem var(--space-3) 0.3rem 0.7rem;
 }
 
 .tab-close {
-  padding: 0.3rem 0.4rem;
+  padding: 0.3rem var(--space-3);
   opacity: 0.7;
 }
 
@@ -85,11 +85,11 @@
 
 .action {
   padding: 0 0.6rem;
-  color: var(--gold);
+  color: var(--surface-accent);
 }
 
 .action:hover {
-  background: var(--leather-raised);
+  background: var(--surface-inverse-raised);
 }
 
 .material-symbols-outlined {
@@ -98,6 +98,6 @@
 
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
 }

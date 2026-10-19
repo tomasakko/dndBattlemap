@@ -4,8 +4,8 @@
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 1rem;
-  background: rgb(0 0 0 / 60%);
+  padding: var(--space-5);
+  background: var(--surface-scrim);
 }
 
 .dialog {
@@ -14,11 +14,11 @@
   box-sizing: border-box;
   width: min(32rem, 100%);
   padding: 1.25rem;
-  color: var(--leather);
-  background: var(--parchment);
-  border: 1px solid var(--leather-line);
-  border-radius: 6px;
-  box-shadow: 0 8px 28px rgb(0 0 0 / 55%);
+  color: var(--text-default);
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-modal);
 }
 
 h2 {
@@ -28,21 +28,21 @@ h2 {
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
+  gap: var(--space-4);
+  margin-top: var(--space-1);
 }
 
 .actions button {
-  padding: 0.4rem 0.75rem;
-  color: var(--parchment);
-  background: var(--leather-raised);
-  border: 1px solid var(--leather-line);
-  border-radius: 4px;
+  padding: var(--space-3) 0.75rem;
+  color: var(--text-inverse);
+  background: var(--surface-inverse-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
   font: inherit;
   cursor: pointer;
 }
 
 .actions button.primary {
-  color: var(--leather);
-  background: var(--gold);
+  color: var(--text-default);
+  background: var(--surface-accent);
 }

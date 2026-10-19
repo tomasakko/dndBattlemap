@@ -8,23 +8,23 @@ li {
   box-sizing: border-box;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.25rem;
+  gap: var(--space-3);
+  padding: var(--space-1);
   border: 1px solid transparent;
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--crimson) 18%, var(--parchment));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface-danger) 18%, var(--surface-base));
 
   &.player .score {
-    background: var(--indigo);
+    background: var(--surface-info);
   }
 
   &.player {
-    background: color-mix(in srgb, var(--indigo) 18%, var(--parchment));
+    background: color-mix(in srgb, var(--surface-info) 18%, var(--surface-base));
   }
 
   &.active {
-    border-color: var(--gold);
-    background: color-mix(in srgb, var(--gold) 22%, var(--parchment));
+    border-color: var(--surface-accent);
+    background: color-mix(in srgb, var(--surface-accent) 22%, var(--surface-base));
   }
 }
 
@@ -37,20 +37,20 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  color: var(--parchment);
-  background: var(--leather-raised);
-  border: 1px solid var(--leather-line);
-  border-radius: 6px;
-  padding: 0.4rem 0.8rem;
+  gap: var(--space-1);
+  color: var(--text-inverse);
+  background: var(--surface-inverse-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) 0.8rem;
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    background: #4a2f2a;
+    background: var(--surface-inverse-hover);
   }
 
   &:focus-visible {
-    outline: 3px solid var(--gold);
+    outline: 3px solid var(--focus-ring);
     outline-offset: 2px;
   }
 }
@@ -64,7 +64,7 @@ button {
   display: grid;
   grid-template-columns: subgrid;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--space-3);
   min-width: 0;
   padding: 0;
   font: inherit;
@@ -76,10 +76,10 @@ button {
 
 button.identity {
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--leather) 8%, transparent);
+    background: color-mix(in srgb, var(--surface-inverse) 8%, transparent);
   }
 }
 
@@ -89,9 +89,9 @@ button.identity {
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  background: var(--crimson);
-  border: 1px solid var(--leather-line);
-  color: #fff;
+  background: var(--surface-danger);
+  border: 1px solid var(--border-default);
+  color: var(--text-on-light);
   font-weight: 700;
 }
 
@@ -108,7 +108,7 @@ button.identity {
 
 .kind {
   font-size: 0.7rem;
-  color: #5a3d36;
+  color: var(--text-muted);
 }
 
 .icon-button {
@@ -117,8 +117,8 @@ button.identity {
   padding: 0;
 
   &.danger {
-    background: var(--crimson);
-    border-color: #8a3a44;
+    background: var(--surface-danger);
+    border-color: var(--border-danger);
   }
 }
 
@@ -127,9 +127,9 @@ button.identity {
   display: flex;
   align-items: center;
   min-width: 0;
-  gap: 0.5rem;
+  gap: var(--space-4);
   font-size: 0.7rem;
-  color: #5a3d36;
+  color: var(--text-muted);
 
   .hp-text {
     flex: 0 0 auto;
@@ -140,8 +140,8 @@ button.identity {
     border: 1px dashed transparent;
 
     &:hover:not(:disabled) {
-      background: color-mix(in srgb, var(--leather) 8%, transparent);
-      border-color: var(--leather-line);
+      background: color-mix(in srgb, var(--surface-inverse) 8%, transparent);
+      border-color: var(--border-default);
     }
   }
 
@@ -149,16 +149,16 @@ button.identity {
     flex: 0 0 auto;
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: var(--space-1);
 
     input {
       width: 3.5rem;
       padding: 0.1rem 0.3rem;
       font-size: inherit;
-      color: var(--leather);
-      background: #fffdf8;
-      border: 1px solid var(--leather-line);
-      border-radius: 6px;
+      color: var(--text-default);
+      background: var(--surface-raised);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
     }
   }
 
@@ -167,14 +167,14 @@ button.identity {
     min-width: 2rem;
     height: 0.5rem;
     overflow: hidden;
-    background: color-mix(in srgb, var(--leather) 20%, transparent);
-    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface-inverse) 20%, transparent);
+    border-radius: var(--radius-pill);
   }
 
   .hp-fill {
     display: block;
     height: 100%;
-    background: var(--crimson);
+    background: var(--surface-danger);
   }
 }
 
@@ -182,5 +182,5 @@ button.identity {
   grid-column: 1 / -1;
   margin: 0;
   font-size: 0.75rem;
-  color: #5a3d36;
+  color: var(--text-muted);
 }

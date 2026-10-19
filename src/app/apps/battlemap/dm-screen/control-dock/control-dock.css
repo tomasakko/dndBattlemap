@@ -14,11 +14,11 @@
   flex-direction: column;
   max-height: calc(100vh - 2rem);
   overflow: visible;
-  color: var(--leather);
-  background: var(--parchment);
-  border: 1px solid var(--leather-line);
-  border-radius: 6px;
-  box-shadow: 0 4px 18px rgb(0 0 0 / 45%);
+  color: var(--text-default);
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
 }
 
 .dock-actions {
@@ -31,28 +31,28 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.2rem;
-  padding: 0.35rem;
-  background: var(--leather-raised);
-  border-bottom: 1px solid var(--gold);
+  padding: var(--space-2);
+  background: var(--surface-inverse-raised);
+  border-bottom: 1px solid var(--surface-accent);
 }
 
 button,
 a {
   font: inherit;
-  color: var(--parchment);
-  background: var(--leather-raised);
-  border: 1px solid var(--leather-line);
-  border-radius: 4px;
-  padding: 0.35rem 0.55rem;
+  color: var(--text-inverse);
+  background: var(--surface-inverse-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) 0.55rem;
   cursor: pointer;
   text-decoration: none;
 
   &:hover:not(:disabled) {
-    background: #4a2f2a;
+    background: var(--surface-inverse-hover);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--gold);
+    outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }
 }
@@ -79,14 +79,14 @@ button:disabled {
 }
 
 .dock-actions .icon-button {
-  color: var(--parchment);
+  color: var(--text-inverse);
   background: transparent;
   border-color: transparent;
 
   &:hover:not(:disabled),
   &.on {
-    color: var(--gold);
-    background: var(--leather);
+    color: var(--surface-accent);
+    background: var(--surface-inverse);
   }
 }
 
@@ -94,7 +94,7 @@ button:disabled {
   max-height: 70dvh;
   overflow-y: auto;
   padding: 0.65rem 0.8rem;
-  border-top: 1px solid var(--leather-line);
+  border-top: 1px solid var(--border-default);
 }
 
 .section-heading {
@@ -123,8 +123,8 @@ button:disabled {
   flex-direction: column;
   max-height: 70dvh;
   overflow: visible;
-  border-top: 1px solid var(--leather-line);
-  background: var(--parchment);
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-base);
 
   .section-heading {
     padding: 0.65rem 0.8rem;
@@ -141,8 +141,8 @@ button:disabled {
   flex-direction: column;
   max-height: 70dvh;
   overflow: visible;
-  border-top: 1px solid var(--leather-line);
-  background: var(--parchment);
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-base);
 
   .section-heading {
     padding: 0.65rem 0.8rem;

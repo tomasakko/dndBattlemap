@@ -3,29 +3,29 @@
 }
 
 h3 {
-  margin: 1rem 0 0.4rem;
-  color: var(--gold);
+  margin: var(--space-5) 0 var(--space-3);
+  color: var(--surface-accent);
   font-size: 1.1rem;
-  border-bottom: 1px solid var(--crimson);
+  border-bottom: 1px solid var(--surface-danger);
 }
 
 .entry {
-  margin: 0.4rem 0;
+  margin: var(--space-3) 0;
 }
 
 .empty {
   margin: 0.2rem 0 0;
   font-style: italic;
-  color: #d9cdb8;
+  color: var(--text-inverse-muted);
 }
 
 .entry-edit {
   display: grid;
   gap: 0.3rem;
   margin-bottom: 0.6rem;
-  padding: 0.5rem;
-  background: var(--leather-raised);
-  border-radius: 6px;
+  padding: var(--space-4);
+  background: var(--surface-inverse-raised);
+  border-radius: var(--radius-md);
 
   button {
     justify-self: start;
@@ -34,24 +34,24 @@ h3 {
 
 button {
   font: inherit;
-  color: var(--parchment);
-  background: var(--leather-raised);
-  border: 1px solid var(--leather-line);
-  border-radius: 6px;
-  padding: 0.4rem 0.8rem;
+  color: var(--text-inverse);
+  background: var(--surface-inverse-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) 0.8rem;
   cursor: pointer;
 
   &:hover {
-    background: #4a2f2a;
+    background: var(--surface-inverse-hover);
   }
 
   &:focus-visible {
-    outline: 3px solid var(--gold);
+    outline: 3px solid var(--focus-ring);
     outline-offset: 2px;
   }
 
   &.danger {
-    background: var(--crimson);
+    background: var(--surface-danger);
   }
 }
 
@@ -59,13 +59,13 @@ input,
 textarea {
   min-width: 0;
   font: inherit;
-  color: var(--parchment);
-  background: #1c110f;
-  border: 1px solid var(--leather-line);
-  border-radius: 6px;
-  padding: 0.35rem 0.5rem;
+  color: var(--text-inverse);
+  background: var(--surface-stage);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
 
   &:focus-visible {
-    outline: 3px solid var(--gold);
+    outline: 3px solid var(--focus-ring);
   }
 }

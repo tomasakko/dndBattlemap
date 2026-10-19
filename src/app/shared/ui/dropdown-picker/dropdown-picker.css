@@ -1,26 +1,26 @@
 :host {
   display: block;
-  color: var(--leather);
+  color: var(--text-default);
 }
 
 details {
-  background: var(--parchment);
-  border: 1px solid var(--leather-line);
-  border-radius: 6px;
-  box-shadow: 0 4px 18px rgb(0 0 0 / 45%);
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
 }
 
 summary {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-4);
   min-height: 2.5rem;
   padding: 0 0.65rem;
   list-style: none;
   cursor: pointer;
 
   &:focus-visible {
-    outline: 2px solid var(--gold);
+    outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }
 
@@ -43,28 +43,28 @@ summary {
 .picker-options {
   max-height: 50vh;
   overflow: auto;
-  border-top: 1px solid var(--leather-line);
+  border-top: 1px solid var(--border-default);
 }
 
 .picker-option {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  border-bottom: 1px solid rgb(90 61 54 / 25%);
+  border-bottom: 1px solid var(--border-subtle);
 
   button {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--space-4);
     min-width: 0;
     padding: 0.45rem 0.65rem;
-    color: var(--leather);
+    color: var(--text-default);
     background: transparent;
     border: 0;
     border-radius: 0;
     text-align: left;
 
     &:hover:not(:disabled) {
-      background: color-mix(in srgb, var(--gold) 25%, transparent);
+      background: color-mix(in srgb, var(--surface-accent) 25%, transparent);
     }
   }
 
@@ -76,7 +76,7 @@ summary {
   }
 
   &.current button:first-child {
-    background: color-mix(in srgb, var(--gold) 25%, transparent);
+    background: color-mix(in srgb, var(--surface-accent) 25%, transparent);
   }
 
   .picker-remove {
@@ -95,7 +95,7 @@ button {
   cursor: pointer;
 
   &:focus-visible {
-    outline: 2px solid var(--gold);
+    outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }
 

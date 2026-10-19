@@ -8,12 +8,12 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  color: var(--parchment);
+  color: var(--text-inverse);
 }
 .map {
   position: absolute;
   inset: 0;
-  background: #1c110f;
+  background: var(--surface-stage);
   font-family: inherit;
 }
 .map.placing {
@@ -25,7 +25,7 @@
   z-index: 2;
   display: grid;
   place-items: center;
-  color: var(--parchment);
+  color: var(--text-inverse);
   pointer-events: none;
 }
 .empty p {
@@ -49,12 +49,12 @@
 .player-screen-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  margin-left: 0.4rem;
+  gap: var(--space-2);
+  margin-left: var(--space-3);
   white-space: nowrap;
 }
 .hint {
-  padding: 0 0.5rem;
+  padding: 0 var(--space-4);
   font-size: 0.78rem;
   white-space: nowrap;
 }
@@ -66,64 +66,64 @@
 :host ::ng-deep .world-pin {
   display: grid;
   place-items: center;
-  color: var(--crimson);
+  color: var(--surface-danger);
   background: none;
   border: 0;
 }
 :host ::ng-deep .world-pin .material-symbols-outlined {
   font-size: 2rem;
   font-variation-settings: 'FILL' 1;
-  filter: drop-shadow(0 1px 1px #000);
+  filter: drop-shadow(0 1px 1px var(--map-outline-contrast));
 }
 :host ::ng-deep .leaflet-tooltip {
-  color: var(--leather);
-  background: var(--parchment);
-  border-color: var(--leather-line);
+  color: var(--text-default);
+  background: var(--surface-base);
+  border-color: var(--border-default);
   font-family: inherit;
   font-weight: 600;
 }
 :host ::ng-deep .marker-popup {
   display: grid;
-  gap: 0.4rem;
+  gap: var(--space-3);
 }
 :host ::ng-deep .marker-popup > input,
 :host ::ng-deep .marker-popup select {
   min-width: 0;
-  padding: 0.35rem;
+  padding: var(--space-2);
   font: inherit;
-  color: var(--leather);
-  background: #fff;
-  border: 1px solid var(--leather-line);
-  border-radius: 4px;
+  color: var(--text-default);
+  background: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
 }
 :host ::ng-deep .marker-popup .marker-color {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: var(--space-4);
 }
 :host ::ng-deep .marker-popup .marker-color input {
   width: 2.5rem;
   height: 1.75rem;
   padding: 0;
-  border: 1px solid var(--leather-line);
-  border-radius: 4px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
   cursor: pointer;
 }
 :host ::ng-deep .marker-popup .marker-visibility {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--space-2);
 }
 :host ::ng-deep .marker-popup .marker-visibility input {
-  accent-color: var(--crimson);
+  accent-color: var(--surface-danger);
 }
 :host ::ng-deep .marker-popup button {
   font: inherit;
-  color: var(--parchment);
-  background: var(--crimson);
+  color: var(--text-inverse);
+  background: var(--surface-danger);
   border: 0;
-  border-radius: 4px;
-  padding: 0.35rem;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
   cursor: pointer;
 }

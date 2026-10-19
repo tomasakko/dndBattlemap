@@ -6,9 +6,9 @@
   overflow: visible;
   box-sizing: border-box;
   padding: 0.65rem 0.8rem;
-  background: var(--parchment);
-  color: var(--leather);
-  border-bottom: 1px solid var(--leather-line);
+  background: var(--surface-base);
+  color: var(--text-default);
+  border-bottom: 1px solid var(--border-default);
 }
 
 h2 {
@@ -26,20 +26,20 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  color: var(--parchment);
-  background: var(--leather-raised);
-  border: 1px solid var(--leather-line);
-  border-radius: 6px;
-  padding: 0.4rem 0.8rem;
+  gap: var(--space-1);
+  color: var(--text-inverse);
+  background: var(--surface-inverse-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) 0.8rem;
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    background: #4a2f2a;
+    background: var(--surface-inverse-hover);
   }
 
   &:focus-visible {
-    outline: 3px solid var(--gold);
+    outline: 3px solid var(--focus-ring);
     outline-offset: 2px;
   }
 
@@ -49,12 +49,12 @@ button {
   }
 
   &.primary {
-    background: var(--gold);
-    border-color: var(--gold);
-    color: var(--leather);
+    background: var(--surface-accent);
+    border-color: var(--surface-accent);
+    color: var(--text-default);
 
     &:hover:not(:disabled) {
-      background: #e2c15a;
+      background: var(--surface-accent-light);
     }
   }
 }
@@ -66,22 +66,22 @@ button {
 input,
 select {
   min-width: 0;
-  color: var(--leather);
-  background: #fffdf8;
-  border: 1px solid var(--leather-line);
-  border-radius: 6px;
-  padding: 0.35rem 0.5rem;
+  color: var(--text-default);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
 
   &:focus-visible {
-    outline: 3px solid var(--gold);
+    outline: 3px solid var(--focus-ring);
   }
 }
 
 .turn-controls {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  margin: 0.5rem 0 0.35rem;
+  gap: var(--space-4);
+  margin: var(--space-4) 0 var(--space-2);
 }
 
 .end {
@@ -90,9 +90,9 @@ select {
 }
 
 .hint {
-  margin: 0.4rem 0;
+  margin: var(--space-3) 0;
   font-size: 0.8rem;
-  color: #5a3d36;
+  color: var(--text-muted);
 }
 
 .order-scroll {
@@ -107,7 +107,7 @@ select {
   padding: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.4rem;
+  gap: var(--space-3);
 }
 
 .clear {

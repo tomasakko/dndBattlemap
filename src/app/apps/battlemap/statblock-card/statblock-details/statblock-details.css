@@ -9,12 +9,12 @@
 
   div {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--space-4);
   }
 
   dt {
     font-weight: 700;
-    color: var(--gold);
+    color: var(--surface-accent);
   }
 
   dd {
@@ -24,51 +24,51 @@
 
 .abilities-table {
   width: 100%;
-  margin: 0.5rem 0;
+  margin: var(--space-4) 0;
   text-align: center;
   border-collapse: collapse;
-  background: var(--leather-raised);
-  border-top: 2px solid var(--crimson);
-  border-bottom: 2px solid var(--crimson);
+  background: var(--surface-inverse-raised);
+  border-top: 2px solid var(--surface-danger);
+  border-bottom: 2px solid var(--surface-danger);
 
   th {
-    color: var(--gold);
+    color: var(--surface-accent);
     padding-top: 0.3rem;
   }
 
   td {
-    padding: 0.2rem 0.1rem 0.4rem;
+    padding: 0.2rem 0.1rem var(--space-3);
     font-size: 0.9rem;
   }
 }
 
 button {
   font: inherit;
-  color: var(--parchment);
-  background: var(--leather-raised);
-  border: 1px solid var(--leather-line);
-  border-radius: 6px;
-  padding: 0.4rem 0.8rem;
+  color: var(--text-inverse);
+  background: var(--surface-inverse-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) 0.8rem;
   cursor: pointer;
 
   &:hover {
-    background: #4a2f2a;
+    background: var(--surface-inverse-hover);
   }
 
   &:focus-visible {
-    outline: 3px solid var(--gold);
+    outline: 3px solid var(--focus-ring);
     outline-offset: 2px;
   }
 
   &.primary {
-    background: var(--gold);
-    border-color: var(--gold);
-    color: var(--leather);
+    background: var(--surface-accent);
+    border-color: var(--surface-accent);
+    color: var(--text-default);
   }
 }
 
 footer {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
 }

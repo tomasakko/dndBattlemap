@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--leather);
+  background: var(--surface-inverse);
 }
 
 .stage {
@@ -24,11 +24,11 @@
   height: 4.5rem;
   display: grid;
   place-items: center;
-  color: var(--parchment);
-  background: rgb(42 27 24 / 88%);
-  border: 1px solid var(--gold);
+  color: var(--text-inverse);
+  background: var(--surface-hud);
+  border: 1px solid var(--surface-accent);
   border-radius: 50%;
-  box-shadow: 0 2px 10px rgb(0 0 0 / 45%);
+  box-shadow: var(--shadow-sm);
   font-size: 0.7rem;
   font-weight: 700;
   pointer-events: none;
@@ -39,7 +39,7 @@
     width: calc(100% - 0.7rem);
     height: calc(100% - 0.7rem);
     fill: none;
-    stroke: var(--parchment);
+    stroke: var(--surface-base);
     stroke-width: 1.5;
   }
 
@@ -47,7 +47,7 @@
     position: absolute;
     top: 0.15rem;
     z-index: 1;
-    color: var(--gold);
+    color: var(--surface-accent);
   }
 
   .east,
@@ -66,12 +66,12 @@
   }
 
   .north-point {
-    fill: var(--gold);
-    stroke: var(--gold);
+    fill: var(--surface-accent);
+    stroke: var(--surface-accent);
   }
 
   .south-point {
-    fill: var(--parchment);
+    fill: var(--surface-base);
     opacity: 0.75;
   }
 }
@@ -82,8 +82,8 @@
 }
 
 .cover {
-  fill: #fff;
-  stroke: #fff;
+  fill: var(--map-outline);
+  stroke: var(--map-outline);
   stroke-linejoin: round;
   opacity: 1;
   transition: opacity 1s ease;
@@ -131,7 +131,7 @@
 }
 
 .waiting {
-  color: var(--parchment);
+  color: var(--text-inverse);
   font-size: 1.25rem;
 }
 
@@ -140,11 +140,11 @@
   right: 0.75rem;
   top: 0.75rem;
   font: inherit;
-  color: var(--parchment);
-  background: var(--indigo);
-  border: 1px solid var(--gold);
-  border-radius: 6px;
-  padding: 0.4rem 0.8rem;
+  color: var(--text-inverse);
+  background: var(--surface-info);
+  border: 1px solid var(--surface-accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) 0.8rem;
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.2s;
@@ -155,7 +155,7 @@
   }
 
   &:focus-visible {
-    outline: 3px solid var(--gold);
+    outline: 3px solid var(--focus-ring);
     outline-offset: 2px;
   }
 }

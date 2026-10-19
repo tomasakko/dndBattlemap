@@ -2,22 +2,22 @@
 
 .ui-btn {
   font: inherit;
-  color: var(--parchment);
-  background: var(--leather-raised);
-  border: 1px solid var(--leather-line);
-  border-radius: 4px;
-  padding: 0.35rem 0.55rem;
+  color: var(--text-inverse);
+  background: var(--surface-inverse-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) 0.55rem;
   cursor: pointer;
   text-decoration: none;
 }
 
 .ui-btn:hover:not(:disabled) {
-  background: #4a2f2a;
+  background: var(--surface-inverse-hover);
 }
 
 .ui-btn:focus-visible,
 .ui-text-input:focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -33,17 +33,17 @@
   width: 2rem;
   height: 2rem;
   padding: 0;
-  color: var(--leather);
+  color: var(--text-default);
   background: transparent;
   border-color: transparent;
 }
 
 .ui-icon-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--gold) 40%, var(--parchment));
+  background: color-mix(in srgb, var(--surface-accent) 40%, var(--surface-base));
 }
 
 .ui-icon-btn[aria-pressed='true'] {
-  background: var(--gold);
+  background: var(--surface-accent);
 }
 
 .ui-toolbar {
@@ -53,38 +53,38 @@
   left: 50%;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--space-1);
   max-width: calc(100vw - 1rem);
-  padding: 0.35rem;
+  padding: var(--space-2);
   transform: translateX(-50%);
-  color: var(--leather);
-  background: var(--parchment);
-  border: 1px solid var(--leather-line);
-  border-radius: 6px;
-  box-shadow: 0 4px 16px rgb(0 0 0 / 45%);
+  color: var(--text-default);
+  background: var(--surface-base);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
 }
 
 .ui-toolbar-separator {
   width: 1px;
   height: 1.5rem;
   margin: 0 0.2rem;
-  background: var(--leather-line);
+  background: var(--border-default);
 }
 
 .ui-error {
-  margin: 0.4rem 0 0;
+  margin: var(--space-3) 0 0;
   padding: 0.45rem 0.7rem;
-  color: var(--parchment);
-  background: var(--crimson);
-  border-radius: 4px;
+  color: var(--text-inverse);
+  background: var(--surface-danger);
+  border-radius: var(--radius-sm);
 }
 
 .ui-text-input {
   min-width: 0;
-  padding: 0.5rem;
-  color: var(--leather);
-  background: #fff;
-  border: 1px solid var(--leather-line);
-  border-radius: 4px;
+  padding: var(--space-4);
+  color: var(--text-default);
+  background: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
   font: inherit;
 }

@@ -1,25 +1,15 @@
 @import 'material-symbols/outlined.css';
 @import '@fontsource-variable/cinzel';
 @import 'leaflet/dist/leaflet.css';
+@import './app/shared/ui/tokens.css';
 @import './app/shared/ui/ui.css';
-
-:root {
-  --parchment: #f4efe6;
-  --leather: #2a1b18;
-  --leather-raised: #36221f;
-  --leather-line: #5a3d36;
-  --gold: #d4af37;
-  --crimson: #5c1d24;
-  --indigo: #1f3a52;
-  --topbar-height: 2.5rem;
-}
 
 html,
 body {
   margin: 0;
   height: 100%;
-  background: var(--parchment);
-  color: var(--leather);
+  background: var(--surface-base);
+  color: var(--text-default);
   font-family: 'Cinzel Variable', Georgia, serif;
   font-size: 0.9rem;
 }
@@ -31,14 +21,14 @@ body {
 }
 
 .draft-action circle {
-  fill: var(--leather);
-  stroke: var(--gold);
+  fill: var(--surface-inverse);
+  stroke: var(--surface-accent);
   stroke-width: 0.08;
 }
 
 .draft-action path {
   fill: none;
-  stroke: var(--gold);
+  stroke: var(--surface-accent);
   stroke-width: 0.18;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -46,7 +36,7 @@ body {
 
 .draft-action:hover circle,
 .draft-action:focus-visible circle {
-  fill: var(--leather-raised);
+  fill: var(--surface-inverse-raised);
 }
 
 .draft-action.disabled {
