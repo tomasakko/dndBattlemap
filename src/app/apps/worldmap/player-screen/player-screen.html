@@ -17,8 +17,9 @@
             <text
               class="marker-icon material-symbols-outlined"
               text-anchor="middle"
-              [attr.y]="radius() * 0.55"
-              [attr.font-size]="radius() * 1.25"
+              [attr.y]="-pixel() * 3"
+              [style.font-size.px]="pixel() * 32"
+              [attr.stroke-width]="pixel()"
               [attr.fill]="marker.iconColor"
               [attr.stroke]="marker.borderColor"
             >
@@ -27,8 +28,9 @@
             <text
               class="marker-name"
               text-anchor="middle"
-              [attr.y]="-radius() * 1.5"
-              [attr.font-size]="radius() * 1.5"
+              [attr.y]="-pixel() * 36"
+              [attr.font-size]="pixel() * 12.5"
+              [attr.stroke-width]="pixel() * 3"
             >
               {{ marker.name }}
             </text>

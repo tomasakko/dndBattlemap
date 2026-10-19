@@ -26,14 +26,13 @@
 .marker-icon {
   font-family: 'Material Symbols Outlined';
   font-variation-settings: 'FILL' 1;
-  stroke-width: 1.5px;
+  font-feature-settings: 'liga';
   paint-order: stroke fill;
 }
 
 .marker-name {
   fill: var(--surface-base);
   stroke: var(--color-leather-deep);
-  stroke-width: 3px;
   stroke-linejoin: round;
   paint-order: stroke;
   font-family: inherit;

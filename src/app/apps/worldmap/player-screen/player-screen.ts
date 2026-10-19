@@ -48,7 +48,9 @@ export class WorldmapPlayerScreen {
     );
     return `${rect.x} ${rect.y} ${rect.width} ${rect.height}`;
   });
-  protected readonly radius = computed(() => {
+  private readonly stageWidth = signal(this.currentWidth());
+  /** Map units per screen pixel, so markers keep a constant on-screen size at every zoom level. */
+  protected readonly pixel = computed(() => {
     const entry = this.current();
     if (!entry) {
       return 0;
@@ -59,7 +61,7 @@ export class WorldmapPlayerScreen {
       this.worldmap.playerView(),
       this.aspect(),
     );
-    return Math.max(rect.width, rect.height) * 0.009;
+    return rect.width / Math.max(this.stageWidth(), 1);
   });
 
   constructor() {
@@ -89,11 +91,17 @@ export class WorldmapPlayerScreen {
 
   private reportAspect(): void {
     this.aspect.set(this.currentAspect());
+    this.stageWidth.set(this.currentWidth());
+  }
+
+  private currentWidth(): number {
+    const stage = this.stage()?.nativeElement;
+    return stage?.clientWidth || this.document.defaultView?.innerWidth || 0;
   }
 
   private currentAspect(): number {
     const stage = this.stage()?.nativeElement;
-    const width = stage?.clientWidth || this.document.defaultView?.innerWidth || 0;
+    const width = this.currentWidth();
     const height = stage?.clientHeight || this.document.defaultView?.innerHeight || 0;
     return height > 0 ? width / height : 16 / 9;
   }
