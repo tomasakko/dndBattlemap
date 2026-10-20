@@ -18,6 +18,9 @@
   </nav>
 
   <div class="project-actions">
+    <button type="button" class="action" [attr.aria-label]="'Switch theme (current: ' + themeName() + ')'" [title]="'Theme: ' + themeName()" (click)="themes.toggle()">
+      <span class="material-symbols-outlined" aria-hidden="true">palette</span>
+    </button>
     <button type="button" class="action" aria-label="Save project to file" title="Save project" (click)="save()">
       <span class="material-symbols-outlined" aria-hidden="true">download</span>
     </button>

@@ -4,8 +4,18 @@
   <main class="stage">
     @if (current(); as entry) {
       <svg class="map" #stage [attr.viewBox]="viewBox()" role="img" [attr.aria-label]="entry.name">
+        <foreignObject x="0" y="0" [attr.width]="entry.image.width" [attr.height]="entry.image.height">
+          <app-water-canvas [src]="entry.image.url" />
+        </foreignObject>
         <image
           [attr.href]="entry.image.url"
+          x="0"
+          y="0"
+          [attr.width]="entry.image.width"
+          [attr.height]="entry.image.height"
+        />
+        <rect
+          class="map-border"
           x="0"
           y="0"
           [attr.width]="entry.image.width"

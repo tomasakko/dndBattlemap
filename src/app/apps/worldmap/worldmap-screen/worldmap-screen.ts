@@ -17,6 +17,7 @@ import { DropdownPicker } from '../../../shared/ui/dropdown-picker/dropdown-pick
 import type { PickerItem } from '../../../shared/ui/dropdown-picker/dropdown-picker';
 import { FileButton } from '../../../shared/ui/file-button/file-button';
 import { MapUploadDialog } from '../../../shared/ui/map-upload-dialog/map-upload-dialog';
+import { WaterRenderer } from '../../../shared/ui/water/water-renderer';
 import { clamp } from '../../../shared/util/math';
 import { escapeHtml, titleFromFileName } from '../../../shared/util/text';
 import { WorldmapService } from '../worldmap.service';
@@ -54,6 +55,8 @@ export class WorldmapScreen {
 
   private map?: L.Map;
   private overlay?: L.ImageOverlay;
+  private waterOverlay?: L.SVGOverlay;
+  private water?: WaterRenderer;
   private shownImage: WorldmapImage | null = null;
   private restoringView = false;
   private readonly pins = new Map<string, L.Marker>();
@@ -67,6 +70,7 @@ export class WorldmapScreen {
     inject(DestroyRef).onDestroy(() => {
       this.map?.remove();
       this.map = undefined;
+      this.water?.destroy();
     });
     effect(() => {
       const current = this.current();
@@ -151,19 +155,43 @@ export class WorldmapScreen {
     return map;
   }
 
+  /** Water goes in its own SVG overlay below the map image, so only transparent sea shows it. */
+  private addWater(map: L.Map, image: WorldmapImage, bounds: L.LatLngBounds): void {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${image.width} ${image.height}`);
+    // Leaflet's stylesheet forces z-index 200 on SVGs in a pane, which would cover the map image.
+    svg.style.zIndex = '1';
+    const host = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+    host.setAttribute('width', String(image.width));
+    host.setAttribute('height', String(image.height));
+    const canvas = document.createElement('canvas');
+    canvas.className = 'ui-water';
+    canvas.style.cssText = 'display:block;width:100%;height:100%';
+    host.append(canvas);
+    svg.append(host);
+    this.waterOverlay = L.svgOverlay(svg, bounds, { interactive: false, zIndex: 1 }).addTo(map);
+    this.water = new WaterRenderer(canvas);
+    void this.water.load(image.url);
+  }
+
   private syncImage(image: WorldmapImage | null): void {
     const map = this.map;
     if (!map || image === this.shownImage) {
       return;
     }
     this.shownImage = image;
+    this.waterOverlay?.remove();
+    this.waterOverlay = undefined;
+    this.water?.destroy();
+    this.water = undefined;
     this.overlay?.remove();
     this.overlay = undefined;
     if (!image) {
       return;
     }
     const bounds = imageBounds(image);
-    this.overlay = L.imageOverlay(image.url, bounds).addTo(map);
+    this.addWater(map, image, bounds);
+    this.overlay = L.imageOverlay(image.url, bounds, { zIndex: 2 }).addTo(map);
     const savedView = this.worldmap.viewFor(this.worldmap.currentId());
     this.restoringView = true;
     // Lift the previous image's limits so they can't constrain fitting the new one.

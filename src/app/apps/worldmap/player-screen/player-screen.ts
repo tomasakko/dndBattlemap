@@ -10,13 +10,14 @@ import {
   viewChild,
 } from '@angular/core';
 import { PlayerScreen } from '../../battlemap/player-screen/player-screen';
+import { WaterCanvas } from '../../../shared/ui/water/water-canvas';
 import { WorldmapService } from '../worldmap.service';
 import { WORLDMAP_MARKER_ICONS } from '../worldmap.service';
 import type { WorldmapMarkerIcon } from '../worldmap.service';
 
 @Component({
   selector: 'app-worldmap-player-screen',
-  imports: [PlayerScreen],
+  imports: [PlayerScreen, WaterCanvas],
   templateUrl: './player-screen.html',
   styleUrl: './player-screen.css',
   host: {

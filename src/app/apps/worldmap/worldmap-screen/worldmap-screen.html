@@ -22,10 +22,6 @@
 
   <header class="top-actions">
     <app-file-button label="Upload Map" icon="upload" (fileSelected)="onFileSelected($event)" />
-    <a class="ui-btn player-screen-link" routerLink="/worldmap/player" target="_blank" rel="noopener" aria-label="Open player screen" title="Open player screen">
-      <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
-      Player screen
-    </a>
     @if (error()) {
       <p class="ui-error" role="alert">{{ error() }}</p>
     }
@@ -33,6 +29,11 @@
       <p class="ui-error" role="alert">{{ message }}</p>
     }
   </header>
+
+  <a class="ui-btn player-screen-link" routerLink="/worldmap/player" target="_blank" rel="noopener" aria-label="Open player screen" title="Open player screen">
+    <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
+    Player screen
+  </a>
 
   @if (current()) {
     <div class="ui-toolbar" role="toolbar" aria-label="World map tools">

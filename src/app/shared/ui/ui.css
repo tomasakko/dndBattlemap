@@ -71,6 +71,32 @@
   background: var(--border-default);
 }
 
+/* Animated water for behind a transparent map image; it only moves background-position, so it stays cheap. */
+.ui-water {
+  --wave-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='48'%3E%3Cpath d='M0 12q12-8 24 0t24 0 24 0 24 0' fill='none' stroke='white' stroke-opacity='.18' stroke-width='3'/%3E%3C/svg%3E");
+  --wave-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='64'%3E%3Cpath d='M0 40q16-10 32 0t32 0 32 0 32 0' fill='none' stroke='white' stroke-opacity='.12' stroke-width='4'/%3E%3C/svg%3E");
+  background:
+    var(--wave-a) 0 0 / 96px 48px,
+    var(--wave-b) 0 0 / 128px 64px,
+    linear-gradient(135deg, var(--surface-water), var(--surface-water-deep));
+  animation: water-drift 14s linear infinite;
+}
+
+@keyframes water-drift {
+  to {
+    background-position:
+      96px 24px,
+      -128px 32px,
+      0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-water {
+    animation: none;
+  }
+}
+
 .ui-error {
   margin: var(--space-3) 0 0;
   padding: 0.45rem 0.7rem;

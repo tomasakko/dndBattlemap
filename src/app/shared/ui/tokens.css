@@ -81,5 +81,25 @@
   --shadow-modal: 0 8px 28px rgb(0 0 0 / 55%);
   --shadow-card: 0 8px 32px rgb(0 0 0 / 60%);
 
+  --surface-water: #1d5a82;
+  --surface-water-deep: #123a5a;
+
   --topbar-height: 2.5rem;
+}
+
+/* Blue/gold theme: only remaps the primitives (and the few literal rgb semantics); the default theme needs no attribute. */
+:root[data-theme='blue-gold'] {
+  --color-parchment: #e6edf7;
+  --color-paper: #f6f9fe;
+  --color-sand: #b9c9e0;
+  --color-leather: #11213a;
+  --color-leather-raised: #1a3052;
+  --color-leather-hover: #264570;
+  --color-leather-deep: #08121f;
+  --color-leather-line: #3c5d8c;
+  --color-indigo: #24527f;
+  --color-steel: #6a9bd1;
+
+  --surface-hud: rgb(17 33 58 / 88%);
+  --border-subtle: rgb(60 93 140 / 25%);
 }

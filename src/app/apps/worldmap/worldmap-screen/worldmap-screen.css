@@ -47,10 +47,13 @@
   text-align: center;
 }
 .player-screen-link {
+  position: absolute;
+  z-index: 1000;
+  right: 1rem;
+  bottom: 1rem;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  margin-left: var(--space-3);
   white-space: nowrap;
 }
 .hint {
@@ -63,6 +66,9 @@
 }
 
 /* Leaflet creates these elements itself, so they sit outside the component's style scope. */
+:host ::ng-deep .leaflet-image-layer {
+  outline: 4px solid var(--surface-accent);
+}
 :host ::ng-deep .world-pin {
   display: grid;
   place-items: center;
