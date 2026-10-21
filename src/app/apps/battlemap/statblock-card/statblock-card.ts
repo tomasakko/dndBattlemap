@@ -48,7 +48,7 @@ export class StatblockCard {
   }
 
   protected backdropClick(event: MouseEvent): void {
-    if (event.target === event.currentTarget) {
+    if (!this.editing() && event.target === event.currentTarget) {
       this.closed.emit();
     }
   }

@@ -315,21 +315,49 @@ export class WorldmapScreen {
         this.pins.get(id)?.closePopup();
       }
     });
-    const icon = document.createElement('select');
-    icon.setAttribute('aria-label', 'Marker icon');
+    const iconPicker = document.createElement('div');
+    iconPicker.className = 'marker-icons';
+    iconPicker.setAttribute('role', 'group');
+    iconPicker.setAttribute('aria-label', 'Marker icon');
+    const iconButtons: HTMLButtonElement[] = [];
     for (const choice of WORLDMAP_MARKER_ICONS) {
-      const option = document.createElement('option');
-      option.value = choice.id;
-      option.textContent = choice.label;
-      option.selected = choice.id === marker?.icon;
-      icon.append(option);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'marker-icon-choice';
+      button.title = choice.label;
+      button.setAttribute('aria-label', choice.label);
+      button.setAttribute('aria-pressed', String(choice.id === marker?.icon));
+      const glyph = document.createElement('span');
+      glyph.className = 'marker-icon-preview';
+      glyph.setAttribute('aria-hidden', 'true');
+      glyph.style.setProperty(
+        '--marker-image',
+        `url("/assets/worldmap-icons/${choice.asset}")`,
+      );
+      button.append(glyph);
+      button.addEventListener('click', () => {
+        this.worldmap.setMarkerIcon(id, choice.id);
+        for (const iconButton of iconButtons) {
+          iconButton.setAttribute('aria-pressed', String(iconButton === button));
+        }
+      });
+      iconButtons.push(button);
+      iconPicker.append(button);
     }
-    icon.addEventListener('change', () => {
-      const selected = WORLDMAP_MARKER_ICONS.find((choice) => choice.id === icon.value);
-      if (selected) {
-        this.worldmap.setMarkerIcon(id, selected.id);
-      }
-    });
+    const iconCredit = document.createElement('small');
+    iconCredit.className = 'marker-icon-credit';
+    iconCredit.append(document.createTextNode('Icons by '));
+    const iconSource = document.createElement('a');
+    iconSource.href = 'https://game-icons.net/';
+    iconSource.target = '_blank';
+    iconSource.rel = 'noopener noreferrer';
+    iconSource.textContent = 'Delapouite on Game-icons.net';
+    const iconLicense = document.createElement('a');
+    iconLicense.href = 'https://creativecommons.org/licenses/by/3.0/';
+    iconLicense.target = '_blank';
+    iconLicense.rel = 'noopener noreferrer';
+    iconLicense.textContent = 'CC BY 3.0';
+    iconCredit.append(iconSource, document.createTextNode(' · '), iconLicense);
     const iconColor = document.createElement('input');
     iconColor.type = 'color';
     iconColor.value = marker?.iconColor ?? '#5c1d24';
@@ -405,7 +433,8 @@ export class WorldmapScreen {
     remove.addEventListener('click', () => this.worldmap.removeMarker(id));
     form.append(
       input,
-      icon,
+      iconPicker,
+      iconCredit,
       iconColorLabel,
       borderColorLabel,
       battlemapPicker,
@@ -431,10 +460,11 @@ function imageBounds(image: WorldmapImage): L.LatLngBounds {
 }
 
 function pinIcon(icon: WorldmapMarkerIcon, iconColor: string, borderColor: string): L.DivIcon {
-  const glyph = WORLDMAP_MARKER_ICONS.find((choice) => choice.id === icon)?.glyph ?? 'castle';
+  const asset =
+    WORLDMAP_MARKER_ICONS.find((choice) => choice.id === icon)?.asset ?? 'castle.svg';
   return L.divIcon({
     className: 'world-pin',
-    html: `<span class="material-symbols-outlined" aria-hidden="true" style="color:${iconColor};-webkit-text-stroke:1px ${borderColor}">${glyph}</span>`,
+    html: `<span class="world-pin-icon" aria-hidden="true" style="--marker-image:url('/assets/worldmap-icons/${asset}');--marker-color:${iconColor};--marker-border:${borderColor}"></span>`,
     iconSize: [28, 28],
     iconAnchor: [14, 26],
     popupAnchor: [0, -24],

@@ -76,10 +76,20 @@
   background: none;
   border: 0;
 }
-:host ::ng-deep .world-pin .material-symbols-outlined {
-  font-size: 2rem;
-  font-variation-settings: 'FILL' 1;
-  filter: drop-shadow(0 1px 1px var(--map-outline-contrast));
+:host ::ng-deep .world-pin-icon {
+  display: block;
+  width: 28px;
+  height: 28px;
+  background-color: var(--marker-color);
+  -webkit-mask-image: var(--marker-image);
+  mask-image: var(--marker-image);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  filter: drop-shadow(0 0 1px var(--marker-border));
 }
 :host ::ng-deep .leaflet-tooltip {
   color: var(--text-default);
@@ -132,4 +142,52 @@
   border-radius: var(--radius-sm);
   padding: var(--space-2);
   cursor: pointer;
+}
+:host ::ng-deep .marker-popup .marker-icons {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+:host ::ng-deep .marker-popup .marker-icon-choice {
+  display: grid;
+  flex: 1;
+  min-width: 2.5rem;
+  place-items: center;
+  padding: var(--space-2);
+  color: var(--text-default);
+  background: var(--surface-input);
+  border: 1px solid var(--border-default);
+}
+:host ::ng-deep .marker-popup .marker-icon-choice[aria-pressed='true'] {
+  color: var(--text-inverse);
+  background: var(--surface-info);
+  border-color: var(--surface-accent);
+}
+:host ::ng-deep .marker-popup .marker-icon-preview {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-color: currentColor;
+  -webkit-mask-image: var(--marker-image);
+  mask-image: var(--marker-image);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+:host ::ng-deep .marker-popup .marker-icon-credit {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+:host ::ng-deep .marker-popup .marker-icon-credit a {
+  color: inherit;
+}
+:host ::ng-deep .marker-popup .marker-icon-credit a:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+:host ::ng-deep .marker-popup .marker-icon-credit a:hover {
+  color: var(--text-default);
 }

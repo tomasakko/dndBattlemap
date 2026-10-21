@@ -22,19 +22,41 @@
           [attr.height]="entry.image.height"
         />
         @for (marker of entry.markers; track marker.id) {
-          <g class="marker" [attr.transform]="'translate(' + marker.x + ' ' + marker.y + ')'">
+          <g
+            class="marker"
+            [attr.transform]="'translate(' + marker.x + ' ' + marker.y + ')'"
+            [style.filter]="'drop-shadow(0 0 1px ' + marker.borderColor + ')'"
+          >
             <title>{{ marker.name }}</title>
-            <text
-              class="marker-icon material-symbols-outlined"
-              text-anchor="middle"
-              [attr.y]="-pixel() * 3"
-              [style.font-size.px]="pixel() * 32"
-              [attr.stroke-width]="pixel()"
-              [attr.fill]="marker.iconColor"
-              [attr.stroke]="marker.borderColor"
+            <svg
+              class="marker-icon"
+              [attr.x]="-pixel() * 16"
+              [attr.y]="-pixel() * 32"
+              [attr.width]="pixel() * 32"
+              [attr.height]="pixel() * 32"
+              viewBox="0 0 512 512"
             >
-              {{ markerGlyph(marker.icon) }}
-            </text>
+              <defs>
+                <mask
+                  [attr.id]="'worldmap-marker-mask-' + $index"
+                  x="0"
+                  y="0"
+                  width="512"
+                  height="512"
+                  maskUnits="userSpaceOnUse"
+                  maskContentUnits="userSpaceOnUse"
+                  style="mask-type: alpha"
+                >
+                  <image [attr.href]="markerIconAsset(marker.icon)" width="512" height="512" />
+                </mask>
+              </defs>
+              <rect
+                width="512"
+                height="512"
+                [attr.fill]="marker.iconColor"
+                [attr.mask]="'url(#worldmap-marker-mask-' + $index + ')'"
+              />
+            </svg>
             <text
               class="marker-name"
               text-anchor="middle"

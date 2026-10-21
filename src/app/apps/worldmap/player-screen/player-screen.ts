@@ -32,8 +32,8 @@ export class WorldmapPlayerScreen {
 
   protected readonly current = this.worldmap.playerMap;
   protected readonly linkedBattlemapId = this.worldmap.linkedBattlemapId;
-  protected readonly markerGlyph = (icon: WorldmapMarkerIcon) =>
-    WORLDMAP_MARKER_ICONS.find((choice) => choice.id === icon)?.glyph ?? 'castle';
+  protected readonly markerIconAsset = (icon: WorldmapMarkerIcon) =>
+    `/assets/worldmap-icons/${WORLDMAP_MARKER_ICONS.find((choice) => choice.id === icon)?.asset ?? 'castle.svg'}`;
   protected readonly isFullscreen = signal(false);
   private readonly aspect = signal(this.currentAspect());
   protected readonly viewBox = computed(() => {

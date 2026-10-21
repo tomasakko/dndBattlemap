@@ -22,13 +22,18 @@ export interface WorldmapMarker {
   battlemapId: string | null;
 }
 
-export type WorldmapMarkerIcon = 'castle' | 'forest' | 'city' | 'cave';
+export type WorldmapMarkerIcon = 'castle' | 'tower' | 'forest' | 'city' | 'cave';
 
-export const WORLDMAP_MARKER_ICONS: { id: WorldmapMarkerIcon; label: string; glyph: string }[] = [
-  { id: 'castle', label: 'Castle', glyph: 'castle' },
-  { id: 'forest', label: 'Forest', glyph: 'forest' },
-  { id: 'city', label: 'City', glyph: 'location_city' },
-  { id: 'cave', label: 'Cave', glyph: 'landscape' },
+export const WORLDMAP_MARKER_ICONS: {
+  id: WorldmapMarkerIcon;
+  label: string;
+  asset: string;
+}[] = [
+  { id: 'castle', label: 'Castle', asset: 'castle.svg' },
+  { id: 'tower', label: 'Watchtower', asset: 'watchtower.svg' },
+  { id: 'forest', label: 'Forest', asset: 'forest.svg' },
+  { id: 'city', label: 'Village', asset: 'village.svg' },
+  { id: 'cave', label: 'Cave', asset: 'mountain-cave.svg' },
 ];
 
 /** A world map with its own markers, so switching maps never carries markers over. */
