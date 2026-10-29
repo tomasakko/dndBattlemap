@@ -95,23 +95,23 @@
       <div class="ui-toolbar" role="toolbar" aria-label="Map tools and player zoom">
         <button
           type="button"
-          class="ui-btn ui-icon-btn"
+          class="ui-btn"
           aria-label="Draw shape"
           title="Draw shape"
           [attr.aria-pressed]="tool() === 'draw'"
           (click)="setTool('draw')"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">draw</span>
+          Draw
         </button>
         <button
           type="button"
-          class="ui-btn ui-icon-btn"
+          class="ui-btn"
           aria-label="Move player view"
           title="Move player view"
           [attr.aria-pressed]="tool() === 'view'"
           (click)="setTool('view')"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">open_with</span>
+          Move view
         </button>
         <span class="ui-toolbar-separator" aria-hidden="true"></span>
         <label class="player-zoom">
@@ -146,14 +146,13 @@
     [items]="mapItems()"
     [currentId]="currentId()"
     [label]="currentMapName()"
-    [icon]="currentMapIcon()"
     [locked]="locked()"
     (selected)="selectMap($event)"
     (removed)="removeMap($event.id, $event.name)"
   />
 
   <header class="top-actions">
-    <app-file-button label="Upload Map" icon="upload" (fileSelected)="onFileSelected($event)" />
+    <app-file-button label="Upload Map" (fileSelected)="onFileSelected($event)" />
     @if (error()) {
       <p class="ui-error" role="alert">{{ error() }}</p>
     }
@@ -165,10 +164,7 @@
     @if (pendingMapFile()) {
       <app-map-upload-dialog
         [title]="mapTitle()"
-        [icons]="mapIconChoices"
-        [icon]="mapIcon()"
         (titleChanged)="mapTitle.set($event)"
-        (iconSelected)="setMapIcon($event)"
         (cancelled)="cancelMapUpload()"
         (submitted)="confirmMapUpload()"
       />

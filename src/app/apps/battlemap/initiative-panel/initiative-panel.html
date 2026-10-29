@@ -2,12 +2,10 @@
 
 <div class="turn-controls" role="group" aria-label="Turn controls">
   <button type="button" [disabled]="combatants().length === 0" (click)="previous()">
-    <span class="material-symbols-outlined" aria-hidden="true">skip_previous</span>
     Previous
   </button>
   <button type="button" class="primary" [disabled]="combatants().length === 0" (click)="next()">
     {{ activeId() ? 'Next turn' : 'Start' }}
-    <span class="material-symbols-outlined" aria-hidden="true">skip_next</span>
   </button>
 </div>
 

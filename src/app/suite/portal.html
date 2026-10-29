@@ -9,7 +9,6 @@
       <li>
         @if (app.route; as route) {
           <a class="app-tile" [routerLink]="route">
-            <span class="material-symbols-outlined" aria-hidden="true">{{ app.icon }}</span>
             <h2>{{ app.name }}</h2>
             <p>{{ app.description }}</p>
             @if (project.summaries()[app.id]; as summary) {
@@ -24,7 +23,6 @@
           </a>
         } @else {
           <div class="app-tile disabled" aria-disabled="true">
-            <span class="material-symbols-outlined" aria-hidden="true">{{ app.icon }}</span>
             <h2>{{ app.name }}</h2>
             <p>{{ app.description }}</p>
             @if (project.summaries()[app.id]; as summary) {
@@ -36,7 +34,7 @@
                 </p>
               }
             }
-            <span class="badge">Coming soon</span>
+            <p>Coming soon</p>
           </div>
         }
       </li>

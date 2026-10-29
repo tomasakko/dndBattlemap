@@ -33,9 +33,7 @@
           [attr.aria-label]="'Toggle visibility of ' + view.room.name"
           (click)="toggled.emit(view.room)"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">{{
-            view.room.revealed ? 'visibility' : 'visibility_off'
-          }}</span>
+          {{ view.room.revealed ? 'Hide' : 'Reveal' }}
         </button>
         <button
           type="button"
@@ -43,7 +41,7 @@
           [attr.aria-label]="'Delete room ' + view.number + ', ' + view.room.name"
           (click)="removed.emit(view.room)"
         >
-          <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+          Delete
         </button>
       </li>
     }

@@ -16,7 +16,6 @@ import { InitiativePanel } from '../initiative-panel/initiative-panel';
 import { PlayerRoster } from '../player-roster/player-roster';
 import {
   BattlemapService,
-  MapIcon,
   MAX_ZOOM,
   MIN_ZOOM,
   Point,
@@ -33,7 +32,6 @@ import type { PickerItem } from '../../../shared/ui/dropdown-picker/dropdown-pic
 import { ConfirmService } from '../../../shared/ui/confirm-dialog/confirm.service';
 import { FileButton } from '../../../shared/ui/file-button/file-button';
 import { MapUploadDialog } from '../../../shared/ui/map-upload-dialog/map-upload-dialog';
-import type { IconChoice } from '../../../shared/ui/map-upload-dialog/map-upload-dialog';
 import { titleFromFileName } from '../../../shared/util/text';
 import { WorldmapService } from '../../worldmap/worldmap.service';
 
@@ -46,17 +44,6 @@ const ZOOM_STEP = 1.25;
 const MIN_PANEL_WIDTH = 240;
 const MAX_PANEL_WIDTH = 720;
 const GOLDEN_ANGLE = 137.508;
-
-const MAP_ICON_CHOICES: IconChoice[] = [
-  { id: 'castle', label: 'Castle', glyph: 'castle' },
-  { id: 'forest', label: 'Forest', glyph: 'forest' },
-  { id: 'city', label: 'City', glyph: 'location_city' },
-  { id: 'cave', label: 'Cave', glyph: 'landscape' },
-];
-
-function iconGlyph(icon: MapIcon): string {
-  return MAP_ICON_CHOICES.find((choice) => choice.id === icon)?.glyph ?? icon;
-}
 
 @Component({
   selector: 'app-dm-screen',
@@ -135,23 +122,14 @@ export class DmScreen {
     () => this.maps().find((entry) => entry.id === this.currentId())?.name ?? 'Choose Map',
   );
   protected readonly pendingMapFile = signal<File | null>(null);
-  protected readonly currentMapIcon = computed(() => {
-    const icon = this.maps().find((entry) => entry.id === this.currentId())?.icon;
-    return icon ? iconGlyph(icon) : null;
-  });
   protected readonly mapItems = computed<PickerItem[]>(() =>
     this.maps().map((entry) => ({
       id: entry.id,
       label: entry.name,
-      icon: iconGlyph(entry.icon),
-      ...(entry.id === this.sharedId()
-        ? { badgeIcon: 'visibility', badgeLabel: 'Shown to players' }
-        : {}),
+      ...(entry.id === this.sharedId() ? { badgeLabel: 'shown to players' } : {}),
     })),
   );
-  protected readonly mapIconChoices = MAP_ICON_CHOICES;
   protected readonly mapTitle = signal('');
-  protected readonly mapIcon = signal<MapIcon>('castle');
   protected readonly sharedId = this.battlemap.sharedId;
   protected readonly locked = this.battlemap.locked;
   protected readonly shareLabel = computed(() =>
@@ -274,11 +252,6 @@ export class DmScreen {
     this.error.set('');
     this.pendingMapFile.set(file);
     this.mapTitle.set(titleFromFileName(file.name, 'Map'));
-    this.mapIcon.set('castle');
-  }
-
-  protected setMapIcon(icon: string): void {
-    this.mapIcon.set(icon as MapIcon);
   }
 
   protected cancelMapUpload(): void {
@@ -294,7 +267,7 @@ export class DmScreen {
     try {
       this.error.set('');
       this.cancelDraft();
-      await this.battlemap.addMap(file, name, this.mapIcon());
+      await this.battlemap.addMap(file, name);
       this.pendingMapFile.set(null);
       this.fitDmView();
     } catch {

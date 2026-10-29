@@ -12,8 +12,6 @@ import {
 import { PlayerScreen } from '../../battlemap/player-screen/player-screen';
 import { WaterCanvas } from '../../../shared/ui/water/water-canvas';
 import { WorldmapService } from '../worldmap.service';
-import { WORLDMAP_MARKER_ICONS } from '../worldmap.service';
-import type { WorldmapMarkerIcon } from '../worldmap.service';
 
 @Component({
   selector: 'app-worldmap-player-screen',
@@ -32,8 +30,6 @@ export class WorldmapPlayerScreen {
 
   protected readonly current = this.worldmap.playerMap;
   protected readonly linkedBattlemapId = this.worldmap.linkedBattlemapId;
-  protected readonly markerIconAsset = (icon: WorldmapMarkerIcon) =>
-    `/assets/worldmap-icons/${WORLDMAP_MARKER_ICONS.find((choice) => choice.id === icon)?.asset ?? 'castle.svg'}`;
   protected readonly isFullscreen = signal(false);
   private readonly aspect = signal(this.currentAspect());
   protected readonly viewBox = computed(() => {

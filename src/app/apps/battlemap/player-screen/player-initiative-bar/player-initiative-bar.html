@@ -9,14 +9,10 @@
           [class.active]="turn.active"
           [attr.aria-current]="turn.active ? 'step' : null"
         >
-          <span class="avatar">
-            @if (turn.image) {
-              <img [ngSrc]="turn.image" width="64" height="64" alt="" />
-            } @else {
-              <span class="material-symbols-outlined" aria-hidden="true">person</span>
-            }
-          </span>
-          <span class="name">{{ turn.name }}</span>
+          @if (turn.image) {
+            <img class="avatar" [ngSrc]="turn.image" width="64" height="64" alt="" />
+          }
+          <span class="name">{{ turn.active ? '▶ ' : '' }}{{ turn.name }}{{ turn.down ? ' (down)' : '' }}</span>
         </li>
       }
     </ol>

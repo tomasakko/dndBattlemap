@@ -34,18 +34,6 @@
       <rect class="fog fog-b" fill="url(#fog-tile-b)" [attr.x]="-tileB()" [attr.y]="-tileB()" [attr.width]="m.width + tileB() * 2" [attr.height]="m.height + tileB() * 2" [style.--tile]="tileB()" />
     </g>
   </svg>
-  <div class="compass" role="img" aria-label="Map compass: north is up">
-    <span class="north">N</span>
-    <svg viewBox="0 0 64 64" aria-hidden="true">
-      <circle cx="32" cy="32" r="28" />
-      <path class="cross" d="M32 9v46M9 32h46" />
-      <path class="north-point" d="M32 10 23 34 32 30 41 34Z" />
-      <path class="south-point" d="M32 54 23 30 32 34 41 30Z" />
-    </svg>
-    <span class="east">E</span>
-    <span class="south">S</span>
-    <span class="west">W</span>
-  </div>
 } @else {
   <p class="waiting" role="status">Waiting for the Dungeon Master to share a map.</p>
 }

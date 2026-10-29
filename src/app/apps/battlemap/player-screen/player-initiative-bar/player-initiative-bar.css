@@ -5,24 +5,21 @@
 }
 
 .initiative {
-  flex: none;
-  order: 2;
   overflow: auto hidden;
-  background: var(--surface-inverse-raised);
-  border-top: 2px solid var(--surface-accent);
+  background: Canvas;
+  color: CanvasText;
+  border-top: 1px solid;
 
   ol {
-    list-style: none;
-    margin: 0;
-    padding: var(--space-4) 0.75rem;
     display: flex;
-    flex-direction: row;
     justify-content: center;
-    align-items: flex-start;
-    gap: 0.75rem;
+    gap: 1rem;
     width: max-content;
     min-width: 100%;
     box-sizing: border-box;
+    margin: 0;
+    padding: 0.5rem;
+    list-style: none;
   }
 }
 
@@ -30,55 +27,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-1);
-  color: var(--text-inverse);
+  gap: 0.25rem;
+  max-width: 7rem;
   text-align: center;
-  font-size: 0.85rem;
   overflow-wrap: anywhere;
-  justify-content: center;
-  width: 7rem;
-  height: 7rem;
-  transform: rotate(-90deg);
 
   .avatar {
-    display: grid;
-    place-items: center;
     width: 4rem;
     height: 4rem;
-    border-radius: 50%;
-    overflow: hidden;
-    background: var(--surface-inverse);
-    border: 3px solid var(--surface-danger);
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .material-symbols-outlined {
-      font-size: 2.5rem;
-      width: 1em;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-  }
-
-  &.player .avatar {
-    border-color: var(--border-info);
-  }
-
-  &.down {
-    filter: grayscale(1);
-    opacity: 0.45;
+    object-fit: cover;
   }
 
   &.active {
-    color: var(--surface-accent);
+    font-weight: bold;
+  }
 
-    .avatar {
-      border-color: var(--surface-accent);
-      box-shadow: 0 0 12px var(--surface-accent);
-    }
+  &.down {
+    opacity: 0.5;
   }
 }

@@ -1,11 +1,7 @@
 <nav [attr.aria-label]="ariaLabel()">
   <details #dropdown>
     <summary>
-      @if (icon(); as glyph) {
-        <span class="material-symbols-outlined" aria-hidden="true">{{ glyph }}</span>
-      }
       <span class="picker-label">{{ label() }}</span>
-      <span class="material-symbols-outlined expand" aria-hidden="true">expand_more</span>
     </summary>
     <div class="picker-options">
       @for (item of items(); track item.id) {
@@ -16,14 +12,9 @@
             [disabled]="locked() && item.id !== currentId()"
             (click)="selected.emit(item.id)"
           >
-            @if (item.icon) {
-              <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
-            }
             <span class="item-label">{{ item.label }}</span>
-            @if (item.badgeIcon) {
-              <span class="material-symbols-outlined" role="img" [attr.aria-label]="item.badgeLabel">{{
-                item.badgeIcon
-              }}</span>
+            @if (item.badgeLabel) {
+              <span class="badge">({{ item.badgeLabel }})</span>
             }
           </button>
           <button
@@ -33,7 +24,7 @@
             [disabled]="locked()"
             (click)="removed.emit({ id: item.id, name: item.label })"
           >
-            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+            Remove
           </button>
         </div>
       } @empty {

@@ -10,7 +10,6 @@ let nextId = 0;
 })
 export class FileButton {
   readonly label = input.required<string>();
-  readonly icon = input<string | null>(null);
   readonly accept = input('image/*');
   readonly fileSelected = output<File>();
 

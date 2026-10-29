@@ -2,7 +2,6 @@
   display: block;
   height: 100%;
   overflow: hidden;
-  background: var(--surface-stage);
 }
 
 .stage {
@@ -19,57 +18,32 @@
   height: 100%;
 }
 
-.map-border {
-  fill: none;
-  stroke: var(--surface-accent);
-  stroke-width: 4px;
-  vector-effect: non-scaling-stroke;
-  pointer-events: none;
-}
-
 .marker {
   pointer-events: none;
 }
 
-.marker-icon {
-  overflow: visible;
+.marker-pin {
+  fill: black;
+  stroke: white;
 }
 
+/* Outlined so names stay readable on any map. */
 .marker-name {
-  fill: var(--surface-base);
-  stroke: var(--color-leather-deep);
+  fill: white;
+  stroke: black;
   stroke-linejoin: round;
   paint-order: stroke;
-  font-family: inherit;
-  font-weight: 700;
 }
 
-.waiting {
-  color: var(--text-inverse);
-  font-size: 1.25rem;
-}
-
+/* Revealed on hover so it doesn't cover the player view. */
 .fullscreen {
   position: fixed;
   top: 0.75rem;
   right: 0.75rem;
-  padding: var(--space-3) 0.8rem;
-  color: var(--text-inverse);
-  background: var(--surface-info);
-  border: 1px solid var(--surface-accent);
-  border-radius: var(--radius-md);
-  font: inherit;
-  cursor: pointer;
   opacity: 0;
-  transition: opacity 0.2s;
 }
 
 .fullscreen:hover,
 .fullscreen:focus-visible {
   opacity: 1;
-}
-
-.fullscreen:focus-visible {
-  outline: 3px solid var(--focus-ring);
-  outline-offset: 2px;
 }

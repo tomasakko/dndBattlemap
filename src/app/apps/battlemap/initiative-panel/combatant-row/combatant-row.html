@@ -20,21 +20,20 @@
   }
   <button
     type="button"
-    class="icon-button"
     [attr.aria-label]="'Set turn: ' + combatant().name"
     title="Make it their turn"
     (click)="setActive()"
   >
-    <span class="material-symbols-outlined" aria-hidden="true">play_arrow</span>
+    Set turn
   </button>
   <button
     type="button"
-    class="icon-button danger"
+    class="danger"
     [attr.aria-label]="'Remove ' + combatant().name"
     title="Remove"
     (click)="remove()"
   >
-    <span class="material-symbols-outlined" aria-hidden="true">close</span>
+    Remove
   </button>
   @if (combatant().side === 'enemy') {
     @if (maxHp() > 0) {
@@ -68,16 +67,12 @@
             HP {{ hp() }} / {{ maxHp() }}
           </button>
         }
-        <span
+        <progress
           class="hp-bar"
-          role="progressbar"
-          aria-valuemin="0"
-          [attr.aria-valuemax]="maxHp()"
-          [attr.aria-valuenow]="hp()"
+          [max]="maxHp()"
+          [value]="hp()"
           [attr.aria-label]="'Hit points of ' + combatant().name"
-        >
-          <span class="hp-fill" [style.width.%]="(hp() / maxHp()) * 100"></span>
-        </span>
+        ></progress>
       </div>
     } @else {
       <p class="hp-hint">Fill in hit points in the statblock to track HP.</p>
@@ -88,7 +83,7 @@
 <ng-template #identity>
   <span class="score" aria-label="Initiative">{{ combatant().initiative }}</span>
   <span class="who">
-    <span class="name">{{ combatant().name }}</span>
+    <span class="name">{{ active() ? '▶ ' : '' }}{{ combatant().name }}</span>
     <span class="kind">{{ sideLabel() }} - {{ typeLabel() }}</span>
   </span>
 </ng-template>

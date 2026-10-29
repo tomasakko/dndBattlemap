@@ -14,53 +14,14 @@
           [attr.width]="entry.image.width"
           [attr.height]="entry.image.height"
         />
-        <rect
-          class="map-border"
-          x="0"
-          y="0"
-          [attr.width]="entry.image.width"
-          [attr.height]="entry.image.height"
-        />
         @for (marker of entry.markers; track marker.id) {
-          <g
-            class="marker"
-            [attr.transform]="'translate(' + marker.x + ' ' + marker.y + ')'"
-            [style.filter]="'drop-shadow(0 0 1px ' + marker.borderColor + ')'"
-          >
+          <g class="marker" [attr.transform]="'translate(' + marker.x + ' ' + marker.y + ')'">
             <title>{{ marker.name }}</title>
-            <svg
-              class="marker-icon"
-              [attr.x]="-pixel() * 16"
-              [attr.y]="-pixel() * 32"
-              [attr.width]="pixel() * 32"
-              [attr.height]="pixel() * 32"
-              viewBox="0 0 512 512"
-            >
-              <defs>
-                <mask
-                  [attr.id]="'worldmap-marker-mask-' + $index"
-                  x="0"
-                  y="0"
-                  width="512"
-                  height="512"
-                  maskUnits="userSpaceOnUse"
-                  maskContentUnits="userSpaceOnUse"
-                  style="mask-type: alpha"
-                >
-                  <image [attr.href]="markerIconAsset(marker.icon)" width="512" height="512" />
-                </mask>
-              </defs>
-              <rect
-                width="512"
-                height="512"
-                [attr.fill]="marker.iconColor"
-                [attr.mask]="'url(#worldmap-marker-mask-' + $index + ')'"
-              />
-            </svg>
+            <circle class="marker-pin" [attr.r]="pixel() * 7" [attr.stroke-width]="pixel() * 2" />
             <text
               class="marker-name"
               text-anchor="middle"
-              [attr.y]="-pixel() * 36"
+              [attr.y]="-pixel() * 12"
               [attr.font-size]="pixel() * 12.5"
               [attr.stroke-width]="pixel() * 3"
             >

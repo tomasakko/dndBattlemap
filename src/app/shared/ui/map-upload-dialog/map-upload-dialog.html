@@ -14,22 +14,4 @@
     [value]="title()"
     (input)="updateTitle($event)"
   />
-  @if (icons().length) {
-    <fieldset class="map-icon-options">
-      <legend>Choose an icon</legend>
-      @for (choice of icons(); track choice.id) {
-        <label [class.selected]="icon() === choice.id">
-          <input
-            type="radio"
-            name="map-icon"
-            [value]="choice.id"
-            [checked]="icon() === choice.id"
-            (change)="iconSelected.emit(choice.id)"
-          />
-          <span class="material-symbols-outlined" aria-hidden="true">{{ choice.glyph }}</span>
-          {{ choice.label }}
-        </label>
-      }
-    </fieldset>
-  }
 </app-modal-dialog>

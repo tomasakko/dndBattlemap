@@ -9,60 +9,50 @@
   >
     <button
       type="button"
-      class="icon-button"
       [class.on]="shared()"
       [attr.aria-pressed]="shared()"
       [disabled]="shareDisabled()"
       [attr.aria-label]="shareLabel()"
       (click)="action.emit('share')"
     >
-      <span class="material-symbols-outlined" aria-hidden="true">{{
-        shared() ? 'visibility' : 'visibility_off'
-      }}</span>
+      {{ shared() ? 'Hide map' : 'Share map' }}
     </button>
     <a
-      class="icon-button"
       routerLink="/battlemap/player"
       target="_blank"
       rel="noopener"
       aria-label="Open player screen"
     >
-      <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
+      Player screen
     </a>
     <button
       type="button"
-      class="icon-button"
       aria-label="Fit my map view"
       [disabled]="!hasMap()"
       (click)="action.emit('fit')"
     >
-      <span class="material-symbols-outlined" aria-hidden="true">fit_screen</span>
+      Fit view
     </button>
     <button
       type="button"
-      class="icon-button"
       aria-label="Reset player view"
       [disabled]="!hasMap()"
       (click)="action.emit('reset')"
     >
-      <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
+      Reset player view
     </button>
     <button
       type="button"
-      class="icon-button"
       [class.on]="initiativeShared()"
       [attr.aria-pressed]="initiativeShared()"
       [attr.aria-label]="initiativeShareLabel()"
       [disabled]="!hasMap()"
       (click)="action.emit('initiative-share')"
     >
-      <span class="material-symbols-outlined" aria-hidden="true">{{
-        initiativeShared() ? 'list_alt' : 'list'
-      }}</span>
+      {{ initiativeShared() ? 'Hide initiative' : 'Share initiative' }}
     </button>
     <button
       type="button"
-      class="icon-button"
       [class.on]="panels().initiative.visible"
       [attr.aria-pressed]="panels().initiative.visible"
       [attr.aria-label]="
@@ -70,27 +60,25 @@
       "
       (click)="action.emit('initiative')"
     >
-      <span class="material-symbols-outlined" aria-hidden="true">format_list_numbered</span>
+      Initiative
     </button>
     <button
       type="button"
-      class="icon-button"
       [class.on]="panels().area.visible"
       [attr.aria-pressed]="panels().area.visible"
       [attr.aria-label]="panels().area.visible ? 'Hide area editor' : 'Show area editor'"
       (click)="action.emit('area')"
     >
-      <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
+      Areas
     </button>
     <button
       type="button"
-      class="icon-button"
       [class.on]="panels().players.visible"
       [attr.aria-pressed]="panels().players.visible"
       [attr.aria-label]="panels().players.visible ? 'Hide saved players' : 'Show saved players'"
       (click)="action.emit('players')"
     >
-      <span class="material-symbols-outlined" aria-hidden="true">groups</span>
+      Players
     </button>
   </div>
 

@@ -12,7 +12,6 @@
     ariaLabel="World maps"
     emptyText="No maps uploaded"
     removeLabel="Remove map "
-    icon="public"
     [items]="mapItems()"
     [currentId]="current()?.id ?? null"
     [label]="current()?.name ?? 'Choose Map'"
@@ -21,7 +20,7 @@
   />
 
   <header class="top-actions">
-    <app-file-button label="Upload Map" icon="upload" (fileSelected)="onFileSelected($event)" />
+    <app-file-button label="Upload Map" (fileSelected)="onFileSelected($event)" />
     @if (error()) {
       <p class="ui-error" role="alert">{{ error() }}</p>
     }
@@ -31,7 +30,6 @@
   </header>
 
   <a class="ui-btn player-screen-link" routerLink="/worldmap/player" target="_blank" rel="noopener" aria-label="Open player screen" title="Open player screen">
-    <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
     Player screen
   </a>
 
@@ -39,16 +37,16 @@
     <div class="ui-toolbar" role="toolbar" aria-label="World map tools">
       <button
         type="button"
-        class="ui-btn ui-icon-btn"
+        class="ui-btn"
         title="Add marker"
         aria-label="Add marker"
         [attr.aria-pressed]="placing()"
         (click)="togglePlacing()"
       >
-        <span class="material-symbols-outlined" aria-hidden="true">add_location_alt</span>
+        Add marker
       </button>
-      <button type="button" class="ui-btn ui-icon-btn" title="Reset view" aria-label="Reset view" (click)="resetView()">
-        <span class="material-symbols-outlined" aria-hidden="true">fit_screen</span>
+      <button type="button" class="ui-btn" title="Reset view" aria-label="Reset view" (click)="resetView()">
+        Reset view
       </button>
       @if (placing()) {
         <span class="hint">Click the map to place a marker</span>

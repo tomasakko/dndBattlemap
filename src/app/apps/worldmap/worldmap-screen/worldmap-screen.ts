@@ -21,8 +21,7 @@ import { WaterRenderer } from '../../../shared/ui/water/water-renderer';
 import { clamp } from '../../../shared/util/math';
 import { escapeHtml, titleFromFileName } from '../../../shared/util/text';
 import { WorldmapService } from '../worldmap.service';
-import { WORLDMAP_MARKER_ICONS } from '../worldmap.service';
-import type { WorldmapImage, WorldmapMarker, WorldmapMarkerIcon } from '../worldmap.service';
+import type { WorldmapImage, WorldmapMarker } from '../worldmap.service';
 
 const ZOOM_LIMIT = 20;
 
@@ -46,7 +45,6 @@ export class WorldmapScreen {
   protected readonly current = this.worldmap.current;
   protected readonly battlemaps = this.battlemap.maps;
   protected readonly battlemapLocked = this.battlemap.locked;
-  protected readonly markerIcons = WORLDMAP_MARKER_ICONS;
   protected readonly persistenceError = this.worldmap.persistenceError;
   protected readonly placing = signal(false);
   protected readonly error = signal('');
@@ -265,21 +263,20 @@ export class WorldmapScreen {
       if (existing) {
         existing.setLatLng(position);
         existing.setTooltipContent(escapeHtml(marker.name));
-        existing.setIcon(pinIcon(marker.icon, marker.iconColor, marker.borderColor));
         existing.setOpacity(marker.visible ? 1 : 0.45);
         existing.options.title = marker.name;
         continue;
       }
       const pin = L.marker(position, {
         draggable: true,
-        icon: pinIcon(marker.icon, marker.iconColor, marker.borderColor),
+        icon: plainPin(),
         title: marker.name,
         opacity: marker.visible ? 1 : 0.45,
       })
         .bindTooltip(escapeHtml(marker.name), {
           permanent: true,
           direction: 'top',
-          offset: [0, -22],
+          offset: [0, -8],
         })
         .bindPopup(() => this.popupFor(marker.id), { minWidth: 180 })
         .addTo(map);
@@ -315,66 +312,6 @@ export class WorldmapScreen {
         this.pins.get(id)?.closePopup();
       }
     });
-    const iconPicker = document.createElement('div');
-    iconPicker.className = 'marker-icons';
-    iconPicker.setAttribute('role', 'group');
-    iconPicker.setAttribute('aria-label', 'Marker icon');
-    const iconButtons: HTMLButtonElement[] = [];
-    for (const choice of WORLDMAP_MARKER_ICONS) {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'marker-icon-choice';
-      button.title = choice.label;
-      button.setAttribute('aria-label', choice.label);
-      button.setAttribute('aria-pressed', String(choice.id === marker?.icon));
-      const glyph = document.createElement('span');
-      glyph.className = 'marker-icon-preview';
-      glyph.setAttribute('aria-hidden', 'true');
-      glyph.style.setProperty(
-        '--marker-image',
-        `url("/assets/worldmap-icons/${choice.asset}")`,
-      );
-      button.append(glyph);
-      button.addEventListener('click', () => {
-        this.worldmap.setMarkerIcon(id, choice.id);
-        for (const iconButton of iconButtons) {
-          iconButton.setAttribute('aria-pressed', String(iconButton === button));
-        }
-      });
-      iconButtons.push(button);
-      iconPicker.append(button);
-    }
-    const iconCredit = document.createElement('small');
-    iconCredit.className = 'marker-icon-credit';
-    iconCredit.append(document.createTextNode('Icons by '));
-    const iconSource = document.createElement('a');
-    iconSource.href = 'https://game-icons.net/';
-    iconSource.target = '_blank';
-    iconSource.rel = 'noopener noreferrer';
-    iconSource.textContent = 'Delapouite on Game-icons.net';
-    const iconLicense = document.createElement('a');
-    iconLicense.href = 'https://creativecommons.org/licenses/by/3.0/';
-    iconLicense.target = '_blank';
-    iconLicense.rel = 'noopener noreferrer';
-    iconLicense.textContent = 'CC BY 3.0';
-    iconCredit.append(iconSource, document.createTextNode(' · '), iconLicense);
-    const iconColor = document.createElement('input');
-    iconColor.type = 'color';
-    iconColor.value = marker?.iconColor ?? '#5c1d24';
-    iconColor.setAttribute('aria-label', 'Icon color');
-    const iconColorLabel = document.createElement('label');
-    iconColorLabel.className = 'marker-color';
-    iconColorLabel.append(document.createTextNode('Icon color'), iconColor);
-    const borderColor = document.createElement('input');
-    borderColor.type = 'color';
-    borderColor.value = marker?.borderColor ?? '#f4efe6';
-    borderColor.setAttribute('aria-label', 'Border color');
-    const borderColorLabel = document.createElement('label');
-    borderColorLabel.className = 'marker-color';
-    borderColorLabel.append(document.createTextNode('Border color'), borderColor);
-    const saveColors = () => this.worldmap.setMarkerColors(id, iconColor.value, borderColor.value);
-    iconColor.addEventListener('input', saveColors);
-    borderColor.addEventListener('input', saveColors);
     const battlemapPicker = document.createElement('select');
     battlemapPicker.setAttribute('aria-label', 'Linked battlemap');
     const noBattlemap = document.createElement('option');
@@ -433,10 +370,6 @@ export class WorldmapScreen {
     remove.addEventListener('click', () => this.worldmap.removeMarker(id));
     form.append(
       input,
-      iconPicker,
-      iconCredit,
-      iconColorLabel,
-      borderColorLabel,
       battlemapPicker,
       openBattlemap,
       visibilityLabel,
@@ -459,14 +392,12 @@ function imageBounds(image: WorldmapImage): L.LatLngBounds {
   return L.latLngBounds([0, 0], [image.height, image.width]);
 }
 
-function pinIcon(icon: WorldmapMarkerIcon, iconColor: string, borderColor: string): L.DivIcon {
-  const asset =
-    WORLDMAP_MARKER_ICONS.find((choice) => choice.id === icon)?.asset ?? 'castle.svg';
+/** One plain pin for every marker; created lazily because Leaflet touches the DOM. */
+function plainPin(): L.DivIcon {
   return L.divIcon({
     className: 'world-pin',
-    html: `<span class="world-pin-icon" aria-hidden="true" style="--marker-image:url('/assets/worldmap-icons/${asset}');--marker-color:${iconColor};--marker-border:${borderColor}"></span>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 26],
-    popupAnchor: [0, -24],
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -8],
   });
 }

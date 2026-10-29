@@ -1,42 +1,28 @@
-@import 'material-symbols/outlined.css';
-@import '@fontsource-variable/cinzel';
+/* Unstyled for now: only what the apps need to work. Visual design comes later. */
 @import 'leaflet/dist/leaflet.css';
-@import './app/shared/ui/tokens.css';
 @import './app/shared/ui/ui.css';
 
 html,
 body {
   margin: 0;
   height: 100%;
-  background: var(--surface-base);
-  color: var(--text-default);
-  font-family: 'Cinzel Variable', Georgia, serif;
-  font-size: 0.9rem;
 }
 
+/* Clickable confirm/cancel buttons drawn on the map while a shape is being drafted. */
 .draft-action {
   cursor: pointer;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
 }
 
 .draft-action circle {
-  fill: var(--surface-inverse);
-  stroke: var(--surface-accent);
+  fill: black;
+  stroke: white;
   stroke-width: 0.08;
 }
 
 .draft-action path {
   fill: none;
-  stroke: var(--surface-accent);
+  stroke: white;
   stroke-width: 0.18;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.draft-action:hover circle,
-.draft-action:focus-visible circle {
-  fill: var(--surface-inverse-raised);
 }
 
 .draft-action.disabled {

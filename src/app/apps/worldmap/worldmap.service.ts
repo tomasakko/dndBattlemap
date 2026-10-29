@@ -16,25 +16,8 @@ export interface WorldmapMarker {
   x: number;
   y: number;
   visible: boolean;
-  icon: WorldmapMarkerIcon;
-  iconColor: string;
-  borderColor: string;
   battlemapId: string | null;
 }
-
-export type WorldmapMarkerIcon = 'castle' | 'tower' | 'forest' | 'city' | 'cave';
-
-export const WORLDMAP_MARKER_ICONS: {
-  id: WorldmapMarkerIcon;
-  label: string;
-  asset: string;
-}[] = [
-  { id: 'castle', label: 'Castle', asset: 'castle.svg' },
-  { id: 'tower', label: 'Watchtower', asset: 'watchtower.svg' },
-  { id: 'forest', label: 'Forest', asset: 'forest.svg' },
-  { id: 'city', label: 'Village', asset: 'village.svg' },
-  { id: 'cave', label: 'Cave', asset: 'mountain-cave.svg' },
-];
 
 /** A world map with its own markers, so switching maps never carries markers over. */
 export interface WorldmapEntry {
@@ -160,9 +143,6 @@ export class WorldmapService {
       x,
       y,
       visible: true,
-      icon: 'castle',
-      iconColor: '#5c1d24',
-      borderColor: '#f4efe6',
       battlemapId: null,
     };
     this.updateCurrent((entry) => ({ ...entry, markers: [...entry.markers, marker] }));
@@ -179,17 +159,6 @@ export class WorldmapService {
 
   setMarkerVisibility(id: string, visible: boolean): void {
     this.patchMarker(id, { visible });
-  }
-
-  setMarkerIcon(id: string, icon: WorldmapMarkerIcon): void {
-    this.patchMarker(id, { icon });
-  }
-
-  setMarkerColors(id: string, iconColor: string, borderColor: string): void {
-    if (!isHexColor(iconColor) || !isHexColor(borderColor)) {
-      throw new Error('Invalid world map marker colors');
-    }
-    this.patchMarker(id, { iconColor, borderColor });
   }
 
   setMarkerBattlemap(id: string, battlemapId: string | null): void {
@@ -342,10 +311,7 @@ function validateMarkers(markers: unknown): WorldmapMarker[] {
         typeof m.name === 'string' &&
         Number.isFinite(m.x) &&
         Number.isFinite(m.y) &&
-        (m.visible === undefined || typeof m.visible === 'boolean') &&
-        (m.icon === undefined || isWorldmapMarkerIcon(m.icon)) &&
-        (m.iconColor === undefined || isHexColor(m.iconColor)) &&
-        (m.borderColor === undefined || isHexColor(m.borderColor)),
+        (m.visible === undefined || typeof m.visible === 'boolean'),
     )
   ) {
     throw new Error('Invalid world map markers');
@@ -356,19 +322,8 @@ function validateMarkers(markers: unknown): WorldmapMarker[] {
     x: marker.x,
     y: marker.y,
     visible: marker.visible ?? true,
-    icon: marker.icon ?? 'castle',
-    iconColor: marker.iconColor ?? '#5c1d24',
-    borderColor: marker.borderColor ?? '#f4efe6',
     battlemapId: typeof marker.battlemapId === 'string' ? marker.battlemapId : null,
   }));
-}
-
-function isHexColor(color: unknown): color is string {
-  return typeof color === 'string' && /^#[0-9a-fA-F]{6}$/.test(color);
-}
-
-function isWorldmapMarkerIcon(icon: unknown): icon is WorldmapMarkerIcon {
-  return WORLDMAP_MARKER_ICONS.some((choice) => choice.id === icon);
 }
 
 function validateEntry(saved: unknown, fallbackId: string): WorldmapEntry {

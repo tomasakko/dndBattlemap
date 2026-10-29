@@ -23,8 +23,6 @@ export interface MapImage {
   height: number;
 }
 
-export type MapIcon = 'castle' | 'forest' | 'city' | 'cave';
-
 /** Zoom factor (1 = whole map) and the map coordinate shown at the centre of the screen. */
 export interface View {
   zoom: number;
@@ -35,7 +33,6 @@ export interface View {
 export interface MapEntry {
   id: string;
   name: string;
-  icon: MapIcon;
   map: MapImage;
   rooms: Room[];
   view: View;
@@ -171,14 +168,13 @@ export class BattlemapService {
     this.post({ type: 'request' });
   }
 
-  async addMap(file: File, name: string, icon: MapIcon): Promise<void> {
+  async addMap(file: File, name: string): Promise<void> {
     await this.ensureRestored();
     const { url, width, height } = await loadImageFile(file);
     this.syncCurrent();
     const entry: MapEntry = {
       id: newId(),
       name,
-      icon,
       map: { url, width, height },
       rooms: [],
       view: { zoom: 1, cx: width / 2, cy: height / 2 },
@@ -580,12 +576,14 @@ export class BattlemapService {
     const initiativeShared = saved.initiativeShared ?? this.initiative.shared();
     const players = saved.players === undefined ? undefined : validatePlayers(saved.players);
     {
-      let maps = (saved.maps ?? []).map((entry) => ({
-        ...entry,
-        icon: entry.icon ?? ('castle' as MapIcon),
-        view: entry.view ?? { zoom: 1, cx: entry.map.width / 2, cy: entry.map.height / 2 },
-        initiativeShared: entry.initiativeShared ?? false,
-      }));
+      // Older saves stored a map icon; it's dropped on load.
+      let maps = (saved.maps ?? []).map(
+        ({ icon: _legacyIcon, ...entry }: MapEntry & { icon?: unknown }) => ({
+          ...entry,
+          view: entry.view ?? { zoom: 1, cx: entry.map.width / 2, cy: entry.map.height / 2 },
+          initiativeShared: entry.initiativeShared ?? false,
+        }),
+      );
       let sharedId = saved.sharedId ?? null;
       if (!saved.maps && saved.map) {
         const id = newId();
@@ -593,7 +591,6 @@ export class BattlemapService {
           {
             id,
             name: 'Map 1',
-            icon: 'castle',
             map: saved.map,
             rooms: saved.rooms ?? [],
             view: saved.view ?? { zoom: 1, cx: saved.map.width / 2, cy: saved.map.height / 2 },

@@ -1,7 +1,6 @@
 import { Component, ElementRef, inject, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ConfirmService } from '../../shared/ui/confirm-dialog/confirm.service';
-import { THEMES, ThemeService } from '../../shared/ui/theme.service';
 import { ProjectService } from '../project.service';
 import { TabService } from '../tab.service';
 
@@ -13,10 +12,6 @@ import { TabService } from '../tab.service';
 })
 export class Topbar {
   protected readonly tabs = inject(TabService);
-  protected readonly themes = inject(ThemeService);
-  protected themeName(): string {
-    return THEMES.find((t) => t.id === this.themes.theme())?.name ?? '';
-  }
   private readonly project = inject(ProjectService);
   private readonly confirm = inject(ConfirmService);
   private readonly fileInput = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');

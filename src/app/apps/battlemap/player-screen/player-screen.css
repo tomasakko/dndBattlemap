@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--surface-inverse);
 }
 
 .stage {
@@ -11,69 +10,8 @@
   min-width: 0;
   min-height: 0;
   display: flex;
-  display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.compass {
-  position: absolute;
-  right: 1rem;
-  bottom: 1rem;
-  width: 4.5rem;
-  height: 4.5rem;
-  display: grid;
-  place-items: center;
-  color: var(--text-inverse);
-  background: var(--surface-hud);
-  border: 1px solid var(--surface-accent);
-  border-radius: 50%;
-  box-shadow: var(--shadow-sm);
-  font-size: 0.7rem;
-  font-weight: 700;
-  pointer-events: none;
-
-  svg {
-    position: absolute;
-    inset: 0.35rem;
-    width: calc(100% - 0.7rem);
-    height: calc(100% - 0.7rem);
-    fill: none;
-    stroke: var(--surface-base);
-    stroke-width: 1.5;
-  }
-
-  .north {
-    position: absolute;
-    top: 0.15rem;
-    z-index: 1;
-    color: var(--surface-accent);
-  }
-
-  .east,
-  .south,
-  .west {
-    position: absolute;
-    z-index: 1;
-  }
-
-  .east { right: 0.25rem; }
-  .south { bottom: 0.15rem; }
-  .west { left: 0.25rem; }
-
-  .cross {
-    opacity: 0.55;
-  }
-
-  .north-point {
-    fill: var(--surface-accent);
-    stroke: var(--surface-accent);
-  }
-
-  .south-point {
-    fill: var(--surface-base);
-    opacity: 0.75;
-  }
 }
 
 .board {
@@ -81,9 +19,10 @@
   height: 100%;
 }
 
+/* Fog of war: white in the mask hides an area, and revealing fades it out. */
 .cover {
-  fill: var(--map-outline);
-  stroke: var(--map-outline);
+  fill: white;
+  stroke: white;
   stroke-linejoin: round;
   opacity: 1;
   transition: opacity 1s ease;
@@ -130,32 +69,15 @@
   }
 }
 
-.waiting {
-  color: var(--text-inverse);
-  font-size: 1.25rem;
-}
-
+/* Revealed on hover so it doesn't cover the player view. */
 .fullscreen {
   position: fixed;
-  right: 0.75rem;
   top: 0.75rem;
-  font: inherit;
-  color: var(--text-inverse);
-  background: var(--surface-info);
-  border: 1px solid var(--surface-accent);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) 0.8rem;
-  cursor: pointer;
+  right: 0.75rem;
   opacity: 0;
-  transition: opacity 0.2s;
 
   &:hover,
   &:focus-visible {
     opacity: 1;
-  }
-
-  &:focus-visible {
-    outline: 3px solid var(--focus-ring);
-    outline-offset: 2px;
   }
 }

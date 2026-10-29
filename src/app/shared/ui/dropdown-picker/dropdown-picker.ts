@@ -3,10 +3,7 @@ import { Component, ElementRef, input, output, viewChild } from '@angular/core';
 export interface PickerItem {
   id: string;
   label: string;
-  /** Material Symbols glyph shown before the label. */
-  icon?: string | null;
-  /** Optional glyph after the label, e.g. to flag a shared item. */
-  badgeIcon?: string;
+  /** Optional note after the label, e.g. to flag a shared item. */
   badgeLabel?: string;
 }
 
@@ -25,7 +22,6 @@ export class DropdownPicker {
   readonly items = input.required<PickerItem[]>();
   readonly currentId = input.required<string | null>();
   readonly label = input.required<string>();
-  readonly icon = input<string | null>(null);
   readonly ariaLabel = input('Choose an item');
   readonly emptyText = input('Nothing to choose');
   readonly removeLabel = input('Remove ');
