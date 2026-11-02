@@ -71,6 +71,13 @@ export class TabService {
     });
   }
 
+  /** Goes to the app, back to where it was last left if it has been visited. */
+  open(app: SuiteApp): void {
+    const tab = this._tabs().find((t) => t.app.id === app.id);
+    const url = tab?.url ?? app.route;
+    if (url) void this.router.navigateByUrl(url);
+  }
+
   activate(tab: AppTab): void {
     void this.router.navigateByUrl(tab.url);
   }

@@ -26,6 +26,7 @@ import { WaterRenderer } from './water-renderer';
 })
 export class WaterCanvas {
   readonly src = input.required<string>();
+  readonly animated = input(true);
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
 
   constructor() {
@@ -37,6 +38,11 @@ export class WaterCanvas {
       const src = this.src();
       renderer ??= new WaterRenderer(this.canvas().nativeElement);
       void renderer.load(src);
+    });
+    effect(() => {
+      const animated = this.animated();
+      renderer ??= new WaterRenderer(this.canvas().nativeElement);
+      renderer.setAnimated(animated);
     });
     inject(DestroyRef).onDestroy(() => renderer?.destroy());
   }

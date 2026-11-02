@@ -1,12 +1,8 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  {
-    path: '',
-    pathMatch: 'full',
-    title: 'Dungeons & Dragons Suite',
-    loadComponent: () => import('./suite/portal').then((m) => m.Portal),
-  },
+  // There's no separate start page: the suite opens on the first app.
+  { path: '', pathMatch: 'full', redirectTo: 'worldmap' },
   {
     path: 'battlemap',
     loadChildren: () => import('./apps/battlemap/battlemap.routes').then((m) => m.BATTLEMAP_ROUTES),

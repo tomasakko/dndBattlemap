@@ -27,13 +27,13 @@ import { InitiativeService } from '../services/initiative.service';
 import { AreaEditor } from './area-editor/area-editor';
 import { ControlDock } from './control-dock/control-dock';
 import type { DockAction, PanelId, PanelState } from './control-dock/control-dock';
-import { DropdownPicker } from '../../../shared/ui/dropdown-picker/dropdown-picker';
-import type { PickerItem } from '../../../shared/ui/dropdown-picker/dropdown-picker';
 import { ConfirmService } from '../../../shared/ui/confirm-dialog/confirm.service';
 import { FileButton } from '../../../shared/ui/file-button/file-button';
 import { MapUploadDialog } from '../../../shared/ui/map-upload-dialog/map-upload-dialog';
 import { titleFromFileName } from '../../../shared/util/text';
 import { WorldmapService } from '../../worldmap/worldmap.service';
+import { PanelTabsService } from '../../../suite/shell/panel-tabs.service';
+import type { PanelTab } from '../../../suite/shell/panel-tabs.service';
 
 type Tool = 'draw' | 'view';
 
@@ -52,7 +52,6 @@ const GOLDEN_ANGLE = 137.508;
     PlayerRoster,
     NgTemplateOutlet,
     AreaEditor,
-    DropdownPicker,
     MapUploadDialog,
     FileButton,
     ControlDock,
@@ -118,15 +117,12 @@ export class DmScreen {
   protected readonly initiativeShared = this.initiative.shared;
   protected readonly maps = this.battlemap.maps;
   protected readonly currentId = this.battlemap.currentId;
-  protected readonly currentMapName = computed(
-    () => this.maps().find((entry) => entry.id === this.currentId())?.name ?? 'Choose Map',
-  );
   protected readonly pendingMapFile = signal<File | null>(null);
-  protected readonly mapItems = computed<PickerItem[]>(() =>
+  protected readonly mapTabs = computed<PanelTab[]>(() =>
     this.maps().map((entry) => ({
       id: entry.id,
       label: entry.name,
-      ...(entry.id === this.sharedId() ? { badgeLabel: 'shown to players' } : {}),
+      ...(entry.id === this.sharedId() ? { note: 'shown to players' } : {}),
     })),
   );
   protected readonly mapTitle = signal('');
@@ -221,6 +217,18 @@ export class DmScreen {
   protected readonly maxZoom = MAX_ZOOM;
 
   constructor() {
+    inject(PanelTabsService).register({
+      appId: 'battlemap',
+      ariaLabel: 'Battlemaps',
+      tabs: this.mapTabs,
+      currentId: this.currentId,
+      removeLabel: 'Delete map ',
+      locked: this.locked,
+      lockedNote: 'End combat to switch maps.',
+      playerUrl: '/battlemap/player',
+      select: (id) => this.selectMap(id),
+      remove: (tab) => void this.removeMap(tab.id, tab.label),
+    });
     this.battlemap.startHost();
     this.initiative.startHost();
     this.worldmap.startHost();

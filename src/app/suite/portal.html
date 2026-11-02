@@ -1,46 +1,23 @@
-<main class="portal">
-  <header class="portal-header">
-    <h1>Dungeons &amp; Dragons Suite</h1>
-    <p>Everything a Dungeon Master needs, in one place.</p>
-  </header>
-
-  <ul class="app-grid">
-    @for (app of apps; track app.id) {
-      <li>
-        @if (app.route; as route) {
-          <a class="app-tile" [routerLink]="route">
-            <h2>{{ app.name }}</h2>
-            <p>{{ app.description }}</p>
-            @if (project.summaries()[app.id]; as summary) {
-              @if (summary.length > 0) {
-                <p class="app-summary">
-                  @for (item of summary; track item.label; let last = $last) {
-                    {{ item.count }} {{ item.label }}{{ last ? '' : ', ' }}
-                  }
-                </p>
-              }
-            }
-          </a>
-        } @else {
-          <div class="app-tile disabled" aria-disabled="true">
-            <h2>{{ app.name }}</h2>
-            <p>{{ app.description }}</p>
-            @if (project.summaries()[app.id]; as summary) {
-              @if (summary.length > 0) {
-                <p class="app-summary">
-                  @for (item of summary; track item.label; let last = $last) {
-                    {{ item.count }} {{ item.label }}{{ last ? '' : ', ' }}
-                  }
-                </p>
-              }
-            }
-            <p>Coming soon</p>
-          </div>
-        }
-      </li>
-    }
-  </ul>
+<div class="portal">
   @if (project.summaryError(); as error) {
-    <p class="summary-error">Could not load project summaries: {{ error }}</p>
+    <p class="note" role="alert">Could not load project summaries: {{ error }}</p>
+  } @else if (contents().length === 0) {
+    <p class="note">The project is empty</p>
+  } @else {
+    <ul class="contents" aria-label="Project contents">
+      @for (entry of contents(); track entry.app.id) {
+        <li>
+          <button type="button" class="content-item" (click)="tabs.open(entry.app)">
+            <span class="icon" [class.filled]="entry.app.iconFilled" aria-hidden="true">{{ entry.app.icon }}</span>
+            <span class="name">{{ entry.app.name }}</span>
+            <span class="summary">
+              @for (item of entry.items; track item.label; let last = $last) {
+                {{ item.count }} {{ item.label }}{{ last ? '' : ', ' }}
+              }
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
   }
-</main>
+</div>

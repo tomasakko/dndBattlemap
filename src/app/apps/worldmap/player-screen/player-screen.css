@@ -22,15 +22,8 @@
   pointer-events: none;
 }
 
-.marker-pin {
-  fill: black;
-  stroke: white;
-}
-
-/* Outlined so names stay readable on any map. */
+/* Colours, font and size come from each marker. */
 .marker-name {
-  fill: white;
-  stroke: black;
   stroke-linejoin: round;
   paint-order: stroke;
 }

@@ -1,0 +1,33 @@
+@if (panelTabs.config(); as config) {
+  @let isLocked = locked();
+  <nav class="tabs" [attr.aria-label]="'Open ' + config.ariaLabel.toLowerCase()">
+    @for (tab of panelTabs.openTabs(); track tab.id) {
+      @let active = tab.id === config.currentId();
+      <div
+        class="tab"
+        [class.active]="active"
+        [attr.title]="isLocked && !active ? config.lockedNote : tab.note ? tab.label + ' (' + tab.note + ')' : tab.label"
+      >
+        <button
+          type="button"
+          class="tab-label"
+          [attr.aria-current]="active ? 'page' : null"
+          [disabled]="isLocked && !active"
+          (click)="config.select(tab.id)"
+        >
+          {{ tab.label }}
+        </button>
+        <button
+          type="button"
+          class="tab-close"
+          [attr.aria-label]="'Close ' + tab.label"
+          title="Close tab"
+          [disabled]="isLocked"
+          (click)="panelTabs.close(tab)"
+        >
+          <span class="icon" aria-hidden="true">close</span>
+        </button>
+      </div>
+    }
+  </nav>
+}

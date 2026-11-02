@@ -137,20 +137,6 @@
     }
   </main>
 
-  <app-dropdown-picker
-    class="map-picker"
-    ariaLabel="Maps"
-    emptyText="No maps uploaded"
-    removeLabel="Remove map "
-    lockedNote="End combat to switch maps."
-    [items]="mapItems()"
-    [currentId]="currentId()"
-    [label]="currentMapName()"
-    [locked]="locked()"
-    (selected)="selectMap($event)"
-    (removed)="removeMap($event.id, $event.name)"
-  />
-
   <header class="top-actions">
     <app-file-button label="Upload Map" (fileSelected)="onFileSelected($event)" />
     @if (error()) {

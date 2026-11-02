@@ -4,14 +4,36 @@ import { SUITE_APPS } from './suite-apps';
 
 const PROJECT_APP = 'dnd-suite';
 const PROJECT_VERSION = 1;
+const NAME_KEY = 'dnd-suite-project-name';
+const DEFAULT_NAME = 'Untitled';
+
+function readStoredName(): string {
+  try {
+    return localStorage.getItem(NAME_KEY) || DEFAULT_NAME;
+  } catch {
+    return DEFAULT_NAME;
+  }
+}
 
 /** Saves and loads the data of every app that provides an `AppStorage` as one project file. */
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
   readonly summaries = signal<Record<string, ProjectSummaryItem[]>>({});
   readonly summaryError = signal<string | null>(null);
+  /** Shown in the sidebar; taken from the file name on save and load. */
+  readonly name = signal(readStoredName());
 
   private readonly injector = inject(Injector);
+
+  private setName(fileName: string): void {
+    const name = fileName.replace(/\.json$/i, '').trim() || DEFAULT_NAME;
+    this.name.set(name);
+    try {
+      localStorage.setItem(NAME_KEY, name);
+    } catch {
+      // The name just won't survive a reload.
+    }
+  }
 
   async save(name: string): Promise<void> {
     const apps: Record<string, unknown> = {};
@@ -28,6 +50,7 @@ export class ProjectService {
     link.download = name.toLowerCase().endsWith('.json') ? name : `${name}.json`;
     link.click();
     URL.revokeObjectURL(url);
+    this.setName(name);
   }
 
   async refreshSummaries(): Promise<void> {
@@ -67,6 +90,7 @@ export class ProjectService {
       const storage = await app.loadStorage!();
       await runInInjectionContext(this.injector, () => storage.import(apps[app.id]));
     }
+    this.setName(file.name);
     await this.refreshSummaries();
   }
 

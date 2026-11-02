@@ -1,0 +1,16 @@
+<details #menu class="project-menu">
+  <summary [attr.title]="project.name()">
+    <span class="project-name">{{ project.name() }}</span>
+    <span class="caret" aria-hidden="true"></span>
+    <span class="visually-hidden">Project menu</span>
+  </summary>
+  <div class="menu">
+    <button type="button" (click)="save()">Save project</button>
+    <button type="button" (click)="openFilePicker()">Load project</button>
+    @if (playerUrl(); as url) {
+      <hr />
+      <button type="button" (click)="openPlayerScreen(url)">Open player screen</button>
+    }
+  </div>
+</details>
+<input #fileInput type="file" accept=".json,application/json" hidden (change)="onFileSelected($event)" />

@@ -1,0 +1,84 @@
+:host {
+  display: flex;
+  align-self: end;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.tabs {
+  display: flex;
+  align-items: flex-end;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+/* 178×32, joined to the panel below it. */
+.tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 1 178px;
+  min-width: 110px;
+  height: 32px;
+  padding: 0 6px 0 13px;
+  box-sizing: border-box;
+  border-radius: var(--radius-tab) var(--radius-tab) 0 0;
+}
+
+.tab.active {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-inset-panel);
+}
+
+/* Divider between two inactive tabs; none next to the active one. */
+.tab:not(.active) + .tab:not(.active)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 2px;
+  height: 30px;
+  border-left: 1px solid var(--color-text);
+}
+
+button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.tab-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tab-close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-left: 6px;
+}
+
+.tab-close .icon {
+  width: 17px;
+  height: 17px;
+  font-size: 17px;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}

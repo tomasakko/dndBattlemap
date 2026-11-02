@@ -1,11 +1,95 @@
-/* Unstyled for now: only what the apps need to work. Visual design comes later. */
 @import 'leaflet/dist/leaflet.css';
 @import './app/shared/ui/ui.css';
+
+/* Design tokens from the "D-D-Battlemap" Figma file. */
+:root {
+  --color-bg: #2d2d2d;
+  /* Workspace, search field, active sidebar item, popup bodies. */
+  --color-surface: #626262;
+  /* Active map in the sidebar and in lists. */
+  --color-highlight: #929292;
+  --color-field: #d9d9d9;
+  --color-field-text: #2d2d2d;
+  --color-text: #ffffff;
+  --color-placeholder: #b7b7b7;
+  /* Kept for older screens that still use them. */
+  --color-panel: var(--color-bg);
+  --color-text-muted: var(--color-placeholder);
+
+  --font-ui: 'Kiwi Maru', Georgia, serif;
+  --font-size: 16px;
+
+  --radius-panel: 10px;
+  --radius-tab: 10px;
+  --radius-pill: 40px;
+
+  --shadow-inset-panel: inset 3px 4px 4px rgb(0 0 0 / 30%);
+  --shadow-inset-pill: inset 0 4px 4px rgb(0 0 0 / 25%);
+  --shadow-float: 4px 4px 4px rgb(0 0 0 / 25%);
+  --text-shadow-on-map: 0 2px 4px rgb(0 0 0 / 52%);
+
+  --nav-width: 215px;
+  --nav-width-collapsed: 82px;
+  --header-height: 65px;
+  --gutter-right: 19px;
+  --gutter-bottom: 17px;
+
+  /* Native controls and the Canvas/CanvasText system colours follow the dark theme. */
+  color-scheme: dark;
+}
 
 html,
 body {
   margin: 0;
   height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--font-size);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* Material Symbols glyph: put the icon name as the element's text. */
+.icon {
+  display: inline-block;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  overflow: hidden;
+  font-family: 'Material Symbols Outlined';
+  font-size: 24px;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+.icon.filled {
+  font-variation-settings: 'FILL' 1;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* Clickable confirm/cancel buttons drawn on the map while a shape is being drafted. */

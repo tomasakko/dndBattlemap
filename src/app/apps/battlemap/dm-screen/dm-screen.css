@@ -20,7 +20,6 @@
 .draft { fill: rgb(0 0 0 / 40%); stroke: white; stroke-width: 2; vector-effect: non-scaling-stroke; pointer-events: none; }
 .handle { fill: white; stroke: black; pointer-events: none; }
 
-.map-picker { position: absolute; z-index: 4; top: 1rem; left: 1rem; width: min(260px, calc(100vw - 2rem)); }
 .top-actions { position: absolute; z-index: 3; top: 1rem; left: 50%; transform: translateX(-50%); text-align: center; }
 .tooltip { position: fixed; z-index: 1000; transform: translateX(-50%); padding: 0 0.25rem; background: Canvas; color: CanvasText; border: 1px solid; white-space: nowrap; pointer-events: none; }
 
@@ -46,7 +45,6 @@
 .empty p { margin: 0; }
 
 @media (max-width: 760px) {
-  .map-picker { top: 0.5rem; left: 0.5rem; width: min(220px, calc(50vw - 0.75rem)); }
   .top-actions { top: 0.5rem; right: 0.5rem; left: auto; transform: none; }
   .ui-toolbar { bottom: 0.5rem; }
   .player-zoom { min-width: min(210px, 45vw); }

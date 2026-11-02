@@ -1,57 +1,88 @@
 <div class="workspace">
-  <div #map class="map" [class.placing]="placing()"></div>
+  <div #map class="map" [class.placing]="placing()" [class.hidden]="!current()"></div>
 
   @if (!current()) {
     <div class="empty">
-      <p>Upload an image to use as your world map.</p>
+      <app-file-button label="Add Worldmap" icon="add_circle" [link]="true" (fileSelected)="onFileSelected($event)" />
     </div>
   }
 
-  <app-dropdown-picker
-    class="map-picker"
-    ariaLabel="World maps"
-    emptyText="No maps uploaded"
-    removeLabel="Remove map "
-    [items]="mapItems()"
-    [currentId]="current()?.id ?? null"
-    [label]="current()?.name ?? 'Choose Map'"
-    (selected)="selectMap($event)"
-    (removed)="removeMap($event.id, $event.name)"
-  />
-
-  <header class="top-actions">
-    <app-file-button label="Upload Map" (fileSelected)="onFileSelected($event)" />
-    @if (error()) {
-      <p class="ui-error" role="alert">{{ error() }}</p>
-    }
-    @if (persistenceError(); as message) {
-      <p class="ui-error" role="alert">{{ message }}</p>
-    }
-  </header>
-
-  <a class="ui-btn player-screen-link" routerLink="/worldmap/player" target="_blank" rel="noopener" aria-label="Open player screen" title="Open player screen">
-    Player screen
-  </a>
+  @if (placing() || error() || persistenceError()) {
+    <header class="top-actions">
+      @if (placing()) {
+        <p class="hint" role="status">Click the map to place a marker</p>
+      }
+      @if (error()) {
+        <p class="ui-error" role="alert">{{ error() }}</p>
+      }
+      @if (persistenceError(); as message) {
+        <p class="ui-error" role="alert">{{ message }}</p>
+      }
+    </header>
+  }
 
   @if (current()) {
-    <div class="ui-toolbar" role="toolbar" aria-label="World map tools">
+    <div class="map-tools" role="toolbar" aria-label="World map tools" aria-orientation="vertical">
+      <app-file-button class="tool" label="Add worldmap" icon="add_circle" (fileSelected)="onFileSelected($event)" />
       <button
         type="button"
-        class="ui-btn"
-        title="Add marker"
+        class="tool"
+        [attr.aria-label]="shared() ? 'Hide map from players' : 'Show map to players'"
+        [attr.title]="shared() ? 'Shown to players – click to hide' : 'Hidden from players – click to show'"
+        [attr.aria-pressed]="shared()"
+        (click)="toggleShared()"
+      >
+        <span class="icon" aria-hidden="true">{{ shared() ? 'visibility' : 'visibility_off' }}</span>
+      </button>
+      <button
+        type="button"
+        class="tool"
         aria-label="Add marker"
+        title="Add marker"
+        [class.active]="placing()"
         [attr.aria-pressed]="placing()"
         (click)="togglePlacing()"
       >
-        Add marker
+        <span class="icon" aria-hidden="true">add_location_alt</span>
       </button>
-      <button type="button" class="ui-btn" title="Reset view" aria-label="Reset view" (click)="resetView()">
-        Reset view
+      <button
+        type="button"
+        class="tool"
+        [class.off]="!waterAnimated()"
+        [attr.aria-label]="waterAnimated() ? 'Stop the water animation' : 'Start the water animation'"
+        [attr.title]="waterAnimated() ? 'Water animation on – click to stop' : 'Water animation off – click to start'"
+        [attr.aria-pressed]="waterAnimated()"
+        (click)="toggleWater()"
+      >
+        <span class="icon" aria-hidden="true">animation</span>
       </button>
-      @if (placing()) {
-        <span class="hint">Click the map to place a marker</span>
-      }
     </div>
+
+    <details class="marker-list">
+      <summary>
+        <span>Markers</span>
+        <span class="caret" aria-hidden="true"></span>
+      </summary>
+      <ul aria-label="Markers on this map">
+        @for (marker of sortedMarkers(); track marker.id) {
+          <li>
+            <button
+              type="button"
+              class="marker-item"
+              [class.current]="marker.id === openMarkerId()"
+              [class.hidden-marker]="!marker.visible"
+              [attr.aria-current]="marker.id === openMarkerId() ? 'true' : null"
+              [attr.title]="marker.visible ? 'Go to ' + marker.name : marker.name + ' (hidden from players)'"
+              (click)="focusMarker(marker.id)"
+            >
+              {{ marker.name }}
+            </button>
+          </li>
+        } @empty {
+          <li class="marker-empty">No markers yet</li>
+        }
+      </ul>
+    </details>
   }
 
   @if (pendingFile()) {

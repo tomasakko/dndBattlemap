@@ -12,6 +12,7 @@ import {
 import { PlayerScreen } from '../../battlemap/player-screen/player-screen';
 import { WaterCanvas } from '../../../shared/ui/water/water-canvas';
 import { WorldmapService } from '../worldmap.service';
+import { markerFont, markerFontSize } from '../marker-style';
 
 @Component({
   selector: 'app-worldmap-player-screen',
@@ -30,6 +31,9 @@ export class WorldmapPlayerScreen {
 
   protected readonly current = this.worldmap.playerMap;
   protected readonly linkedBattlemapId = this.worldmap.linkedBattlemapId;
+  protected readonly waterAnimated = this.worldmap.playerWaterAnimated;
+  protected readonly font = markerFont;
+  protected readonly fontSize = markerFontSize;
   protected readonly isFullscreen = signal(false);
   private readonly aspect = signal(this.currentAspect());
   protected readonly viewBox = computed(() => {

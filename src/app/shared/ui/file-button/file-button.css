@@ -17,6 +17,36 @@
   cursor: pointer;
 }
 
-.hidden:focus-visible + .button {
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: rgb(255 255 255 / 12%);
+}
+
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: inherit;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.link-text {
+  text-decoration: underline;
+  text-underline-position: from-font;
+}
+
+.hidden:focus-visible + .button,
+.hidden:focus-visible + .icon-button,
+.hidden:focus-visible + .link-button {
   outline: 2px solid;
 }

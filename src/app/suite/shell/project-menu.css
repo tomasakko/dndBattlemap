@@ -1,0 +1,86 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.project-menu {
+  position: relative;
+}
+
+summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  list-style: none;
+  cursor: pointer;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.project-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 9px downward triangle. */
+.caret {
+  flex: none;
+  width: 0;
+  height: 0;
+  border-top: 7px solid var(--color-text);
+  border-left: 4.5px solid transparent;
+  border-right: 4.5px solid transparent;
+  transition: transform 0.15s;
+}
+
+.project-menu[open] .caret {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  z-index: 3000;
+  top: calc(100% + 8px);
+  left: -8px;
+  display: grid;
+  min-width: 190px;
+  padding: 6px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-surface);
+  border-radius: var(--radius-tab);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 40%);
+}
+
+.menu button {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu button:hover,
+.menu button:focus-visible {
+  background: var(--color-surface);
+  outline: none;
+}
+
+.menu hr {
+  width: 100%;
+  margin: 4px 0;
+  border: 0;
+  border-top: 1px solid var(--color-surface);
+}

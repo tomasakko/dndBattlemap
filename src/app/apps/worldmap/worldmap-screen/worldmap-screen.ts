@@ -9,25 +9,34 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import * as L from 'leaflet';
 import { BattlemapService } from '../../battlemap/services/battlemap.service';
 import { ConfirmService } from '../../../shared/ui/confirm-dialog/confirm.service';
-import { DropdownPicker } from '../../../shared/ui/dropdown-picker/dropdown-picker';
-import type { PickerItem } from '../../../shared/ui/dropdown-picker/dropdown-picker';
 import { FileButton } from '../../../shared/ui/file-button/file-button';
 import { MapUploadDialog } from '../../../shared/ui/map-upload-dialog/map-upload-dialog';
 import { WaterRenderer } from '../../../shared/ui/water/water-renderer';
 import { clamp } from '../../../shared/util/math';
 import { escapeHtml, titleFromFileName } from '../../../shared/util/text';
+import { PanelTabsService } from '../../../suite/shell/panel-tabs.service';
+import type { PanelTab } from '../../../suite/shell/panel-tabs.service';
 import { WorldmapService } from '../worldmap.service';
 import type { WorldmapImage, WorldmapMarker } from '../worldmap.service';
+import {
+  MARKER_FONTS,
+  MARKER_ICONS,
+  MARKER_SIZES,
+  MarkerOption,
+  MarkerStyle,
+  markerFont,
+  markerFontSize,
+} from '../marker-style';
 
 const ZOOM_LIMIT = 20;
 
 @Component({
   selector: 'app-worldmap-screen',
-  imports: [DropdownPicker, FileButton, MapUploadDialog, RouterLink],
+  imports: [FileButton, MapUploadDialog],
   templateUrl: './worldmap-screen.html',
   styleUrl: './worldmap-screen.css',
 })
@@ -39,13 +48,20 @@ export class WorldmapScreen {
   private readonly container = viewChild.required<ElementRef<HTMLDivElement>>('map');
 
   protected readonly maps = this.worldmap.maps;
-  protected readonly mapItems = computed<PickerItem[]>(() =>
+  protected readonly mapTabs = computed<PanelTab[]>(() =>
     this.maps().map((entry) => ({ id: entry.id, label: entry.name })),
   );
   protected readonly current = this.worldmap.current;
   protected readonly battlemaps = this.battlemap.maps;
   protected readonly battlemapLocked = this.battlemap.locked;
   protected readonly persistenceError = this.worldmap.persistenceError;
+  protected readonly shared = this.worldmap.shared;
+  protected readonly waterAnimated = this.worldmap.waterAnimated;
+  /** Marker whose popup is open; highlighted in the Markers list. */
+  protected readonly openMarkerId = signal<string | null>(null);
+  protected readonly sortedMarkers = computed(() =>
+    [...(this.current()?.markers ?? [])].sort((a, b) => a.name.localeCompare(b.name)),
+  );
   protected readonly placing = signal(false);
   protected readonly error = signal('');
   protected readonly pendingFile = signal<File | null>(null);
@@ -62,6 +78,16 @@ export class WorldmapScreen {
   private openAfterSync: string | null = null;
 
   constructor() {
+    inject(PanelTabsService).register({
+      appId: 'worldmap',
+      ariaLabel: 'World maps',
+      tabs: this.mapTabs,
+      currentId: computed(() => this.current()?.id ?? null),
+      removeLabel: 'Delete map ',
+      playerUrl: '/worldmap/player',
+      select: (id) => this.selectMap(id),
+      remove: (tab) => void this.removeMap(tab.id, tab.label),
+    });
     this.worldmap.startHost();
     this.worldmap.clearLinkedBattlemap();
     this.battlemap.clearLinkedPlayerMap();
@@ -69,6 +95,10 @@ export class WorldmapScreen {
       this.map?.remove();
       this.map = undefined;
       this.water?.destroy();
+    });
+    effect(() => {
+      const animated = this.waterAnimated();
+      untracked(() => this.water?.setAnimated(animated));
     });
     effect(() => {
       const current = this.current();
@@ -124,13 +154,33 @@ export class WorldmapScreen {
     this.placing.update((placing) => !placing);
   }
 
-  protected resetView(): void {
-    this.fit();
+  protected toggleShared(): void {
+    this.worldmap.setShared(!this.shared());
+  }
+
+  protected toggleWater(): void {
+    this.worldmap.setWaterAnimated(!this.waterAnimated());
+  }
+
+  protected setMarkerVisible(id: string, visible: boolean): void {
+    this.worldmap.setMarkerVisibility(id, visible);
+  }
+
+  /** Centres the map on a marker and opens its popup. */
+  protected focusMarker(id: string): void {
+    const pin = this.pins.get(id);
+    if (!pin || !this.map) {
+      return;
+    }
+    this.map.panTo(pin.getLatLng());
+    pin.openPopup();
   }
 
   private createMap(element: HTMLDivElement): L.Map {
     const map = L.map(element, {
       crs: L.CRS.Simple,
+      // The design has no zoom buttons: the mouse wheel and pinch zoom.
+      zoomControl: false,
       zoomSnap: 0.25,
       zoomDelta: 0.5,
       attributionControl: false,
@@ -169,6 +219,7 @@ export class WorldmapScreen {
     svg.append(host);
     this.waterOverlay = L.svgOverlay(svg, bounds, { interactive: false, zIndex: 1 }).addTo(map);
     this.water = new WaterRenderer(canvas);
+    this.water.setAnimated(this.waterAnimated());
     void this.water.load(image.url);
   }
 
@@ -262,24 +313,36 @@ export class WorldmapScreen {
       const existing = this.pins.get(marker.id);
       if (existing) {
         existing.setLatLng(position);
-        existing.setTooltipContent(escapeHtml(marker.name));
+        existing.setIcon(styledPin(marker));
+        existing.setTooltipContent(labelHtml(marker));
         existing.setOpacity(marker.visible ? 1 : 0.45);
         existing.options.title = marker.name;
         continue;
       }
       const pin = L.marker(position, {
         draggable: true,
-        icon: plainPin(),
+        icon: styledPin(marker),
         title: marker.name,
         opacity: marker.visible ? 1 : 0.45,
       })
-        .bindTooltip(escapeHtml(marker.name), {
+        .bindTooltip(labelHtml(marker), {
           permanent: true,
-          direction: 'top',
-          offset: [0, -8],
+          direction: 'bottom',
+          offset: [0, 4],
+          className: 'marker-label',
         })
-        .bindPopup(() => this.popupFor(marker.id), { minWidth: 180 })
+        .bindPopup(() => this.popupFor(marker.id), {
+          className: 'marker-popup-frame',
+          closeButton: false,
+          minWidth: 233,
+          maxWidth: 233,
+          offset: [0, -4],
+        })
         .addTo(map);
+      pin.on('popupopen', () => this.openMarkerId.set(marker.id));
+      pin.on('popupclose', () => {
+        if (this.openMarkerId() === marker.id) this.openMarkerId.set(null);
+      });
       pin.on('dragend', () => {
         const shown = this.shownImage;
         if (shown) {
@@ -295,87 +358,105 @@ export class WorldmapScreen {
     }
   }
 
+  /** Popup from the design: editable name, eye/delete/close in the header, then the marker's style. */
   private popupFor(id: string): HTMLElement {
     const marker = this.worldmap.current()?.markers.find((m) => m.id === id);
-    const form = document.createElement('div');
-    form.className = 'marker-popup';
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.maxLength = 60;
-    input.value = marker?.name ?? '';
-    input.setAttribute('aria-label', 'Marker name');
-    input.addEventListener('change', () => this.worldmap.renameMarker(id, input.value));
-    input.addEventListener('keydown', (event) => {
+    const root = el('div', 'marker-popup');
+    if (!marker) {
+      return root;
+    }
+
+    const header = el('div', 'mp-header');
+    const title = el('input', 'mp-title');
+    title.type = 'text';
+    title.maxLength = 60;
+    title.value = marker.name;
+    title.setAttribute('aria-label', 'Marker name');
+    title.addEventListener('change', () => this.worldmap.renameMarker(id, title.value));
+    title.addEventListener('keydown', (event) => {
       event.stopPropagation();
       if (event.key === 'Enter') {
-        this.worldmap.renameMarker(id, input.value);
-        this.pins.get(id)?.closePopup();
+        this.worldmap.renameMarker(id, title.value);
+        title.blur();
       }
     });
-    const battlemapPicker = document.createElement('select');
-    battlemapPicker.setAttribute('aria-label', 'Linked battlemap');
-    const noBattlemap = document.createElement('option');
-    noBattlemap.value = '';
-    noBattlemap.textContent = 'No linked battlemap';
-    battlemapPicker.append(noBattlemap);
-    const hasLinkedBattlemap = this.battlemaps().some((entry) => entry.id === marker?.battlemapId);
-    if (marker?.battlemapId && !hasLinkedBattlemap) {
-      const unavailable = document.createElement('option');
-      unavailable.value = marker.battlemapId;
-      unavailable.textContent = 'Linked battlemap unavailable';
-      battlemapPicker.append(unavailable);
-    }
-    for (const entry of this.battlemaps()) {
-      const option = document.createElement('option');
-      option.value = entry.id;
-      option.textContent = entry.name;
-      option.selected = entry.id === marker?.battlemapId;
-      battlemapPicker.append(option);
-    }
-    battlemapPicker.value = marker?.battlemapId ?? '';
-    const openBattlemap = document.createElement('button');
-    openBattlemap.type = 'button';
-    openBattlemap.textContent = 'Open linked battlemap';
-    openBattlemap.disabled =
-      !this.battlemaps().some((entry) => entry.id === marker?.battlemapId) ||
-      (this.battlemapLocked() && this.battlemap.currentId() !== marker?.battlemapId);
-    battlemapPicker.addEventListener('change', () => {
-      this.worldmap.setMarkerBattlemap(id, battlemapPicker.value || null);
-      openBattlemap.disabled =
-        !this.battlemaps().some((entry) => entry.id === battlemapPicker.value) ||
-        (this.battlemapLocked() && this.battlemap.currentId() !== battlemapPicker.value);
+    let visible = marker.visible;
+    const eye = iconButton(visible ? 'visibility' : 'visibility_off', '');
+    const syncEye = (): void => {
+      eye.firstElementChild!.textContent = visible ? 'visibility' : 'visibility_off';
+      const label = visible ? 'Visible to players – click to hide' : 'Hidden from players – click to show';
+      eye.title = label;
+      eye.setAttribute('aria-label', label);
+      eye.setAttribute('aria-pressed', String(visible));
+    };
+    syncEye();
+    eye.addEventListener('click', () => {
+      visible = !visible;
+      this.worldmap.setMarkerVisibility(id, visible);
+      syncEye();
     });
+    const remove = iconButton('delete', 'Delete marker');
+    remove.addEventListener('click', () => this.worldmap.removeMarker(id));
+    const close = iconButton('close', 'Close');
+    close.addEventListener('click', () => this.pins.get(id)?.closePopup());
+    header.append(title, eye, remove, close);
+
+    const body = el('div', 'mp-body');
+    const row = (label: string, control: HTMLElement): void => {
+      const name = el('label', 'mp-label');
+      name.textContent = label;
+      const controlId = 'mp-' + id + '-' + label.toLowerCase();
+      name.htmlFor = controlId;
+      const input = control.matches('input, select') ? control : control.querySelector('input, select');
+      input?.setAttribute('id', controlId);
+      body.append(name, control);
+    };
+    const styleSelect = (key: 'icon' | 'font' | 'size', options: readonly MarkerOption[]): HTMLSelectElement =>
+      selectOf(options, marker[key], (value) => this.worldmap.setMarkerStyle(id, { [key]: value }));
+    row('Icon', styleSelect('icon', MARKER_ICONS));
+    const font = styleSelect('font', MARKER_FONTS);
+    font.style.fontFamily = markerFont(marker).css;
+    font.style.fontWeight = String(markerFont(marker).weight);
+    font.addEventListener('change', () => {
+      const chosen = MARKER_FONTS.find((f) => f.id === font.value);
+      font.style.fontFamily = chosen?.css ?? '';
+      font.style.fontWeight = String(chosen?.weight ?? 400);
+    });
+    row('Font', font);
+    row('Size', styleSelect('size', MARKER_SIZES));
+    row('Color', colorField(marker.color, (value) => this.worldmap.setMarkerStyle(id, { color: value })));
+    row('Border', colorField(marker.border, (value) => this.worldmap.setMarkerStyle(id, { border: value })));
+
+    const battlemapRow = el('div', 'mp-battlemap');
+    const battlemapOptions: MarkerOption[] = [{ id: '', label: '-no map selected-' }];
+    if (marker.battlemapId && !this.battlemaps().some((entry) => entry.id === marker.battlemapId)) {
+      battlemapOptions.push({ id: marker.battlemapId, label: 'Unavailable map' });
+    }
+    battlemapOptions.push(...this.battlemaps().map((entry) => ({ id: entry.id, label: entry.name })));
+    const openBattlemap = iconButton('open_in_new', 'Open linked battlemap');
+    const canOpen = (battlemapId: string): boolean =>
+      this.battlemaps().some((entry) => entry.id === battlemapId) &&
+      (!this.battlemapLocked() || this.battlemap.currentId() === battlemapId);
+    const battlemapPicker = selectOf(battlemapOptions, marker.battlemapId ?? '', (value) => {
+      this.worldmap.setMarkerBattlemap(id, value || null);
+      openBattlemap.disabled = !canOpen(value);
+    });
+    openBattlemap.disabled = !canOpen(battlemapPicker.value);
     openBattlemap.addEventListener('click', () => {
       const battlemapId = battlemapPicker.value;
-      if (
-        this.battlemaps().some((entry) => entry.id === battlemapId) &&
-        (!this.battlemapLocked() || this.battlemap.currentId() === battlemapId)
-      ) {
+      if (canOpen(battlemapId)) {
         this.worldmap.showLinkedBattlemap(battlemapId);
         void this.router.navigate(['/battlemap/dm'], { queryParams: { linkedMapId: battlemapId } });
       }
     });
-    const visibilityLabel = document.createElement('label');
-    visibilityLabel.className = 'marker-visibility';
-    const visibility = document.createElement('input');
-    visibility.type = 'checkbox';
-    visibility.checked = marker?.visible ?? true;
-    visibilityLabel.append(visibility, document.createTextNode(' Visible to players'));
-    visibility.addEventListener('change', () =>
-      this.worldmap.setMarkerVisibility(id, visibility.checked),
-    );
-    const remove = document.createElement('button');
-    remove.type = 'button';
-    remove.textContent = 'Delete';
-    remove.addEventListener('click', () => this.worldmap.removeMarker(id));
-    form.append(
-      input,
-      battlemapPicker,
-      openBattlemap,
-      visibilityLabel,
-      remove,
-    );
-    return form;
+    battlemapRow.append(battlemapPicker, openBattlemap);
+    row('Battlemap', battlemapRow);
+
+    root.append(header, body);
+    // Keeps clicks and scrolling inside the popup from reaching the map.
+    L.DomEvent.disableClickPropagation(root);
+    L.DomEvent.disableScrollPropagation(root);
+    return root;
   }
 }
 
@@ -392,12 +473,89 @@ function imageBounds(image: WorldmapImage): L.LatLngBounds {
   return L.latLngBounds([0, 0], [image.height, image.width]);
 }
 
-/** One plain pin for every marker; created lazily because Leaflet touches the DOM. */
-function plainPin(): L.DivIcon {
+/** Round pin in the marker's colours; created lazily because Leaflet touches the DOM. */
+function styledPin(marker: MarkerStyle): L.DivIcon {
   return L.divIcon({
     className: 'world-pin',
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
-    popupAnchor: [0, -8],
+    html: `<span style="background:${marker.color};border-color:${marker.border}"></span>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
   });
+}
+
+/** The marker's name under its pin, in the chosen font, size and colours. */
+function labelHtml(marker: WorldmapMarker): string {
+  const font = markerFont(marker);
+  return (
+    `<span class="marker-label-text" style="font-family:${font.css};font-weight:${font.weight};` +
+    `font-size:${markerFontSize(marker)}px;color:${marker.color};--label-border:${marker.border}">` +
+    `${escapeHtml(marker.name)}</span>`
+  );
+}
+
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className: string): HTMLElementTagNameMap[K] {
+  const element = document.createElement(tag);
+  element.className = className;
+  return element;
+}
+
+function iconButton(icon: string, label: string): HTMLButtonElement {
+  const button = el('button', 'mp-icon-btn');
+  button.type = 'button';
+  if (label) {
+    button.title = label;
+    button.setAttribute('aria-label', label);
+  }
+  const glyph = el('span', 'icon');
+  glyph.setAttribute('aria-hidden', 'true');
+  glyph.textContent = icon;
+  button.append(glyph);
+  return button;
+}
+
+function selectOf(
+  options: readonly MarkerOption[],
+  value: string,
+  onChange: (value: string) => void,
+): HTMLSelectElement {
+  const select = el('select', 'mp-field mp-select');
+  for (const option of options) {
+    const item = document.createElement('option');
+    item.value = option.id;
+    item.textContent = option.label;
+    select.append(item);
+  }
+  select.value = value;
+  select.addEventListener('change', () => onChange(select.value));
+  return select;
+}
+
+/** Colour swatch (opens the system picker) plus the hex code as text. */
+function colorField(value: string, onChange: (value: string) => void): HTMLElement {
+  const field = el('div', 'mp-field mp-color');
+  const swatch = el('input', 'mp-swatch');
+  swatch.type = 'color';
+  swatch.value = value;
+  swatch.setAttribute('aria-label', 'Pick colour');
+  const hex = el('input', 'mp-hex');
+  hex.type = 'text';
+  hex.maxLength = 7;
+  hex.spellcheck = false;
+  hex.value = value.slice(1).toUpperCase();
+  swatch.addEventListener('input', () => {
+    hex.value = swatch.value.slice(1).toUpperCase();
+    onChange(swatch.value);
+  });
+  hex.addEventListener('keydown', (event) => event.stopPropagation());
+  hex.addEventListener('change', () => {
+    const typed = '#' + hex.value.replace(/^#/, '').trim();
+    if (/^#[0-9a-f]{6}$/i.test(typed)) {
+      swatch.value = typed.toLowerCase();
+      onChange(swatch.value);
+    }
+    hex.value = swatch.value.slice(1).toUpperCase();
+  });
+  field.append(swatch, hex);
+  return field;
 }

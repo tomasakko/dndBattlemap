@@ -1,0 +1,54 @@
+<nav aria-label="Apps" [class.collapsed]="collapsed()">
+  <ul class="apps">
+    @for (app of apps; track app.id) {
+      @let active = app.id === tabs.activeId();
+      @let maps = collapsed() ? [] : mapsOf(app);
+      <li class="app" [class.active]="active" [class.expanded]="maps.length > 0">
+        <button
+          type="button"
+          class="app-item"
+          [attr.aria-current]="active ? 'page' : null"
+          [disabled]="!app.route"
+          [attr.title]="app.route ? (collapsed() ? app.name : null) : app.name + ' – coming soon'"
+          (click)="tabs.open(app)"
+        >
+          <span class="label" [class.visually-hidden]="collapsed()">{{ app.name }}</span>
+          <span class="icon" aria-hidden="true">{{ app.icon }}</span>
+        </button>
+
+        @if (maps.length > 0) {
+          @let config = panelTabs.config()!;
+          @let isLocked = locked();
+          <ul class="maps" [attr.aria-label]="config.ariaLabel">
+            @for (map of maps; track map.id) {
+              @let current = map.id === config.currentId();
+              <li class="map" [class.current]="current">
+                <button
+                  type="button"
+                  class="map-item"
+                  [attr.aria-current]="current ? 'true' : null"
+                  [disabled]="isLocked && !current"
+                  [attr.title]="isLocked && !current ? config.lockedNote : map.note ? map.label + ' (' + map.note + ')' : null"
+                  (click)="panelTabs.open(map.id)"
+                >
+                  <span class="dot" aria-hidden="true"></span>
+                  <span class="map-label">{{ map.label }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="map-delete"
+                  [attr.aria-label]="config.removeLabel + map.label"
+                  title="Delete map"
+                  [disabled]="isLocked"
+                  (click)="remove(map)"
+                >
+                  <span class="icon" aria-hidden="true">delete</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </li>
+    }
+  </ul>
+</nav>

@@ -1,13 +1,189 @@
 :host {
-  display: flex;
-  flex-direction: column;
+  display: block;
   height: 100vh;
 }
 
-.content {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
+/* Layout from the Figma frames (1920×1080): sidebar 215px, header 65px, panel 19px from the right and 17px from the bottom. */
+.shell {
+  display: grid;
+  grid-template-columns: var(--nav-width) minmax(0, 1fr);
+  grid-template-rows: var(--header-height) minmax(0, 1fr);
+  grid-template-areas:
+    'header header'
+    'nav    panel';
+  height: 100%;
+  padding: 0 var(--gutter-right) var(--gutter-bottom) 0;
+  box-sizing: border-box;
+  background: var(--color-bg);
 }
 
+.shell.collapsed {
+  grid-template-columns: var(--nav-width-collapsed) minmax(0, 1fr);
+}
+
+.header {
+  grid-area: header;
+  display: grid;
+  /* The project name keeps its width when the sidebar collapses, so the search field never moves. */
+  grid-template-columns: var(--nav-width) minmax(180px, 408px) minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+}
+
+.project {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+  padding: 0 19px 0 21px;
+}
+
+.project app-project-menu {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar-toggle .icon {
+  transform: rotate(-90deg);
+}
+
+.shell.collapsed .sidebar-toggle .icon {
+  transform: rotate(90deg);
+}
+
+/* 408×36 pill with an inset shadow. */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 36px;
+  padding: 0 13px 0 9px;
+  box-sizing: border-box;
+  border-radius: 70px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-inset-pill);
+  cursor: not-allowed;
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  outline: none;
+}
+
+.search input::placeholder {
+  color: var(--color-placeholder);
+  opacity: 1;
+}
+
+.search input:disabled,
+.search .icon-btn:disabled {
+  cursor: not-allowed;
+}
+
+app-panel-tabs {
+  height: 100%;
+  margin: 0 49px 0 24px;
+}
+
+.user-bar {
+  display: flex;
+  gap: 16px;
+}
+
+/* Placeholders for features that don't exist yet. */
+.user-bar .icon-btn:disabled {
+  cursor: default;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.icon-btn:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.nav {
+  grid-area: nav;
+  padding: 21px 10px 0 9px;
+  overflow-y: auto;
+}
+
+.shell.collapsed .nav {
+  padding: 28px 19px 0 21px;
+}
+
+.panel {
+  grid-area: panel;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* #626262 workspace with a soft inner shadow. Maps fill it edge to edge. */
+.panel-content {
+  position: relative;
+  height: 100%;
+  overflow: auto;
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+}
+
+.panel-content::after {
+  content: '';
+  position: absolute;
+  z-index: 1100;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 4px 4px 4px rgb(0 0 0 / 30%);
+  pointer-events: none;
+}
+
+.nothing-open {
+  position: absolute;
+  z-index: 1200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  text-align: center;
+}
+
+.nothing-open p {
+  margin: 0;
+}
+
+/* Player screens open in their own window and fill it completely. */
+.shell.standalone {
+  display: block;
+  padding: 0;
+}
+
+.shell.standalone .panel {
+  height: 100%;
+}
+
+.shell.standalone .panel-content {
+  border-radius: 0;
+  background: none;
+}
+
+.shell.standalone .panel-content::after {
+  content: none;
+}

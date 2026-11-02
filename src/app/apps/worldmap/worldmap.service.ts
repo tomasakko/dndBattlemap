@@ -2,6 +2,7 @@ import { Service, computed, signal } from '@angular/core';
 import { IndexedDbStore, SaveQueue } from '../../shared/storage/indexed-db-store';
 import { newId } from '../../shared/util/id';
 import { loadImageFile } from '../../shared/util/image';
+import { DEFAULT_MARKER_STYLE, MarkerStyle, normaliseMarkerStyle } from './marker-style';
 
 export interface WorldmapImage {
   url: string;
@@ -10,7 +11,7 @@ export interface WorldmapImage {
 }
 
 /** A pin on a world map. Coordinates are image pixels, measured from the top-left corner. */
-export interface WorldmapMarker {
+export interface WorldmapMarker extends MarkerStyle {
   id: string;
   name: string;
   x: number;
@@ -42,6 +43,25 @@ const store = new IndexedDbStore('dnd-worldmap');
 
 const EMPTY_STATE: WorldmapState = { maps: [], currentId: null };
 const DEFAULT_VIEW: WorldmapView = { centerX: 0.5, centerY: 0.5, zoom: 1 };
+const SHARED_KEY = 'dnd-worldmap-shared';
+const ANIMATED_KEY = 'dnd-worldmap-water-animated';
+
+function readFlag(key: string): boolean {
+  try {
+    return localStorage.getItem(key) !== 'false';
+  } catch {
+    return true;
+  }
+}
+
+function storeFlag(key: string, value: boolean): void {
+  try {
+    localStorage.setItem(key, String(value));
+  } catch {
+    // The choice just won't survive a reload.
+  }
+}
+
 
 /** Holds the world maps and their markers, and keeps them in IndexedDB so they survive leaving the page. */
 @Service()
@@ -56,6 +76,12 @@ export class WorldmapService {
   readonly playerView = signal(DEFAULT_VIEW);
   readonly linkedBattlemapId = signal<string | null>(null);
   readonly persistenceError = signal<string | null>(null);
+  /** Whether the player screen shows the current map. Hidden, players only see the waiting message. */
+  readonly shared = signal(readFlag(SHARED_KEY));
+  /** Whether the sea moves, on the DM's map and on the player screen. */
+  readonly waterAnimated = signal(readFlag(ANIMATED_KEY));
+  /** What the player screen was told about the sea. */
+  readonly playerWaterAnimated = signal(true);
 
   private channel?: BroadcastChannel;
   private hostViewMapId: string | null = null;
@@ -81,6 +107,9 @@ export class WorldmapService {
         this.playerMap.set(message.map ? { ...message.map, markers: [] } : null);
         this.playerView.set(message.view);
         this.linkedBattlemapId.set(message.linkedBattlemapId);
+        this.playerWaterAnimated.set(message.waterAnimated ?? true);
+      } else if (message.type === 'water') {
+        this.playerWaterAnimated.set(message.animated);
       } else if (message.type === 'markers') {
         const current = this.playerMap();
         if (current?.id === message.mapId) {
@@ -120,6 +149,18 @@ export class WorldmapService {
     void this.persist();
   }
 
+  setShared(shared: boolean): void {
+    this.shared.set(shared);
+    storeFlag(SHARED_KEY, shared);
+    this.broadcastCurrent();
+  }
+
+  setWaterAnimated(animated: boolean): void {
+    this.waterAnimated.set(animated);
+    storeFlag(ANIMATED_KEY, animated);
+    this.channel?.postMessage({ type: 'water', animated } satisfies WorldmapMessage);
+  }
+
   removeMap(id: string): void {
     const wasCurrent = id === this.currentId();
     this.state.update((state) => {
@@ -144,6 +185,7 @@ export class WorldmapService {
       y,
       visible: true,
       battlemapId: null,
+      ...DEFAULT_MARKER_STYLE,
     };
     this.updateCurrent((entry) => ({ ...entry, markers: [...entry.markers, marker] }));
     return marker;
@@ -159,6 +201,13 @@ export class WorldmapService {
 
   setMarkerVisibility(id: string, visible: boolean): void {
     this.patchMarker(id, { visible });
+  }
+
+  setMarkerStyle(id: string, style: Partial<MarkerStyle>): void {
+    const marker = this.current()?.markers.find((m) => m.id === id);
+    if (marker) {
+      this.patchMarker(id, normaliseMarkerStyle({ ...marker, ...style }));
+    }
   }
 
   setMarkerBattlemap(id: string, battlemapId: string | null): void {
@@ -269,18 +318,19 @@ export class WorldmapService {
   }
 
   private broadcastCurrent(): void {
-    const current = this.current();
+    const current = this.shared() ? this.current() : null;
     this.channel?.postMessage({
       type: 'current',
       map: current ? { id: current.id, name: current.name, image: current.image } : null,
       view: current?.id === this.hostViewMapId ? this.hostView : DEFAULT_VIEW,
       linkedBattlemapId: this.linkedBattlemapId(),
+      waterAnimated: this.waterAnimated(),
     } satisfies WorldmapMessage);
     this.broadcastMarkers();
   }
 
   private broadcastMarkers(): void {
-    const current = this.current();
+    const current = this.shared() ? this.current() : null;
     this.channel?.postMessage({
       type: 'markers',
       mapId: current?.id ?? null,
@@ -296,10 +346,12 @@ type WorldmapMessage =
       map: Pick<WorldmapEntry, 'id' | 'name' | 'image'> | null;
       view: WorldmapView;
       linkedBattlemapId: string | null;
+      waterAnimated?: boolean;
     }
   | { type: 'markers'; mapId: string | null; markers: WorldmapMarker[] }
   | { type: 'view'; mapId: string; view: WorldmapView }
-  | { type: 'linked-battlemap'; battlemapId: string | null };
+  | { type: 'linked-battlemap'; battlemapId: string | null }
+  | { type: 'water'; animated: boolean };
 
 function validateMarkers(markers: unknown): WorldmapMarker[] {
   if (
@@ -323,6 +375,7 @@ function validateMarkers(markers: unknown): WorldmapMarker[] {
     y: marker.y,
     visible: marker.visible ?? true,
     battlemapId: typeof marker.battlemapId === 'string' ? marker.battlemapId : null,
+    ...normaliseMarkerStyle(marker),
   }));
 }
 

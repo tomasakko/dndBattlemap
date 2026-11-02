@@ -1,7 +1,52 @@
-@if (!tabs.standalone()) {
-  <app-topbar />
-}
-<div class="content">
-  <router-outlet />
+<!-- One router outlet for every route, so a screen is never created twice when the layout changes. -->
+<div class="shell" [class.collapsed]="collapsed()" [class.standalone]="tabs.standalone()">
+  @if (!tabs.standalone()) {
+    <header class="header">
+      <div class="project">
+        <app-project-menu [playerUrl]="panelTabs.config()?.playerUrl ?? null" />
+        <button
+          type="button"
+          class="icon-btn sidebar-toggle"
+          [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+          [attr.title]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+          [attr.aria-expanded]="!collapsed()"
+          (click)="toggleSidebar()"
+        >
+          <span class="icon" aria-hidden="true">bottom_panel_open</span>
+        </button>
+      </div>
+
+      <label class="search" title="Search is coming soon">
+        <span class="icon" aria-hidden="true">search</span>
+        <input type="search" placeholder="Search in project" aria-label="Search in project" disabled />
+        <button type="button" class="icon-btn" aria-label="Search filters" disabled>
+          <span class="icon" aria-hidden="true">tune</span>
+        </button>
+      </label>
+
+      <app-panel-tabs />
+
+      <div class="user-bar" aria-label="Account">
+        @for (item of userBar; track item.icon) {
+          <button type="button" class="icon-btn" [attr.aria-label]="item.label" [attr.title]="item.label + ' – coming soon'" disabled>
+            <span class="icon" aria-hidden="true">{{ item.icon }}</span>
+          </button>
+        }
+      </div>
+    </header>
+
+    <app-nav class="nav" [collapsed]="collapsed()" />
+  }
+
+  <main class="panel">
+    <div class="panel-content">
+      <router-outlet />
+    </div>
+    @if (panelTabs.nothingOpen()) {
+      <div class="nothing-open">
+        <p>All maps are closed. Pick one from the sidebar to open it.</p>
+      </div>
+    }
+  </main>
 </div>
 <app-confirm-dialog />

@@ -1,4 +1,18 @@
 <input [id]="inputId" class="hidden" type="file" [accept]="accept()" (change)="onChange($event)" />
-<label class="button" [for]="inputId">
-  {{ label() }}
-</label>
+@if (link()) {
+  <label class="link-button" [for]="inputId">
+    <span class="link-text">{{ label() }}</span>
+    @if (icon(); as icon) {
+      <span class="icon" aria-hidden="true">{{ icon }}</span>
+    }
+  </label>
+} @else if (icon(); as icon) {
+  <label class="icon-button" [for]="inputId" [attr.title]="label()">
+    <span class="icon" aria-hidden="true">{{ icon }}</span>
+    <span class="visually-hidden">{{ label() }}</span>
+  </label>
+} @else {
+  <label class="button" [for]="inputId">
+    {{ label() }}
+  </label>
+}

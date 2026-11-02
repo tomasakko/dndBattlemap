@@ -109,6 +109,7 @@ export class WaterRenderer {
   private buffer: WebGLBuffer | null = null;
   private frame = 0;
   private token = 0;
+  private animated = true;
 
   constructor(private readonly canvas: HTMLCanvasElement) {}
 
@@ -124,6 +125,16 @@ export class WaterRenderer {
       this.canvas.classList.remove('ui-water');
       this.run();
     }
+  }
+
+  /** Pauses or resumes the waves; paused, the sea stays drawn as a still frame. */
+  setAnimated(animated: boolean): void {
+    if (animated === this.animated) {
+      return;
+    }
+    this.animated = animated;
+    cancelAnimationFrame(this.frame);
+    this.run();
   }
 
   destroy(): void {
@@ -173,7 +184,8 @@ export class WaterRenderer {
       return;
     }
     const time = gl.getUniformLocation(program, 'uTime');
-    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const still =
+      !this.animated || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     const start = performance.now();
     const draw = (): void => {
       if (this.gl !== gl) {

@@ -10,6 +10,10 @@ let nextId = 0;
 })
 export class FileButton {
   readonly label = input.required<string>();
+  /** Material Symbols name; when set, the button shows only the icon and the label becomes its tooltip. */
+  readonly icon = input<string | null>(null);
+  /** Underlined text followed by the icon, as in the empty-map states. */
+  readonly link = input(false);
   readonly accept = input('image/*');
   readonly fileSelected = output<File>();
 

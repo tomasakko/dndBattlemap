@@ -5,7 +5,7 @@
     @if (current(); as entry) {
       <svg class="map" #stage [attr.viewBox]="viewBox()" role="img" [attr.aria-label]="entry.name">
         <foreignObject x="0" y="0" [attr.width]="entry.image.width" [attr.height]="entry.image.height">
-          <app-water-canvas [src]="entry.image.url" />
+          <app-water-canvas [src]="entry.image.url" [animated]="waterAnimated()" />
         </foreignObject>
         <image
           [attr.href]="entry.image.url"
@@ -17,13 +17,24 @@
         @for (marker of entry.markers; track marker.id) {
           <g class="marker" [attr.transform]="'translate(' + marker.x + ' ' + marker.y + ')'">
             <title>{{ marker.name }}</title>
-            <circle class="marker-pin" [attr.r]="pixel() * 7" [attr.stroke-width]="pixel() * 2" />
+            <circle
+              class="marker-pin"
+              [attr.r]="pixel() * 10"
+              [attr.stroke-width]="pixel() * 3"
+              [attr.fill]="marker.color"
+              [attr.stroke]="marker.border"
+            />
             <text
               class="marker-name"
               text-anchor="middle"
-              [attr.y]="-pixel() * 12"
-              [attr.font-size]="pixel() * 12.5"
+              dominant-baseline="hanging"
+              [attr.y]="pixel() * 14"
+              [attr.font-size]="pixel() * fontSize(marker)"
+              [attr.font-family]="font(marker).css"
+              [attr.font-weight]="font(marker).weight"
               [attr.stroke-width]="pixel() * 3"
+              [attr.fill]="marker.color"
+              [attr.stroke]="marker.border"
             >
               {{ marker.name }}
             </text>

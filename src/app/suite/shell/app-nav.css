@@ -1,0 +1,173 @@
+:host {
+  display: block;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Rows are 48px apart: 24px content + 24px gap; the active pill is 196×42 and sits under the row. */
+.apps {
+  display: grid;
+  gap: 6px;
+}
+
+.app {
+  border-radius: var(--radius-pill);
+}
+
+.app.active {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-inset-pill);
+}
+
+/* The active app with maps opens into a box listing them. */
+.app.expanded {
+  padding-bottom: 16px;
+  border-radius: 14px;
+}
+
+button {
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.app-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  height: 42px;
+  padding: 0 9px 0 12px;
+  border-radius: var(--radius-pill);
+  text-align: left;
+}
+
+.app:not(.active) .app-item:hover:not(:disabled) {
+  background: rgb(255 255 255 / 6%);
+}
+
+/* Planned apps are listed but can't be opened yet. */
+.app-item:disabled {
+  cursor: default;
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.maps {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+  padding: 0 7px;
+}
+
+.map {
+  display: flex;
+  align-items: center;
+  width: 151px;
+  border-radius: var(--radius-pill);
+}
+
+.map.current {
+  background: var(--color-highlight);
+}
+
+.map-item {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  height: 26px;
+  padding: 0 0 0 16px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.map-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.dot {
+  flex: none;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.map-label {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Delete shows up when hovering or focusing a map. */
+.map-delete {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.map:hover .map-delete,
+.map:focus-within .map-delete {
+  opacity: 1;
+}
+
+.map-delete:hover:not(:disabled) {
+  background: rgb(0 0 0 / 20%);
+}
+
+.map-delete:disabled {
+  display: none;
+}
+
+.map-delete .icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: -2px;
+}
+
+/* Icons only: a 42×30 pill marks the active app. */
+.collapsed .apps {
+  gap: 19px;
+}
+
+.collapsed .app,
+.collapsed .app.active {
+  background: none;
+  box-shadow: none;
+}
+
+.collapsed .app-item {
+  justify-content: center;
+  width: 42px;
+  height: 30px;
+  padding: 0;
+}
+
+.collapsed .app.active .app-item {
+  background: var(--color-highlight);
+}
