@@ -4,6 +4,7 @@ import { Room } from '../../services/battlemap.service';
 const GOLDEN_ANGLE = 137.508;
 
 @Component({
+  host: { class: 'ui-panel-form' },
   selector: 'app-area-editor',
   templateUrl: './area-editor.html',
   styleUrl: './area-editor.css',

@@ -1,12 +1,10 @@
 import { Component, ElementRef, inject, input, output, signal } from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
 import { CreatureService } from '../../../../shared/creatures/creature.service';
 import { InitiativeService } from '../../services/initiative.service';
 import type { Combatant } from '../../services/initiative.service';
 
 @Component({
   selector: 'app-combatant-row',
-  imports: [NgTemplateOutlet],
   templateUrl: './combatant-row.html',
   styleUrl: './combatant-row.css',
 })
@@ -31,8 +29,21 @@ export class CombatantRow {
   protected editHp(): void {
     this.editingHp.set(true);
     setTimeout(() =>
-      this.host.nativeElement.querySelector<HTMLInputElement>('.hp-edit input')?.select(),
+      this.host.nativeElement.querySelector<HTMLInputElement>('input.hp-edit')?.select(),
     );
+  }
+
+  /** Share of hit points left, for the slider's track. */
+  protected hpFill(): string {
+    const max = this.maxHp();
+    return max > 0 ? ((this.hp() / max) * 100).toFixed(1) + '%' : '0%';
+  }
+
+  protected slideHp(event: Event): void {
+    const hp = Number((event.target as HTMLInputElement).value);
+    if (!Number.isNaN(hp)) {
+      this.initiative.setHp(this.combatant().id, Math.min(Math.max(Math.round(hp), 0), this.maxHp()));
+    }
   }
 
   protected commitHp(value: string): void {

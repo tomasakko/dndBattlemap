@@ -5,6 +5,7 @@ import { InitiativeService } from '../services/initiative.service';
 import type { PlayerPreset } from '../services/battlemap.service';
 
 @Component({
+  host: { class: 'ui-panel-form' },
   selector: 'app-player-roster',
   imports: [FormsModule],
   templateUrl: './player-roster.html',

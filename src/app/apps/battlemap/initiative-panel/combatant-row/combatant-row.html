@@ -1,89 +1,85 @@
 <li
+  class="card"
   [class.player]="combatant().side === 'player'"
   [class.active]="active()"
   [attr.aria-current]="active() ? 'step' : null"
 >
-  @if (combatant().side === 'enemy') {
+  <div class="top">
     <button
       type="button"
-      class="identity"
-      [attr.aria-label]="'Show statblock: ' + combatant().name"
-      title="Show statblock"
-      (click)="showStatblock.emit(combatant())"
+      class="score"
+      [attr.aria-label]="'Initiative ' + combatant().initiative + '. Make it ' + combatant().name + '’s turn'"
+      title="Make it their turn"
+      (click)="setActive()"
     >
-      <ng-container *ngTemplateOutlet="identity" />
+      {{ combatant().initiative }}
     </button>
-  } @else {
-    <div class="identity">
-      <ng-container *ngTemplateOutlet="identity" />
-    </div>
-  }
-  <button
-    type="button"
-    [attr.aria-label]="'Set turn: ' + combatant().name"
-    title="Make it their turn"
-    (click)="setActive()"
-  >
-    Set turn
-  </button>
-  <button
-    type="button"
-    class="danger"
-    [attr.aria-label]="'Remove ' + combatant().name"
-    title="Remove"
-    (click)="remove()"
-  >
-    Remove
-  </button>
+    <span class="name" [attr.title]="combatant().name + ' (' + sideLabel() + ' – ' + typeLabel() + ')'">
+      {{ combatant().name }}
+    </span>
+    @if (combatant().side === 'enemy') {
+      <button
+        type="button"
+        class="small-btn"
+        [attr.aria-label]="'Show statblock: ' + combatant().name"
+        (click)="showStatblock.emit(combatant())"
+      >
+        Stats
+      </button>
+    }
+    <button
+      type="button"
+      class="small-btn remove"
+      [attr.aria-label]="'Remove ' + combatant().name"
+      (click)="remove()"
+    >
+      Remove
+    </button>
+  </div>
+
   @if (combatant().side === 'enemy') {
     @if (maxHp() > 0) {
       <div class="hp">
         @if (editingHp()) {
-          <label class="hp-edit">
-            HP
-            <input
-              #hpInput
-              type="number"
-              inputmode="numeric"
-              min="0"
-              [max]="maxHp()"
-              step="1"
-              [value]="hp()"
-              [attr.aria-label]="'Hit points of ' + combatant().name"
-              (keydown.enter)="commitHp(hpInput.value)"
-              (keydown.escape)="editingHp.set(false)"
-              (blur)="commitHp(hpInput.value)"
-            />
-            / {{ maxHp() }}
-          </label>
+          <input
+            #hpInput
+            class="hp-edit"
+            type="number"
+            inputmode="numeric"
+            min="0"
+            [max]="maxHp()"
+            step="1"
+            [value]="hp()"
+            [attr.aria-label]="'Hit points of ' + combatant().name"
+            (keydown.enter)="commitHp(hpInput.value)"
+            (keydown.escape)="editingHp.set(false)"
+            (blur)="commitHp(hpInput.value)"
+          />
         } @else {
           <button
             type="button"
             class="hp-text"
             [attr.aria-label]="'Edit hit points of ' + combatant().name"
-            title="Click to edit hit points"
+            title="Click to type the hit points"
             (click)="editHp()"
           >
-            HP {{ hp() }} / {{ maxHp() }}
+            HP {{ hp() }}/{{ maxHp() }}
           </button>
         }
-        <progress
-          class="hp-bar"
+        <input
+          class="hp-slider"
+          type="range"
+          min="0"
+          step="1"
           [max]="maxHp()"
           [value]="hp()"
+          [style.--fill]="hpFill()"
           [attr.aria-label]="'Hit points of ' + combatant().name"
-        ></progress>
+          (input)="slideHp($event)"
+        />
       </div>
     } @else {
-      <p class="hp-hint">Fill in hit points in the statblock to track HP.</p>
+      <p class="hp-hint">Add hit points in the statblock to track HP.</p>
     }
   }
 </li>
-
-<ng-template #identity>
-  <span class="score" aria-label="Initiative">{{ combatant().initiative }}</span>
-  <span class="who">
-    <span class="name">{{ active() ? '▶ ' : '' }}{{ combatant().name }}</span>
-    <span class="kind">{{ sideLabel() }} - {{ typeLabel() }}</span>
-  </span>
-</ng-template>

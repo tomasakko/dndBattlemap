@@ -2,49 +2,66 @@
   display: block;
 }
 
+/* Labels 13px above 17px light fields, as in the design. */
 .add {
   display: grid;
-  gap: 0.5rem;
+  gap: 4px;
 
   label {
     display: grid;
+    gap: 1px;
     min-width: 0;
   }
 
   .row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
+    grid-template-columns: 96px 118px;
+    column-gap: 13px;
   }
 
   .type-search {
     position: relative;
     display: grid;
+    gap: 1px;
     min-width: 0;
+    font-size: 13px;
+  }
+
+  /* Drop-down arrow on the creature search. */
+  #type-input {
+    padding-right: 14px;
+    background-image: linear-gradient(45deg, transparent 50%, #2d2d2d 50%),
+      linear-gradient(135deg, #2d2d2d 50%, transparent 50%);
+    background-position: right 7px center, right 3px center;
+    background-size: 4px 4px;
+    background-repeat: no-repeat;
   }
 
   /* Creature search results; positioned from the component so they can overflow the panel. */
   .type-options {
     position: fixed;
-    z-index: 5;
+    z-index: 1300;
     min-width: 8rem;
     max-height: min(24rem, 50dvh);
     margin: 0;
-    padding: 0;
+    padding: 2px 0;
     overflow-y: auto;
     list-style: none;
-    background: Canvas;
-    color: CanvasText;
-    border: 1px solid;
+    border: 1px solid rgb(45 45 45 / 49%);
+    border-radius: 2px;
+    background: var(--color-field);
+    box-shadow: 0 4px 10px rgb(0 0 0 / 35%);
+    color: var(--color-field-text);
+    font-size: 11px;
 
     li {
-      padding: 0.125rem 0.25rem;
+      padding: 2px 6px;
       cursor: pointer;
 
       &.active,
       &:hover {
-        background: Highlight;
-        color: HighlightText;
+        background: var(--color-highlight);
+        color: var(--color-text);
       }
 
       &.empty {
@@ -54,25 +71,53 @@
   }
 }
 
-input {
-  min-width: 0;
+.name-field input {
+  width: 100%;
 }
 
 .error {
-  margin: 0;
-  color: red;
+  margin: 4px 0 0;
+  color: #ffd0d0;
+  font-size: 11px;
 }
 
+.hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+}
+
+/* Side: two 9px radios with 11px labels. */
 .side {
   display: flex;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 2px 14px;
   margin: 0;
   padding: 0;
   border: 0;
 
+  legend {
+    width: 100%;
+    margin-bottom: 1px;
+    padding: 0;
+  }
+
   .choice {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 5px;
+    font-size: 11px;
   }
+
+  input[type='radio'] {
+    width: 9px;
+    height: 9px;
+    margin: 0;
+    accent-color: var(--color-bg);
+  }
+}
+
+.add-btn {
+  justify-self: start;
+  width: 96px;
+  margin-top: 6px;
 }

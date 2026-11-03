@@ -4,41 +4,63 @@
   min-height: 0;
   max-height: 100%;
   box-sizing: border-box;
-  padding: 0.5rem;
+  color: var(--color-text);
 }
 
+.top-part {
+  padding: 3px 10px 0;
+}
+
+/* Previous and Start: 96×17, 13px apart. */
 .turn-controls {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  margin: 0.5rem 0;
+  grid-template-columns: 96px 96px;
+  column-gap: 13px;
+  row-gap: 6px;
+  margin: 12px 0 0;
 }
 
-.end {
-  width: 100%;
-  margin-bottom: 0.5rem;
+.turn-controls .end {
+  grid-column: 1 / -1;
+  width: 96px;
+}
+
+.divider {
+  margin: 16px 0 7px;
+  border: 0;
+  border-top: 1px solid var(--color-bg);
 }
 
 .hint {
-  margin: 0.5rem 0;
+  margin: 4px 10px;
+  font-size: 11px;
 }
 
 .order-scroll {
   flex: 1 1 auto;
   min-height: 0;
+  padding: 0 8px 10px;
   overflow-y: auto;
 }
 
+/* 243px cards, 9px apart. */
 .order {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.5rem;
+  gap: 9px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .clear {
-  align-self: flex-start;
-  margin-top: 0.5rem;
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 11px;
+  text-decoration: underline;
+  cursor: pointer;
 }

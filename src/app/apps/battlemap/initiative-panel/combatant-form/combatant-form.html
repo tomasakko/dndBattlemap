@@ -2,7 +2,7 @@
   <div class="row">
     <label>
       Initiative
-      <input type="number" inputmode="numeric" step="1" formControlName="initiative" />
+      <input type="number" inputmode="numeric" step="1" formControlName="initiative" placeholder="Roll" />
     </label>
     <div class="type-search">
       <label for="type-input">Type</label>
@@ -56,9 +56,9 @@
       }
     </div>
   </div>
-  <label>
+  <label class="name-field">
     Name
-    <input type="text" formControlName="name" autocomplete="off" />
+    <input type="text" formControlName="name" autocomplete="off" placeholder="Name" />
   </label>
   <fieldset class="side">
     <legend>Side</legend>
@@ -68,12 +68,10 @@
     </label>
     <label class="choice">
       <input type="radio" formControlName="side" value="enemy" />
-      <span>NPC / Enemy</span>
+      <span>NPC/Enemy</span>
     </label>
   </fieldset>
-  <button type="submit" class="primary">
-    Add to order
-  </button>
+  <button type="submit" class="add-btn">Add to order</button>
 </form>
 @if (creaturesLoading()) {
   <p class="hint" role="status">Loading Monster Manual creatures...</p>

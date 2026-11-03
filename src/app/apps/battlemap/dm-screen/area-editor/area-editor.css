@@ -1,39 +1,45 @@
 :host {
   display: block;
+  padding: 8px 7px 9px;
+  color: var(--color-text);
+  font-size: 12px;
 }
 
 .area-tools {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-top: 0.5rem;
+  gap: 6px;
 
   span {
     flex: 1 0 100%;
+    font-size: 11px;
+    text-shadow: var(--text-shadow-on-map);
   }
 }
 
 .hint {
-  margin: 0.5rem 0 0;
+  margin: 8px 2px 0;
+  font-size: 11px;
 }
 
 .rooms {
   display: grid;
-  gap: 0.25rem;
-  margin: 0.5rem 0 0;
+  gap: 4px;
+  margin: 8px 0 0;
   padding: 0;
   list-style: none;
 
   li {
     display: grid;
-    grid-template-columns: 1.5rem minmax(0, 1fr) auto auto;
+    grid-template-columns: 17px minmax(0, 1fr) auto auto;
     align-items: center;
-    gap: 0.25rem;
-    border: 1px solid transparent;
+    gap: 5px;
+    padding: 2px 4px;
+    border-radius: 61px;
 
     &.highlight {
-      border-color: var(--room-color);
+      background: var(--color-highlight);
     }
   }
 
@@ -41,13 +47,16 @@
   .swatch {
     display: grid;
     place-items: center;
-    width: 1.4rem;
-    height: 1.4rem;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
     background: var(--room-color);
     color: black;
+    font-size: 10px;
+    font-weight: 500;
   }
 
   input {
-    min-width: 0;
+    width: 100%;
   }
 }

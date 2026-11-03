@@ -91,108 +91,144 @@
           </g>
         }
       </svg>
-
-      <div class="ui-toolbar" role="toolbar" aria-label="Map tools and player zoom">
-        <button
-          type="button"
-          class="ui-btn"
-          aria-label="Draw shape"
-          title="Draw shape"
-          [attr.aria-pressed]="tool() === 'draw'"
-          (click)="setTool('draw')"
-        >
-          Draw
-        </button>
-        <button
-          type="button"
-          class="ui-btn"
-          aria-label="Move player view"
-          title="Move player view"
-          [attr.aria-pressed]="tool() === 'view'"
-          (click)="setTool('view')"
-        >
-          Move view
-        </button>
-        <span class="ui-toolbar-separator" aria-hidden="true"></span>
-        <label class="player-zoom">
-          <span>Player Zoom</span>
-          <input
-            class="zoom-slider"
-            type="range"
-            aria-label="Player zoom"
-            step="0.05"
-            [min]="minZoom"
-            [max]="maxZoom"
-            [value]="view().zoom"
-            [disabled]="!map()"
-            (input)="onZoomSlider($event)"
-          />
-          <output class="zoom-value" aria-label="Player zoom level">{{ zoomPercent() }}%</output>
-        </label>
-      </div>
     } @else {
       <div class="empty">
-        <p>Upload a map image to get started.</p>
+        <app-file-button label="Add Battlemap" icon="add_circle" [link]="true" (fileSelected)="onFileSelected($event)" />
       </div>
     }
   </main>
 
-  <header class="top-actions">
-    <app-file-button label="Upload Map" (fileSelected)="onFileSelected($event)" />
-    @if (error()) {
-      <p class="ui-error" role="alert">{{ error() }}</p>
-    }
-    @if (persistenceError(); as message) {
-      <p class="ui-error" role="alert">{{ message }}</p>
-    }
-  </header>
-
-    @if (pendingMapFile()) {
-      <app-map-upload-dialog
-        [title]="mapTitle()"
-        (titleChanged)="mapTitle.set($event)"
-        (cancelled)="cancelMapUpload()"
-        (submitted)="confirmMapUpload()"
-      />
-    }
-  <app-control-dock
-    [panelOrder]="panelOrder()"
-    [panels]="panels()"
-    [dockWidth]="dockWidth()"
-    [shared]="shared()"
-    [shareDisabled]="shareDisabled()"
-    [shareLabel]="shareLabel()"
-    [hasMap]="!!map()"
-    [initiativeShared]="initiativeShared()"
-    [initiativeShareLabel]="initiativeShareLabel()"
-    [rooms]="rooms()"
-    [revealedCount]="revealedCount()"
-    (action)="onDockAction($event)"
-    (showTip)="showTip($event)"
-    (hideTip)="hideTip()"
-    (panelDragStart)="onPanelDragStart($event.id, $event.event)"
-    (setAll)="setAll($event)"
-    (renamed)="rename($event.room, $event.name)"
-    (toggled)="toggle($event)"
-    (removed)="remove($event)"
-  />
-
-  <ng-template #panelHead let-id="id" let-title="title">
-    <header class="section-heading drag-handle" title="Drag to move or detach" (pointerdown)="onPanelDragStart(id, $event)">
-      <h2>{{ title }}</h2>
+  @if (dragHint() || error() || persistenceError()) {
+    <header class="top-actions">
+      @if (dragHint(); as hint) {
+        <p class="hint" role="status">{{ hint }}</p>
+      }
+      @if (error()) {
+        <p class="ui-error" role="alert">{{ error() }}</p>
+      }
+      @if (persistenceError(); as message) {
+        <p class="ui-error" role="alert">{{ message }}</p>
+      }
     </header>
-  </ng-template>
+  }
 
-  <ng-template #initiativeTpl>
-    <div class="panel initiative-wrap" data-panel="initiative">
-      <ng-container *ngTemplateOutlet="panelHead; context: { id: 'initiative', title: 'Initiative Tracker' }" />
-      <app-initiative-panel class="initiative" />
+  @if (map()) {
+    <!-- Right-hand toolbar; the Initiative Tracker docks to its left. -->
+    <div class="side" [class.with-tracker]="trackerOpen()">
+      @if (trackerOpen()) {
+        <section class="tracker" aria-labelledby="tracker-title">
+          <header class="tracker-head">
+            <h2 id="tracker-title">{{ trackerView() === 'players' ? 'Saved Players' : 'Initiative Tracker' }}</h2>
+            <div class="tracker-actions">
+              <button
+                type="button"
+                class="mini"
+                [class.on]="initiativeShared()"
+                [attr.aria-pressed]="initiativeShared()"
+                [attr.aria-label]="initiativeShareLabel()"
+                [attr.title]="initiativeShareLabel()"
+                (click)="toggleInitiativeShared()"
+              >
+                <span class="icon" aria-hidden="true">{{ initiativeShared() ? 'visibility' : 'visibility_off' }}</span>
+              </button>
+              <button
+                type="button"
+                class="mini"
+                [class.on]="trackerView() === 'players'"
+                [attr.aria-pressed]="trackerView() === 'players'"
+                [attr.aria-label]="trackerView() === 'players' ? 'Back to the initiative order' : 'Show saved players'"
+                [attr.title]="trackerView() === 'players' ? 'Back to the initiative order' : 'Saved players'"
+                (click)="trackerView.set(trackerView() === 'players' ? 'order' : 'players')"
+              >
+                <span class="icon" aria-hidden="true">group</span>
+              </button>
+            </div>
+          </header>
+          @if (trackerView() === 'players') {
+            <app-player-roster class="tracker-body" />
+          } @else {
+            <app-initiative-panel class="tracker-body" />
+          }
+        </section>
+      }
+
+      <div class="map-tools" role="toolbar" aria-label="Battlemap tools" aria-orientation="vertical">
+        <app-file-button class="tool" label="Add battlemap" icon="add_circle" (fileSelected)="onFileSelected($event)" />
+        <button
+          type="button"
+          class="tool"
+          [class.off]="!shared()"
+          [attr.aria-pressed]="shared()"
+          [attr.aria-label]="shareLabel()"
+          [attr.title]="shareLabel()"
+          [disabled]="shareDisabled()"
+          (click)="toggleShare()"
+        >
+          <span class="icon" aria-hidden="true">{{ shared() ? 'visibility' : 'visibility_off' }}</span>
+        </button>
+        <button
+          type="button"
+          class="tool"
+          [class.active]="trackerOpen()"
+          [attr.aria-pressed]="trackerOpen()"
+          [attr.aria-label]="trackerOpen() ? 'Hide initiative tracker' : 'Show initiative tracker'"
+          title="Initiative tracker"
+          (click)="toggleTracker()"
+        >
+          <span class="icon" aria-hidden="true">casino</span>
+        </button>
+        <button
+          type="button"
+          class="tool"
+          [class.active]="tool() === 'draw'"
+          [attr.aria-pressed]="tool() === 'draw'"
+          aria-label="Draw areas"
+          title="Draw areas: click to place corners, click the first corner to finish"
+          (click)="toggleTool('draw')"
+        >
+          <span class="icon" aria-hidden="true">border_color</span>
+        </button>
+        <button
+          type="button"
+          class="tool"
+          [class.active]="tool() === 'view'"
+          [attr.aria-pressed]="tool() === 'view'"
+          aria-label="Move player view"
+          title="Move the player view: drag on the map or use the arrow keys"
+          (click)="toggleTool('view')"
+        >
+          <span class="icon" aria-hidden="true">open_with</span>
+        </button>
+      </div>
     </div>
-  </ng-template>
 
-  <ng-template #areaTpl>
-    <section class="area-editor panel" data-panel="area">
-      <ng-container *ngTemplateOutlet="panelHead; context: { id: 'area', title: 'Area Editor' }" />
+    <!-- Player zoom, centred on the bottom edge. -->
+    <div class="zoom-bar" role="group" aria-label="Player view">
+      <button type="button" class="mini" aria-label="Fit my view" title="Fit my view to the whole map" (click)="fitDmView()">
+        <span class="icon" aria-hidden="true">fit_screen</span>
+      </button>
+      <input
+        class="zoom-slider"
+        type="range"
+        aria-label="Player zoom"
+        step="0.05"
+        [min]="minZoom"
+        [max]="maxZoom"
+        [value]="view().zoom"
+        [style.--fill]="zoomFill()"
+        [attr.title]="'Player zoom ' + zoomPercent() + '%'"
+        (input)="onZoomSlider($event)"
+      />
+      <button type="button" class="mini" aria-label="Reset player view" title="Reset the player view" (click)="resetView()">
+        <span class="icon" aria-hidden="true">restart_alt</span>
+      </button>
+    </div>
+
+    <details class="area-list">
+      <summary>
+        <span>Areas</span>
+        <span class="caret" aria-hidden="true"></span>
+      </summary>
       <app-area-editor
         [rooms]="rooms()"
         [revealedCount]="revealedCount()"
@@ -201,31 +237,15 @@
         (toggled)="toggle($event)"
         (removed)="remove($event)"
       />
-    </section>
-  </ng-template>
-  <ng-template #playersTpl>
-    <section class="player-roster-wrap panel" data-panel="players">
-      <ng-container *ngTemplateOutlet="panelHead; context: { id: 'players', title: 'Saved Players' }" />
-      <app-player-roster class="player-roster" />
-    </section>
-  </ng-template>
-  @if (tip(); as t) {
-    <div class="tooltip" role="tooltip" [style.left.px]="t.x" [style.top.px]="t.y">{{ t.text }}</div>
+    </details>
   }
 
-  @if (panels().initiative.visible && panels().initiative.floating) {
-    <div class="floating-panel" [class.snap-ready]="snapReady() === 'initiative'" [class.snap-top]="snapReady() === 'initiative' && snapEdge() === 'top'" [style.left.px]="panels().initiative.x" [style.top.px]="panels().initiative.y" [style.z-index]="panels().initiative.z" (pointerdown)="raisePanel('initiative')">
-      <ng-container *ngTemplateOutlet="initiativeTpl" />
-    </div>
-  }
-  @if (panels().area.visible && panels().area.floating) {
-    <div class="floating-panel" [class.snap-ready]="snapReady() === 'area'" [class.snap-top]="snapReady() === 'area' && snapEdge() === 'top'" [style.left.px]="panels().area.x" [style.top.px]="panels().area.y" [style.z-index]="panels().area.z" (pointerdown)="raisePanel('area')">
-      <ng-container *ngTemplateOutlet="areaTpl" />
-    </div>
-  }
-  @if (panels().players.visible && panels().players.floating) {
-    <div class="floating-panel" [class.snap-ready]="snapReady() === 'players'" [class.snap-top]="snapReady() === 'players' && snapEdge() === 'top'" [style.left.px]="panels().players.x" [style.top.px]="panels().players.y" [style.z-index]="panels().players.z" (pointerdown)="raisePanel('players')">
-      <ng-container *ngTemplateOutlet="playersTpl" />
-    </div>
+  @if (pendingMapFile()) {
+    <app-map-upload-dialog
+      [title]="mapTitle()"
+      (titleChanged)="mapTitle.set($event)"
+      (cancelled)="cancelMapUpload()"
+      (submitted)="confirmMapUpload()"
+    />
   }
 </div>
