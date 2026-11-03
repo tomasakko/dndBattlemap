@@ -6,9 +6,9 @@
       <span class="icon" aria-hidden="true">{{ icon }}</span>
     }
   </label>
-} @else if (icon(); as icon) {
+} @else if (icon()) {
   <label class="icon-button" [for]="inputId" [attr.title]="label()">
-    <span class="icon" aria-hidden="true">{{ icon }}</span>
+    <span class="icon" aria-hidden="true">{{ icon() }}</span>
     <span class="visually-hidden">{{ label() }}</span>
   </label>
 } @else {
