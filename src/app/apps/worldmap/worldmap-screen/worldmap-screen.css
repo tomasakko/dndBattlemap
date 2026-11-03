@@ -107,16 +107,18 @@ button.tool:hover {
   outline-offset: 2px;
 }
 
-/* "Markers" tab on the bottom edge; its list opens upwards. */
+/*
+ * "Markers" tab on the bottom edge of the map. Opened, the header stays on top and the list
+ * hangs below it; the block is anchored to the bottom, so it grows upwards.
+ */
 .marker-list {
   position: absolute;
   z-index: 1000;
   right: 12px;
   bottom: 0;
-  display: flex;
-  flex-direction: column-reverse;
   width: 178px;
   color: var(--color-text);
+  filter: drop-shadow(3px 4px 4px rgb(0 0 0 / 25%));
 }
 
 .marker-list summary {
@@ -154,7 +156,7 @@ button.tool:hover {
   border-right: 4.5px solid transparent;
 }
 
-/* Under the header: #626262 with dark side borders, 25px rows. */
+/* Under the header: #626262 with dark side borders, 25.5px rows, down to the map's bottom edge. */
 .marker-list ul {
   max-height: 217px;
   margin: 0;
@@ -165,7 +167,6 @@ button.tool:hover {
   border: solid var(--color-bg);
   border-width: 0 2px;
   background: var(--color-surface);
-  box-shadow: 3px 4px 4px rgb(0 0 0 / 25%);
 }
 
 .marker-item {
