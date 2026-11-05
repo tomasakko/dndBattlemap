@@ -1,6 +1,7 @@
 import { Component, ElementRef, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { InitiativeService, Side } from '../../services/initiative.service';
+import type { Side } from '../../domain/model';
+import { InitiativeService } from '../../state/initiative.service';
 import { CreatureService } from '../../../../shared/creatures/creature.service';
 
 @Component({
@@ -137,7 +138,7 @@ export class CombatantForm {
     }
     this.error.set('');
     this.initiative.add(
-      autoName ? this.numberedName(type) : name.trim(),
+      autoName ? this.initiative.numberedName(type) : name.trim(),
       Math.round(initiative!),
       type,
       side,
@@ -146,15 +147,4 @@ export class CombatantForm {
     this.form.markAsUntouched();
   }
 
-  private numberedName(type: string): string {
-    const label = this.creatures.findById(type)?.label ?? type;
-    const pattern = new RegExp(
-      '^' + label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' (\\d+)$',
-      'i',
-    );
-    const highest = this.initiative
-      .combatants()
-      .reduce((max, combatant) => Math.max(max, Number(pattern.exec(combatant.name)?.[1] ?? 0)), 0);
-    return `${label} ${highest + 1}`;
-  }
 }

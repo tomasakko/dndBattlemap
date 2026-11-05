@@ -1,5 +1,7 @@
-@if (initiative.shared() && map()) {
-  <app-player-initiative-bar [turns]="turnOrder()" />
+@if (turnOrder(); as turns) {
+  @if (map()) {
+    <app-player-initiative-bar [turns]="turns" />
+  }
 }
 
 <div class="stage" #stage>
@@ -39,7 +41,3 @@
 }
 
 </div>
-
-<button type="button" class="fullscreen" (click)="toggleFullscreen()">
-  {{ isFullscreen() ? 'Exit full screen' : 'Full screen' }}
-</button>

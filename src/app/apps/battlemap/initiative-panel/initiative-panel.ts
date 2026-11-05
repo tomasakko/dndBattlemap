@@ -1,7 +1,7 @@
 import { Component, ElementRef, afterRenderEffect, computed, inject, signal } from '@angular/core';
 import { ConfirmService } from '../../../shared/ui/confirm-dialog/confirm.service';
-import { InitiativeService } from '../services/initiative.service';
-import type { Combatant } from '../services/initiative.service';
+import type { Combatant } from '../domain/model';
+import { InitiativeService } from '../state/initiative.service';
 import { StatblockCard } from '../statblock-card/statblock-card';
 import { CombatantForm } from './combatant-form/combatant-form';
 import { CombatantRow } from './combatant-row/combatant-row';

@@ -1,43 +1,26 @@
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  computed,
-  effect,
-  inject,
-  signal,
-  untracked,
-  viewChild,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
-import { InitiativePanel } from '../initiative-panel/initiative-panel';
-import { PlayerRoster } from '../player-roster/player-roster';
-import {
-  BattlemapService,
-  MAX_ZOOM,
-  MIN_ZOOM,
-  Point,
-  Room,
-  View,
-  viewRect,
-} from '../services/battlemap.service';
-import { InitiativeService } from '../services/initiative.service';
-import { AreaEditor } from './area-editor/area-editor';
+import { Component, ElementRef, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { ConfirmService } from '../../../shared/ui/confirm-dialog/confirm.service';
 import { FileButton } from '../../../shared/ui/file-button/file-button';
 import { MapUploadDialog } from '../../../shared/ui/map-upload-dialog/map-upload-dialog';
 import { titleFromFileName } from '../../../shared/util/text';
-import { WorldmapService } from '../../worldmap/worldmap.service';
-import { PlayerWindowService } from '../../../suite/player-window.service';
+import { PlayerStageService } from '../../../suite/presentation/player-stage.service';
 import { PanelTabsService } from '../../../suite/shell/panel-tabs.service';
-import type { PanelTab } from '../../../suite/shell/panel-tabs.service';
+import type { Point, Room } from '../domain/model';
+import { centroid, pointsAttr, roomColor } from '../domain/rooms';
+import { MAX_ZOOM, MIN_ZOOM, dimPath, viewRect } from '../domain/viewport';
+import { InitiativePanel } from '../initiative-panel/initiative-panel';
+import { PlayerRoster } from '../player-roster/player-roster';
+import { BattlemapStore } from '../state/battlemap.store';
+import { InitiativeService } from '../state/initiative.service';
+import { battlemapMaps } from '../suite/battlemap.sidebar';
+import { AreaEditor } from './area-editor/area-editor';
+import { AreaDraft } from './board/area-draft';
+import { BoardViewport } from './board/board-viewport';
 
 /** Toolbar tools; with none chosen, dragging pans the DM's own view. */
 type Tool = 'draw' | 'view';
 
-const ZOOM_STEP = 1.25;
-const GOLDEN_ANGLE = 137.508;
+const APP_ID = 'battlemap';
 
 @Component({
   selector: 'app-dm-screen',
@@ -50,126 +33,84 @@ const GOLDEN_ANGLE = 137.508;
   },
 })
 export class DmScreen {
-  private readonly battlemap = inject(BattlemapService);
+  private readonly store = inject(BattlemapStore);
   private readonly initiative = inject(InitiativeService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly worldmap = inject(WorldmapService);
+  private readonly stage = inject(PlayerStageService);
   private readonly confirm = inject(ConfirmService);
-  private readonly playerWindow = inject(PlayerWindowService);
   private readonly svg = viewChild<ElementRef<SVGSVGElement>>('board');
+
   /** The Initiative Tracker docked next to the toolbar, and what it shows. */
   protected readonly trackerOpen = signal(true);
   protected readonly trackerView = signal<'order' | 'players'>('order');
   /** The Areas list on the bottom edge. */
   protected readonly areasOpen = signal(false);
 
-  protected readonly map = this.battlemap.map;
-  protected readonly rooms = this.battlemap.rooms;
+  protected readonly map = computed(() => this.store.current()?.map ?? null);
+  protected readonly rooms = computed(() => this.store.current()?.rooms ?? []);
+  /** What the players see of the open map. */
+  protected readonly view = computed(() => this.store.current()?.view ?? { zoom: 1, cx: 0, cy: 0 });
   protected readonly tool = signal<Tool | null>(null);
-  protected readonly shapeDraft = signal<Point[]>([]);
   protected readonly error = signal('');
-  protected readonly persistenceError = this.battlemap.persistenceError;
+  protected readonly persistenceError = this.store.persistenceError;
   protected readonly highlightedId = signal<string | null>(null);
-
-  /** The DM's own zoom/pan. Independent from what the players see. */
-  protected readonly dmView = signal<View>({ zoom: 1, cx: 0, cy: 0 });
   protected readonly dragging = signal<'view' | 'pan' | null>(null);
 
-  protected readonly shared = this.battlemap.shared;
-  protected readonly initiativeShared = this.initiative.shared;
-  protected readonly maps = this.battlemap.maps;
-  protected readonly currentId = this.battlemap.currentId;
-  protected readonly pendingMapFile = signal<File | null>(null);
-  protected readonly mapTabs = computed<PanelTab[]>(() =>
-    this.maps().map((entry) => ({
-      id: entry.id,
-      label: entry.name,
-      ...(entry.id === this.sharedId() ? { note: 'shown to players' } : {}),
-    })),
-  );
-  protected readonly mapTitle = signal('');
-  protected readonly sharedId = this.battlemap.sharedId;
-  protected readonly locked = this.battlemap.locked;
-  protected readonly shareLabel = computed(() =>
-    this.shared()
-      ? 'Hide map from players'
-      : this.sharedId()
-        ? 'Show this map to players'
-        : 'Share map with players',
-  );
-  protected readonly shareDisabled = computed(
-    () => !this.map() || (!this.shared() && !this.battlemap.canShare()),
-  );
-  protected readonly initiativeShareLabel = computed(() =>
-    this.initiativeShared()
-      ? 'Hide initiative tracker from players'
-      : 'Show initiative tracker to players',
-  );
+  private readonly board = new BoardViewport(this.map);
+  private readonly draft = new AreaDraft();
+  protected readonly viewBox = this.board.viewBox;
+  protected readonly shapeDraft = this.draft.points;
+  protected readonly draftPoints = this.draft.pointsAttr;
 
-  protected readonly dmRect = computed(() => {
-    const map = this.map();
-    if (!map) {
-      return null;
-    }
-    const { zoom, cx, cy } = this.dmView();
-    const w = map.width / zoom;
-    const h = map.height / zoom;
-    return { x: cx - w / 2, y: cy - h / 2, w, h };
-  });
-  protected readonly viewBox = computed(() => {
-    const r = this.dmRect();
-    return r ? `${r.x} ${r.y} ${r.w} ${r.h}` : '';
-  });
+  protected readonly initiativeShared = this.initiative.shared;
+  protected readonly pendingMapFile = signal<File | null>(null);
+  protected readonly mapTitle = signal('');
+  protected readonly locked = this.store.locked;
+  /** Players see the open map. */
+  protected readonly shared = computed(() => this.stage.isShowing(APP_ID, this.store.currentId(), 'shared'));
+  /** Players see another battlemap. */
+  private readonly otherShared = computed(() => this.stage.isShowing(APP_ID) && !this.shared());
+  protected readonly shareLabel = computed(() =>
+    this.shared() ? 'Hide map from players' : this.otherShared() ? 'Show this map to players' : 'Share map with players',
+  );
+  /** During a fight the DM can't move the players to another map. */
+  protected readonly shareDisabled = computed(() => !this.map() || (!this.shared() && this.otherShared() && this.locked()));
+  protected readonly initiativeShareLabel = computed(() =>
+    this.initiativeShared() ? 'Hide initiative tracker from players' : 'Show initiative tracker to players',
+  );
 
   /** Sizes of on-map annotations, kept constant relative to the visible area. */
-  protected readonly handleRadius = computed(() => (this.dmRect()?.w ?? 1000) * 0.007);
-  protected readonly labelSize = computed(() => (this.dmRect()?.w ?? 1000) * 0.018);
+  protected readonly handleRadius = computed(() => (this.board.rect()?.w ?? 1000) * 0.007);
+  protected readonly labelSize = computed(() => (this.board.rect()?.w ?? 1000) * 0.018);
 
   protected readonly roomViews = computed(() =>
-    this.rooms().map((room, index) => {
-      const hue = Math.round((index * GOLDEN_ANGLE) % 360);
-      const center = centroid(room.points);
-      return {
-        room,
-        index,
-        number: index + 1,
-        hue,
-        color: `hsl(${hue} 85% 55%)`,
-        points: toAttr(room.points),
-        center,
-      };
-    }),
+    this.rooms().map((room, index) => ({
+      room,
+      index,
+      number: index + 1,
+      color: roomColor(index),
+      points: pointsAttr(room.points),
+      center: centroid(room.points),
+    })),
   );
-
-  protected readonly draftPoints = computed(() => toAttr(this.shapeDraft()));
 
   /** Check/undo buttons shown next to the most recently placed point. */
   protected readonly draftActions = computed(() => {
-    const points = this.shapeDraft();
+    const points = this.draft.points();
     const last = points[points.length - 1];
-    if (!last) {
-      return null;
-    }
-    const size = this.handleRadius() * 2.2;
-    return { x: last.x, y: last.y, size, canFinish: points.length >= 3 };
+    return last ? { x: last.x, y: last.y, size: this.handleRadius() * 2.2, canFinish: this.draft.canFinish() } : null;
   });
 
   protected readonly revealedCount = computed(() => this.rooms().filter((r) => r.revealed).length);
 
-  protected readonly view = this.battlemap.view;
   protected readonly playerRect = computed(() => {
     const map = this.map();
-    return map ? viewRect(map, this.view(), this.battlemap.playerAspect()) : null;
+    return map ? viewRect(map, this.view(), this.store.playerAspect()) : null;
   });
-  // The dimmed area outside the player's view; evenodd fill cuts the player rect out of the full map.
+  /** The dimmed area outside the player's view. */
   protected readonly dimPath = computed(() => {
     const map = this.map();
-    const r = this.playerRect();
-    if (!map || !r) {
-      return '';
-    }
-    return `M0 0H${map.width}V${map.height}H0Z M${r.x} ${r.y}h${r.w}v${r.h}h${-r.w}Z`;
+    const rect = this.playerRect();
+    return map && rect ? dimPath(map, rect) : '';
   });
   protected readonly zoomPercent = computed(() => Math.round(this.view().zoom * 100));
   /** How far along the zoom slider is, for the darker part of its track. */
@@ -180,7 +121,7 @@ export class DmScreen {
   protected readonly dragHint = computed(() => {
     switch (this.tool()) {
       case 'draw':
-        return this.shapeDraft().length === 0
+        return this.draft.points().length === 0
           ? 'Click on the map to start an area'
           : 'Click to add corners; click the first corner to finish';
       case 'view':
@@ -193,41 +134,15 @@ export class DmScreen {
   protected readonly maxZoom = MAX_ZOOM;
 
   constructor() {
-    inject(PanelTabsService).register({
-      appId: 'battlemap',
-      ariaLabel: 'Battlemaps',
-      tabs: this.mapTabs,
-      currentId: this.currentId,
-      removeLabel: 'Delete map ',
-      locked: this.locked,
-      lockedNote: 'End combat to switch maps.',
-      select: (id) => this.selectMap(id),
-      remove: (tab) => void this.removeMap(tab.id, tab.label),
-    });
-    this.battlemap.startHost();
-    this.initiative.startHost();
-    this.worldmap.startHost();
-    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
-      const linkedMapId = params.get('linkedMapId');
-      if (linkedMapId) {
-        this.worldmap.showLinkedBattlemap(linkedMapId);
-        this.battlemap.openLinkedMap(linkedMapId);
-      } else {
-        this.worldmap.clearLinkedBattlemap();
-        this.battlemap.clearLinkedPlayerMap();
-      }
-    });
-    const map = this.map();
-    if (map) {
-      this.fitDmView();
-    }
+    inject(PanelTabsService).register({ appId: APP_ID, ...battlemapMaps(() => this.cancelDraft()) });
+    // A different map (switched, loaded from a project, …) starts fully in view with no half-drawn area.
     effect(() => {
-      if (this.battlemap.importCount() > 0) {
-        untracked(() => {
-          this.cancelDraft();
-          this.fitDmView();
-        });
-      }
+      this.store.currentId();
+      this.store.replacedCount();
+      untracked(() => {
+        this.draft.cancel();
+        this.board.fit();
+      });
     });
   }
 
@@ -250,12 +165,11 @@ export class DmScreen {
     try {
       this.error.set('');
       this.cancelDraft();
-      await this.battlemap.addMap(file, name);
-      this.pendingMapFile.set(null);
-      this.fitDmView();
+      await this.store.addMap(file, name);
     } catch {
-      this.pendingMapFile.set(null);
       this.error.set('That file could not be loaded as an image.');
+    } finally {
+      this.pendingMapFile.set(null);
     }
   }
 
@@ -270,7 +184,7 @@ export class DmScreen {
   }
 
   protected toggleInitiativeShared(): void {
-    this.battlemap.setInitiativeShared(!this.initiativeShared());
+    this.initiative.setShared(!this.initiativeShared());
   }
 
   protected onBoardPointerDown(event: PointerEvent): void {
@@ -282,12 +196,7 @@ export class DmScreen {
     if (event.button === 1 || (event.button === 0 && this.tool() === null)) {
       event.preventDefault();
       svg.setPointerCapture(event.pointerId);
-      this.panOrigin = {
-        x: event.clientX,
-        y: event.clientY,
-        view: this.dmView(),
-        scale: svg.getScreenCTM()!.a,
-      };
+      this.board.startPan(event.clientX, event.clientY, svg.getScreenCTM()?.a ?? 1);
       this.dragging.set('pan');
       return;
     }
@@ -309,18 +218,16 @@ export class DmScreen {
 
   protected onBoardPointerMove(event: PointerEvent): void {
     const dragging = this.dragging();
-    if (dragging === 'pan' && this.panOrigin) {
-      const o = this.panOrigin;
-      this.setDmView({
-        ...o.view,
-        cx: o.view.cx - (event.clientX - o.x) / o.scale,
-        cy: o.view.cy - (event.clientY - o.y) / o.scale,
-      });
-      return;
-    }
-    if (dragging === 'view') {
+    if (dragging === 'pan') {
+      this.board.movePan(event.clientX, event.clientY);
+    } else if (dragging === 'view') {
       this.centerPlayerViewOn(this.toMapPoint(event));
     }
+  }
+
+  protected onBoardPointerUp(): void {
+    this.board.endPan();
+    this.dragging.set(null);
   }
 
   protected onArrowKey(event: KeyboardEvent): void {
@@ -334,201 +241,96 @@ export class DmScreen {
     const step = steps[event.key];
     const target = event.target as HTMLElement | null;
     const typing = !!target?.closest('input, select, textarea, [contenteditable], summary');
-    if (
-      !map ||
-      !step ||
-      this.tool() !== 'view' ||
-      typing ||
-      event.altKey ||
-      event.ctrlKey ||
-      event.metaKey
-    ) {
+    if (!map || !step || this.tool() !== 'view' || typing || event.altKey || event.ctrlKey || event.metaKey) {
       return;
     }
     event.preventDefault();
     const view = this.view();
     const amount = ((event.shiftKey ? 0.1 : 0.02) * map.width) / view.zoom;
-    this.battlemap.setView({
-      ...view,
-      cx: view.cx + step[0] * amount,
-      cy: view.cy + step[1] * amount,
-    });
-  }
-
-  protected onBoardPointerUp(): void {
-    if (this.dragging()) {
-      this.dragging.set(null);
-      this.panOrigin = null;
-    }
+    this.store.setView({ ...view, cx: view.cx + step[0] * amount, cy: view.cy + step[1] * amount });
   }
 
   /** The mouse wheel zooms the DM's own map, keeping the point under the cursor fixed. */
   protected onWheel(event: WheelEvent): void {
     event.preventDefault();
-    const under = this.toMapPoint(event);
-    this.zoomDmView(event.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP, under);
-  }
-
-  protected selectMap(id: string): void {
-    this.cancelDraft();
-    this.battlemap.selectMap(id);
-    this.fitDmView();
-  }
-
-  protected async removeMap(id: string, name: string): Promise<void> {
-    if (await this.confirm.ask('Remove the map "' + name + '" and its shapes?')) {
-      this.cancelDraft();
-      this.battlemap.removeMap(id);
-      this.fitDmView();
-    }
+    this.board.zoomStep(event.deltaY < 0 ? 1 : -1, this.toMapPoint(event));
   }
 
   /**
-   * Sharing the map also opens the player screen, or switches it over from the world map.
-   * Players see one app at a time, so the world map stops being shown and its eye turns off.
+   * Shows the open map to the players (opening their window if needed), or hides it.
+   * Players see one thing at a time, so this replaces whatever they saw.
    */
   protected toggleShare(): void {
-    const show = !this.shared();
-    this.battlemap.setShared(show);
-    if (show && this.shared()) {
-      this.worldmap.setShared(false);
-      this.playerWindow.show('battlemap');
+    const id = this.store.currentId();
+    if (this.shared()) {
+      this.stage.hide();
+    } else if (id && !this.shareDisabled()) {
+      this.stage.present({ app: APP_ID, mapId: id, mode: 'shared' }, { openWindow: true });
     }
   }
 
   protected fitDmView(): void {
-    const map = this.map();
-    if (map) {
-      this.dmView.set({ zoom: 1, cx: map.width / 2, cy: map.height / 2 });
-    }
-  }
-
-  protected zoomBy(factor: number): void {
-    this.battlemap.setView({ ...this.view(), zoom: this.view().zoom * factor });
+    this.board.fit();
   }
 
   protected onZoomSlider(event: Event): void {
     const zoom = Number((event.target as HTMLInputElement).value);
-    this.battlemap.setView({ ...this.view(), zoom });
+    this.store.setView({ ...this.view(), zoom });
   }
 
   protected resetView(): void {
-    this.battlemap.resetView();
+    this.store.resetView();
   }
 
   protected finishShape(): void {
-    const points = this.shapeDraft();
-    if (points.length >= 3) {
-      this.battlemap.addRoom(points);
+    const points = this.draft.finish();
+    if (points) {
+      this.store.addRoom(points);
     }
-    this.shapeDraft.set([]);
   }
 
   protected undoShapePoint(): void {
-    this.shapeDraft.update((points) => points.slice(0, -1));
+    this.draft.undo();
   }
 
   protected cancelDraft(): void {
-    this.shapeDraft.set([]);
+    this.draft.cancel();
   }
 
   protected toggle(room: Room): void {
-    this.battlemap.toggleRoom(room.id);
+    this.store.toggleRoom(room.id);
   }
 
   protected remove(room: Room): void {
-    this.battlemap.removeRoom(room.id);
+    this.store.removeRoom(room.id);
   }
 
   protected rename(room: Room, value: string): void {
-    const name = value.trim();
-    this.battlemap.renameRoom(room.id, name || room.name);
+    this.store.renameRoom(room.id, value);
   }
 
   protected setAll(revealed: boolean): void {
-    this.battlemap.setAllRevealed(revealed);
+    this.store.setAllRevealed(revealed);
   }
-
-  private panOrigin: { x: number; y: number; view: View; scale: number } | null = null;
 
   private centerPlayerViewOn(point: Point): void {
-    this.battlemap.setView({ ...this.view(), cx: point.x, cy: point.y });
-  }
-
-  private zoomDmView(factor: number, anchor?: Point): void {
-    const map = this.map();
-    if (!map) {
-      return;
-    }
-    const view = this.dmView();
-    const zoom = Math.min(MAX_ZOOM * 2, Math.max(MIN_ZOOM, view.zoom * factor));
-    const a = anchor ?? { x: view.cx, y: view.cy };
-    const ratio = view.zoom / zoom;
-    this.setDmView({ zoom, cx: a.x - (a.x - view.cx) * ratio, cy: a.y - (a.y - view.cy) * ratio });
-  }
-
-  private setDmView(view: View): void {
-    const map = this.map();
-    if (!map) {
-      return;
-    }
-    const zoom = Math.min(MAX_ZOOM * 2, Math.max(MIN_ZOOM, view.zoom));
-    const halfW = map.width / zoom / 2;
-    const halfH = map.height / zoom / 2;
-    this.dmView.set({
-      zoom,
-      cx: Math.min(map.width - halfW, Math.max(halfW, view.cx)),
-      cy: Math.min(map.height - halfH, Math.max(halfH, view.cy)),
-    });
+    this.store.setView({ ...this.view(), cx: point.x, cy: point.y });
   }
 
   private addShapePoint(point: Point): void {
-    const points = this.shapeDraft();
-    const first = points[0];
-    const closeDistance = this.handleRadius() * 2;
-    if (
-      first &&
-      points.length >= 3 &&
-      Math.hypot(point.x - first.x, point.y - first.y) <= closeDistance
-    ) {
-      this.finishShape();
-    } else {
-      this.shapeDraft.set([...points, point]);
+    const finished = this.draft.add(point, this.handleRadius() * 2);
+    if (finished) {
+      this.store.addRoom(finished);
     }
   }
 
   private toMapPoint(event: { clientX: number; clientY: number }): Point {
-    const svg = this.svg()!.nativeElement;
-    const matrix = svg.getScreenCTM()!.inverse();
+    const svg = this.svg()?.nativeElement;
+    const matrix = svg?.getScreenCTM()?.inverse();
+    if (!matrix) {
+      return { x: 0, y: 0 };
+    }
     const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix);
     return { x: point.x, y: point.y };
   }
-}
-
-function toAttr(points: Point[]): string {
-  return points.map((p) => `${p.x},${p.y}`).join(' ');
-}
-
-/** Area centroid of a polygon, falling back to the bounding-box centre for degenerate shapes. */
-function centroid(points: Point[]): Point {
-  let area = 0;
-  let cx = 0;
-  let cy = 0;
-  for (let i = 0; i < points.length; i++) {
-    const a = points[i];
-    const b = points[(i + 1) % points.length];
-    const cross = a.x * b.y - b.x * a.y;
-    area += cross;
-    cx += (a.x + b.x) * cross;
-    cy += (a.y + b.y) * cross;
-  }
-  if (Math.abs(area) < 1e-6) {
-    const xs = points.map((p) => p.x);
-    const ys = points.map((p) => p.y);
-    return {
-      x: (Math.min(...xs) + Math.max(...xs)) / 2,
-      y: (Math.min(...ys) + Math.max(...ys)) / 2,
-    };
-  }
-  return { x: cx / (3 * area), y: cy / (3 * area) };
 }

@@ -1,7 +1,7 @@
 :host {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
 }
 
 .stage {
@@ -66,18 +66,5 @@
 
   .fog {
     animation: none;
-  }
-}
-
-/* Revealed on hover so it doesn't cover the player view. */
-.fullscreen {
-  position: fixed;
-  top: 0.75rem;
-  right: 0.75rem;
-  opacity: 0;
-
-  &:hover,
-  &:focus-visible {
-    opacity: 1;
   }
 }

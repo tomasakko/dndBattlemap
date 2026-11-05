@@ -1,64 +1,72 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, signal, viewChild } from '@angular/core';
-import { BattlemapService, viewBoxFor, viewRect } from '../services/battlemap.service';
-import { InitiativeService } from '../services/initiative.service';
 import { CreatureService } from '../../../shared/creatures/creature.service';
+import { pointsAttr } from '../domain/rooms';
+import { viewBoxFor, viewRect } from '../domain/viewport';
+import { BattlemapMirror } from '../sync/battlemap.mirror';
 import { PlayerInitiativeBar } from './player-initiative-bar/player-initiative-bar';
 
+const ARROW_STEPS: Record<string, [number, number]> = {
+  ArrowUp: [0, -1],
+  ArrowDown: [0, 1],
+  ArrowLeft: [-1, 0],
+  ArrowRight: [1, 0],
+};
+
+/** What players see of the battlemap: the map under animated fog, and the turn order if the DM shares it. */
 @Component({
-  selector: 'app-player-screen',
+  selector: 'app-battlemap-player-screen',
   imports: [PlayerInitiativeBar],
+  providers: [BattlemapMirror],
   templateUrl: './player-screen.html',
   styleUrl: './player-screen.css',
   host: {
-    '(document:fullscreenchange)': 'syncFullscreen()',
     '(window:resize)': 'reportAspect()',
     '(window:keydown)': 'onKeydown($event)',
   },
 })
-export class PlayerScreen {
+export class BattlemapPlayerScreen {
   private readonly document = inject(DOCUMENT);
-  private readonly battlemap = inject(BattlemapService);
-  protected readonly initiative = inject(InitiativeService);
+  private readonly mirror = inject(BattlemapMirror);
   private readonly creatures = inject(CreatureService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
   private readonly stage = viewChild<ElementRef<HTMLElement>>('stage');
 
-  protected readonly map = this.battlemap.map;
-  protected readonly isFullscreen = signal(false);
+  protected readonly map = this.mirror.image;
   private readonly longestSide = computed(() => Math.max(this.map()?.width ?? 1000, this.map()?.height ?? 1000));
   private readonly fogTiles = [createFogTile(7), createFogTile(19)];
   private readonly aspect = signal(this.currentAspect());
   protected readonly viewBox = computed(() => {
     const map = this.map();
-    return map ? viewBoxFor(viewRect(map, this.battlemap.view(), this.aspect())) : '';
+    const view = this.mirror.view();
+    return map && view ? viewBoxFor(viewRect(map, view, this.aspect())) : '';
   });
   /** Soft fog edge and noise scale, relative to the map size so they look the same on any image. */
   protected readonly feather = computed(() => this.longestSide() * 0.008);
   protected readonly tileA = computed(() => this.longestSide() * 0.7);
   protected readonly tileB = computed(() => this.longestSide() * 0.45);
-  protected readonly turnOrder = computed(() =>
-    this.initiative.ordered().map((c) => ({
-      id: c.id,
-      name: c.name,
-      image: this.creatures.findById(c.type)?.image,
-      player: c.side === 'player',
-      active: c.id === this.initiative.activeId(),
-      down: c.down === true,
-    })),
-  );
+  protected readonly turnOrder = computed(() => {
+    const initiative = this.mirror.initiative();
+    if (!initiative) {
+      return null;
+    }
+    return [...initiative.combatants]
+      .sort((a, b) => b.initiative - a.initiative)
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        image: this.creatures.findById(c.type)?.image,
+        player: c.side === 'player',
+        active: c.id === initiative.activeId,
+        down: c.down,
+      }));
+  });
   protected readonly roomViews = computed(() =>
-    this.battlemap.rooms().map((room) => ({
-      id: room.id,
-      revealed: room.revealed,
-      points: room.points.map((p) => `${p.x},${p.y}`).join(' '),
-    })),
+    this.mirror.rooms().map((room) => ({ id: room.id, revealed: room.revealed, points: pointsAttr(room.points) })),
   );
 
   constructor() {
-    this.battlemap.startViewer();
-    this.initiative.startViewer();
     this.reportAspect();
 
     // The map area shrinks when the initiative bar appears, so its own size drives the aspect ratio.
@@ -71,8 +79,9 @@ export class PlayerScreen {
       }
     });
 
+    this.destroyRef.onDestroy(() => this.fogTiles.forEach((url) => URL.revokeObjectURL(url)));
+
     effect(() => {
-      this.initiative.activeId();
       this.turnOrder();
       setTimeout(() => this.host.nativeElement.querySelector('.combatant.active')?.scrollIntoView({ block: 'nearest' }));
     });
@@ -82,11 +91,12 @@ export class PlayerScreen {
     return this.fogTiles[layer - 1];
   }
 
+  /** Arrow keys move the view (Shift: further); the DM's window decides where it ends up. */
   protected onKeydown(event: KeyboardEvent): void {
-    if (!this.map() || !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+    const direction = ARROW_STEPS[event.key];
+    if (!this.map() || !direction) {
       return;
     }
-
     const target = event.target;
     if (
       target instanceof HTMLElement &&
@@ -94,35 +104,15 @@ export class PlayerScreen {
     ) {
       return;
     }
-
     event.preventDefault();
     const step = event.shiftKey ? 0.5 : 0.1;
-    const directions: Record<string, [number, number]> = {
-      ArrowUp: [0, -step],
-      ArrowDown: [0, step],
-      ArrowLeft: [-step, 0],
-      ArrowRight: [step, 0],
-    };
-    const [dx, dy] = directions[event.key];
-    this.battlemap.requestPan(dx, dy);
+    this.mirror.requestPan(direction[0] * step, direction[1] * step);
   }
 
   protected reportAspect(): void {
     const ratio = this.currentAspect();
     this.aspect.set(ratio);
-    this.battlemap.reportAspect(ratio);
-  }
-
-  protected syncFullscreen(): void {
-    this.isFullscreen.set(!!this.document.fullscreenElement);
-  }
-
-  protected toggleFullscreen(): void {
-    if (this.document.fullscreenElement) {
-      void this.document.exitFullscreen();
-    } else {
-      void this.document.documentElement.requestFullscreen();
-    }
+    this.mirror.reportAspect(ratio);
   }
 
   private currentAspect(): number {

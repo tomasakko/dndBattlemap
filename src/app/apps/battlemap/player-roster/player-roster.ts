@@ -1,8 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BattlemapService } from '../services/battlemap.service';
-import { InitiativeService } from '../services/initiative.service';
-import type { PlayerPreset } from '../services/battlemap.service';
+import type { PlayerPreset } from '../domain/model';
+import { InitiativeService } from '../state/initiative.service';
+import { PlayerRosterService } from '../state/player-roster.service';
 
 @Component({
   host: { class: 'ui-panel-form' },
@@ -12,10 +12,10 @@ import type { PlayerPreset } from '../services/battlemap.service';
   styleUrl: './player-roster.css',
 })
 export class PlayerRoster {
-  private readonly battlemap = inject(BattlemapService);
+  private readonly roster = inject(PlayerRosterService);
   private readonly initiative = inject(InitiativeService);
 
-  protected readonly players = this.battlemap.players;
+  protected readonly players = this.roster.players;
   protected readonly name = signal('');
   protected readonly initiativeValues = signal<Record<string, string>>({});
   protected readonly error = signal('');
@@ -30,7 +30,7 @@ export class PlayerRoster {
       this.error.set('Enter a player name.');
       return;
     }
-    this.battlemap.addPlayer(name);
+    this.roster.add(name);
     this.name.set('');
     this.error.set('');
   }
@@ -60,7 +60,7 @@ export class PlayerRoster {
   }
 
   protected removePlayer(playerId: string): void {
-    this.battlemap.removePlayer(playerId);
+    this.roster.remove(playerId);
     this.initiativeValues.update((values) => {
       const { [playerId]: _removed, ...remaining } = values;
       return remaining;

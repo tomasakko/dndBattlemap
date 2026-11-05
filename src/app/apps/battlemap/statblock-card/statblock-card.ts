@@ -1,8 +1,8 @@
 import { Component, ElementRef, afterNextRender, computed, inject, input, output, signal, viewChild } from '@angular/core';
 import { CreatureService } from '../../../shared/creatures/creature.service';
 import { ConfirmService } from '../../../shared/ui/confirm-dialog/confirm.service';
-import { InitiativeService } from '../services/initiative.service';
-import type { Combatant } from '../services/initiative.service';
+import type { Combatant } from '../domain/model';
+import { InitiativeService } from '../state/initiative.service';
 import type { Ability, Movement, Statblock } from '../../../shared/creatures/statblock';
 import type { EntryChange } from './statblock-entries/statblock-entries';
 import { StatblockDetails } from './statblock-details/statblock-details';

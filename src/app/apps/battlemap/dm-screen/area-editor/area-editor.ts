@@ -1,7 +1,6 @@
 import { Component, computed, input, output, signal } from '@angular/core';
-import { Room } from '../../services/battlemap.service';
-
-const GOLDEN_ANGLE = 137.508;
+import type { Room } from '../../domain/model';
+import { roomColor } from '../../domain/rooms';
 
 @Component({
   host: { class: 'ui-panel-form' },
@@ -22,7 +21,7 @@ export class AreaEditor {
     this.rooms().map((room, index) => ({
       room,
       number: index + 1,
-      color: `hsl(${Math.round((index * GOLDEN_ANGLE) % 360)} 85% 55%)`,
+      color: roomColor(index),
     })),
   );
 
