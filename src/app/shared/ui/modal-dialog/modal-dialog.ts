@@ -11,7 +11,8 @@ let nextId = 0;
 export class ModalDialog {
   readonly heading = input.required<string>();
   readonly submitLabel = input('OK');
-  readonly cancelLabel = input('Cancel');
+  /** `null` leaves out the Cancel button (Escape still cancels). */
+  readonly cancelLabel = input<string | null>('Cancel');
   /** Adds a button between Cancel and Submit, e.g. "Don't save". */
   readonly secondaryLabel = input<string | null>(null);
   readonly submitted = output<void>();

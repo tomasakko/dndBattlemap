@@ -98,9 +98,9 @@ app-panel-tabs {
   gap: 16px;
 }
 
-/* Placeholders for features that don't exist yet. */
-.user-bar .icon-btn:disabled {
-  cursor: default;
+/* Features that don't exist yet: invisible, but still taking their spot. */
+.user-bar .placeholder {
+  visibility: hidden;
 }
 
 .icon-btn {
