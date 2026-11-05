@@ -46,6 +46,25 @@ export class IndexedDbStore {
     });
   }
 
+  async remove(): Promise<void> {
+    if (!this.available) {
+      return;
+    }
+    const database = await this.open();
+    return new Promise((resolve, reject) => {
+      const transaction = database.transaction(this.storeName, 'readwrite');
+      transaction.objectStore(this.storeName).delete(this.recordKey);
+      transaction.oncomplete = () => {
+        database.close();
+        resolve();
+      };
+      transaction.onerror = transaction.onabort = () => {
+        database.close();
+        reject(transaction.error ?? new Error('Could not clear ' + this.databaseName));
+      };
+    });
+  }
+
   private open(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.databaseName, this.version);
