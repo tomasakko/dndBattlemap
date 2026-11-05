@@ -171,11 +171,17 @@ export class WorldmapScreen {
     this.placing.update((placing) => !placing);
   }
 
-  /** Showing the map also opens the player screen, or switches it over from another app. */
+  /**
+   * Showing the map also opens the player screen, or switches it over from the battlemap.
+   * Players see one app at a time, so the battlemap stops being shown and its eye turns off.
+   */
   protected toggleShared(): void {
     const show = !this.shared();
     this.worldmap.setShared(show);
-    if (show) this.playerWindow.show('worldmap');
+    if (show) {
+      this.battlemap.hideFromPlayers();
+      this.playerWindow.show('worldmap');
+    }
   }
 
   protected toggleWater(): void {

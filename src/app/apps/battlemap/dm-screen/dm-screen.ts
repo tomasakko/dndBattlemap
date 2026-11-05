@@ -383,11 +383,17 @@ export class DmScreen {
     }
   }
 
-  /** Sharing the map also opens the player screen, or switches it over from another app. */
+  /**
+   * Sharing the map also opens the player screen, or switches it over from the world map.
+   * Players see one app at a time, so the world map stops being shown and its eye turns off.
+   */
   protected toggleShare(): void {
     const show = !this.shared();
     this.battlemap.setShared(show);
-    if (show && this.shared()) this.playerWindow.show('battlemap');
+    if (show && this.shared()) {
+      this.worldmap.setShared(false);
+      this.playerWindow.show('battlemap');
+    }
   }
 
   protected fitDmView(): void {

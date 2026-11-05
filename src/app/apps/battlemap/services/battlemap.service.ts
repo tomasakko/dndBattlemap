@@ -277,6 +277,18 @@ export class BattlemapService {
     this.persist();
   }
 
+  /** Stops showing any battlemap to players, e.g. because the player screen switched to the world map. */
+  hideFromPlayers(): void {
+    if (this.sharedId() === null) {
+      return;
+    }
+    this.clearLinkedPlayerMap();
+    this.sharedId.set(null);
+    this.broadcastAll();
+    this.initiative.publish();
+    this.persist();
+  }
+
   setInitiativeShared(shared: boolean): void {
     if (!this.currentId()) {
       return;
