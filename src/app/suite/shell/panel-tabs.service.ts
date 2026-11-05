@@ -27,8 +27,6 @@ export interface MapSource {
 export interface PanelTabsConfig extends MapSource {
   /** Suite app id, so the sidebar knows which app the maps belong to. */
   readonly appId: string;
-  /** Opens in a new window from the project menu. */
-  readonly playerUrl?: string;
 }
 
 const OPEN_KEY = 'dnd-suite-open-maps';

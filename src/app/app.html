@@ -3,7 +3,7 @@
   @if (!tabs.standalone()) {
     <header class="header">
       <div class="project">
-        <app-project-menu [playerUrl]="panelTabs.config()?.playerUrl ?? null" />
+        <app-project-menu />
         <button
           type="button"
           class="icon-btn sidebar-toggle"
@@ -45,6 +45,9 @@
     }
   </main>
 </div>
+@if (playerWindow.loading(); as loading) {
+  <app-player-loading [loading]="loading" />
+}
 <app-confirm-dialog />
 @if (helpOpen()) {
   <app-help-dialog (closed)="helpOpen.set(false)" />

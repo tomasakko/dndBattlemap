@@ -29,6 +29,7 @@ import { FileButton } from '../../../shared/ui/file-button/file-button';
 import { MapUploadDialog } from '../../../shared/ui/map-upload-dialog/map-upload-dialog';
 import { titleFromFileName } from '../../../shared/util/text';
 import { WorldmapService } from '../../worldmap/worldmap.service';
+import { PlayerWindowService } from '../../../suite/player-window.service';
 import { PanelTabsService } from '../../../suite/shell/panel-tabs.service';
 import type { PanelTab } from '../../../suite/shell/panel-tabs.service';
 
@@ -55,6 +56,7 @@ export class DmScreen {
   private readonly destroyRef = inject(DestroyRef);
   private readonly worldmap = inject(WorldmapService);
   private readonly confirm = inject(ConfirmService);
+  private readonly playerWindow = inject(PlayerWindowService);
   private readonly svg = viewChild<ElementRef<SVGSVGElement>>('board');
   /** The Initiative Tracker docked next to the toolbar, and what it shows. */
   protected readonly trackerOpen = signal(true);
@@ -199,7 +201,6 @@ export class DmScreen {
       removeLabel: 'Delete map ',
       locked: this.locked,
       lockedNote: 'End combat to switch maps.',
-      playerUrl: '/battlemap/player',
       select: (id) => this.selectMap(id),
       remove: (tab) => void this.removeMap(tab.id, tab.label),
     });
@@ -382,8 +383,11 @@ export class DmScreen {
     }
   }
 
+  /** Sharing the map also opens the player screen, or switches it over from another app. */
   protected toggleShare(): void {
-    this.battlemap.setShared(!this.shared());
+    const show = !this.shared();
+    this.battlemap.setShared(show);
+    if (show && this.shared()) this.playerWindow.show('battlemap');
   }
 
   protected fitDmView(): void {

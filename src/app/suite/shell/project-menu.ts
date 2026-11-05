@@ -4,7 +4,6 @@ import {
   Injector,
   afterNextRender,
   inject,
-  input,
   signal,
   viewChild,
 } from '@angular/core';
@@ -22,9 +21,6 @@ import { ProjectService } from '../project.service';
   },
 })
 export class ProjectMenu {
-  /** Player screen of the open app, offered in the menu when there is one. */
-  readonly playerUrl = input<string | null>(null);
-
   protected readonly project = inject(ProjectService);
   protected readonly editing = signal(false);
   private readonly injector = inject(Injector);
@@ -110,11 +106,6 @@ export class ProjectMenu {
     } catch (error) {
       alert('Could not start a new project: ' + this.message(error));
     }
-  }
-
-  protected openPlayerScreen(url: string): void {
-    this.close();
-    window.open(url, '_blank', 'noopener');
   }
 
   protected openFilePicker(): void {

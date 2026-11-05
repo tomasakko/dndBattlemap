@@ -18,6 +18,7 @@ import { MapUploadDialog } from '../../../shared/ui/map-upload-dialog/map-upload
 import { WaterRenderer } from '../../../shared/ui/water/water-renderer';
 import { clamp } from '../../../shared/util/math';
 import { escapeHtml, titleFromFileName } from '../../../shared/util/text';
+import { PlayerWindowService } from '../../../suite/player-window.service';
 import { PanelTabsService } from '../../../suite/shell/panel-tabs.service';
 import type { PanelTab } from '../../../suite/shell/panel-tabs.service';
 import { WorldmapService } from '../worldmap.service';
@@ -45,6 +46,7 @@ export class WorldmapScreen {
   private readonly battlemap = inject(BattlemapService);
   private readonly router = inject(Router);
   private readonly confirm = inject(ConfirmService);
+  private readonly playerWindow = inject(PlayerWindowService);
   private readonly container = viewChild.required<ElementRef<HTMLDivElement>>('map');
 
   protected readonly maps = this.worldmap.maps;
@@ -85,7 +87,6 @@ export class WorldmapScreen {
       tabs: this.mapTabs,
       currentId: computed(() => this.current()?.id ?? null),
       removeLabel: 'Delete map ',
-      playerUrl: '/worldmap/player',
       select: (id) => this.selectMap(id),
       remove: (tab) => void this.removeMap(tab.id, tab.label),
     });
@@ -170,8 +171,11 @@ export class WorldmapScreen {
     this.placing.update((placing) => !placing);
   }
 
+  /** Showing the map also opens the player screen, or switches it over from another app. */
   protected toggleShared(): void {
-    this.worldmap.setShared(!this.shared());
+    const show = !this.shared();
+    this.worldmap.setShared(show);
+    if (show) this.playerWindow.show('worldmap');
   }
 
   protected toggleWater(): void {
