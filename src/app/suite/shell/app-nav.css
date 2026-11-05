@@ -23,6 +23,7 @@ ul {
 }
 
 .app {
+  position: relative;
   min-width: 0;
   border-radius: var(--radius-pill);
   transition:
@@ -83,6 +84,57 @@ button {
   white-space: nowrap;
   text-overflow: clip;
   transition: opacity 150ms ease;
+}
+
+/* Room for the fold toggle between the name and the icon. */
+.app.has-maps .label {
+  margin-right: 44px;
+}
+
+/* Sits in the app row, left of the app icon: map count + chevron. */
+.maps-toggle {
+  position: absolute;
+  top: 8px;
+  right: 39px;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  height: 26px;
+  padding: 0 2px 0 7px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  line-height: 1;
+  transition: opacity 150ms ease;
+}
+
+.maps-toggle:hover {
+  background: rgb(255 255 255 / 10%);
+}
+
+.app.active .maps-toggle:hover {
+  background: rgb(0 0 0 / 15%);
+}
+
+/* The count is the hint that a folded list still has maps. */
+.maps-toggle .count {
+  min-width: 8px;
+  text-align: center;
+  transition: opacity 150ms ease;
+}
+
+.maps-toggle.open .count {
+  opacity: 0;
+}
+
+.maps-toggle .chevron {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  transition: transform var(--nav-ease);
+}
+
+.maps-toggle.open .chevron {
+  transform: rotate(180deg);
 }
 
 /* The map list folds its height to zero instead of disappearing at once. */
@@ -219,6 +271,11 @@ button:focus-visible {
 
 .collapsed .label {
   opacity: 0;
+}
+
+.collapsed .maps-toggle {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .collapsed .app.active .app-item {

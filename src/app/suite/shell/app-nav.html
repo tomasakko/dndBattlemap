@@ -4,7 +4,9 @@
       @let active = app.id === tabs.activeId();
       @let source = sourceOf(app);
       @let maps = source?.tabs() ?? [];
-      <li class="app" [class.active]="active" [class.expanded]="maps.length > 0 && !collapsed()">
+      @let hasMaps = maps.length > 0;
+      @let folded = collapsed() || isFolded(app);
+      <li class="app" [class.active]="active" [class.has-maps]="hasMaps" [class.expanded]="hasMaps && !folded">
         <button
           type="button"
           class="app-item"
@@ -17,11 +19,29 @@
           <span class="icon" aria-hidden="true">{{ app.icon }}</span>
         </button>
 
+        @if (hasMaps) {
+          <!-- Folds the map list; while folded, the count shows the app still has maps. -->
+          <button
+            type="button"
+            class="maps-toggle"
+            [class.open]="!folded"
+            [attr.aria-expanded]="!folded"
+            [attr.aria-controls]="'maps-' + app.id"
+            [attr.aria-label]="(folded ? 'Show ' : 'Hide ') + maps.length + (maps.length === 1 ? ' map' : ' maps') + ' of ' + app.name"
+            [attr.title]="folded ? 'Show maps' : 'Hide maps'"
+            [attr.inert]="collapsed() ? '' : null"
+            (click)="toggleFolded(app)"
+          >
+            <span class="count" aria-hidden="true">{{ maps.length }}</span>
+            <span class="icon chevron" aria-hidden="true">expand_more</span>
+          </button>
+        }
+
         @if (source && maps.length > 0) {
           @let isLocked = source.locked?.() ?? false;
           @let currentId = source.currentId();
-          <!-- Folds away while the sidebar collapses; inert so hidden maps can't be tabbed to. -->
-          <div class="maps-fold" [class.folded]="collapsed()" [attr.inert]="collapsed() ? '' : null">
+          <!-- Folds away while folded or the sidebar collapses; inert so hidden maps can't be tabbed to. -->
+          <div class="maps-fold" [id]="'maps-' + app.id" [class.folded]="folded" [attr.inert]="folded ? '' : null">
           <ul class="maps" [attr.aria-label]="source.ariaLabel">
             @for (map of maps; track map.id) {
               @let isCurrent = map.id === currentId;
