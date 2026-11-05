@@ -40,7 +40,7 @@
   flex: 1 1 auto;
   min-height: 0;
   padding: 0 8px 10px;
-  overflow-y: auto;
+  overflow: hidden auto;
 }
 
 /* 243px cards, 9px apart. */
