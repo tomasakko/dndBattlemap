@@ -18,7 +18,7 @@ export class WorldmapHost {
       this.store.snapshot(),
       this.stage.isShowing('worldmap'),
       this.store.views(),
-      this.store.waterAnimated(),
+      this.store.ambientAnimated(),
     ),
   );
 
@@ -34,7 +34,7 @@ export class WorldmapHost {
       }),
       markers: computed(() => this.playerView().markers, { equal: jsonEqual }),
       view: computed(() => this.playerView().view, { equal: jsonEqual }),
-      waterAnimated: computed(() => this.playerView().waterAnimated),
+      ambientAnimated: computed(() => this.playerView().ambientAnimated),
     });
   }
 }

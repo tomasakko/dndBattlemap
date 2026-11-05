@@ -11,5 +11,5 @@ export class WorldmapMirror {
   readonly map = this.sync.state.map;
   readonly markers = this.sync.state.markers;
   readonly view = this.sync.state.view;
-  readonly waterAnimated = this.sync.state.waterAnimated;
+  readonly ambientAnimated = this.sync.state.ambientAnimated;
 }

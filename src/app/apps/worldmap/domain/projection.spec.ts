@@ -27,6 +27,6 @@ describe('worldmap player view', () => {
     const view = worldmapPlayerView(state, true, { w: { centerX: 0.2, centerY: 0.3, zoom: 2 } }, false);
     expect(view.markers.map((m) => m.id)).toEqual(['seen']);
     expect(view.view).toEqual({ centerX: 0.2, centerY: 0.3, zoom: 2 });
-    expect(view.waterAnimated).toBe(false);
+    expect(view.ambientAnimated).toBe(false);
   });
 });

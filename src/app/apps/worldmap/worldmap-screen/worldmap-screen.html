@@ -48,13 +48,17 @@
       <button
         type="button"
         class="tool"
-        [class.off]="!waterAnimated()"
-        [attr.aria-label]="waterAnimated() ? 'Stop the water animation' : 'Start the water animation'"
-        [attr.title]="waterAnimated() ? 'Water animation on – click to stop' : 'Water animation off – click to start'"
-        [attr.aria-pressed]="waterAnimated()"
-        (click)="toggleWater()"
+        [class.off]="!ambientAnimated()"
+        [attr.aria-label]="ambientAnimated() ? 'Stop the map animations' : 'Start the map animations'"
+        [attr.title]="
+          ambientAnimated()
+            ? 'Clouds, birds, leaves and snow on – click to stop'
+            : 'Clouds, birds, leaves and snow off – click to start'
+        "
+        [attr.aria-pressed]="ambientAnimated()"
+        (click)="toggleAmbience()"
       >
-        <span class="icon" aria-hidden="true">animation</span>
+        <span class="icon" aria-hidden="true">cloud</span>
       </button>
     </div>
 

@@ -1,9 +1,6 @@
 <main class="stage">
   @if (current(); as entry) {
     <svg class="map" #stage [attr.viewBox]="viewBox()" role="img" [attr.aria-label]="entry.name">
-      <foreignObject x="0" y="0" [attr.width]="entry.image.width" [attr.height]="entry.image.height">
-        <app-water-canvas [src]="entry.image.url" [animated]="waterAnimated()" />
-      </foreignObject>
       <image
         [attr.href]="entry.image.url"
         x="0"
@@ -11,6 +8,10 @@
         [attr.width]="entry.image.width"
         [attr.height]="entry.image.height"
       />
+    </svg>
+    <!-- Clouds, birds and the like drift between the map and the markers. -->
+    <app-worldmap-ambience [animated]="ambientAnimated()" />
+    <svg class="map markers" [attr.viewBox]="viewBox()">
       @for (marker of markers(); track marker.id) {
         <g class="marker" [attr.transform]="'translate(' + marker.x + ' ' + marker.y + ')'">
           <title>{{ marker.name }}</title>

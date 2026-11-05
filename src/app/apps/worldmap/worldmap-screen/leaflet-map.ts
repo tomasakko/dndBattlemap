@@ -1,5 +1,5 @@
 import * as L from 'leaflet';
-import { WaterRenderer } from '../../../shared/ui/water/water-renderer';
+import { AmbienceScene } from '../ambience/ambience-scene';
 import { escapeHtml } from '../../../shared/util/text';
 import { MarkerStyle, markerFont, markerFontSize } from '../domain/marker-style';
 import type { WorldmapImage, WorldmapMarker, WorldmapView } from '../domain/model';
@@ -19,18 +19,19 @@ export interface WorldmapLeafletEvents {
 }
 
 /**
- * All Leaflet plumbing of the DM's world map: the image, the animated sea under it, the marker pins and
+ * All Leaflet plumbing of the DM's world map: the image, the ambient animations over it, the marker pins and
  * their labels, and translating between Leaflet coordinates and image pixels. The screen only deals with
  * markers and views.
  */
 export class WorldmapLeaflet {
   private readonly map: L.Map;
   private overlay?: L.ImageOverlay;
-  private waterOverlay?: L.SVGOverlay;
-  private water?: WaterRenderer;
+  /** Screen-sized layer for clouds, birds and so on, above the image and below the markers. */
+  private readonly ambienceLayer: HTMLElement;
+  private readonly ambience: AmbienceScene;
   private image: WorldmapImage | null = null;
   private restoringView = false;
-  private waterAnimated = true;
+  private ambientAnimated = true;
   private readonly pins = new Map<string, L.Marker>();
 
   constructor(
@@ -47,6 +48,14 @@ export class WorldmapLeaflet {
       doubleClickZoom: false,
     });
     this.map.on('moveend zoomend', () => this.publishView());
+    // The overlay pane is 400 and the marker pane 600, so 450 puts the ambience between the two.
+    const pane = this.map.createPane('ambience');
+    pane.style.zIndex = '450';
+    pane.style.pointerEvents = 'none';
+    this.ambienceLayer = L.DomUtil.create('div', '', pane);
+    this.ambienceLayer.style.position = 'absolute';
+    this.ambience = new AmbienceScene(this.ambienceLayer);
+    this.map.on('move zoom viewreset resize', () => this.pinAmbience());
     this.map.on('click', (event: L.LeafletMouseEvent) => {
       const image = this.image;
       if (!image) {
@@ -70,7 +79,6 @@ export class WorldmapLeaflet {
       return;
     }
     const bounds = imageBounds(image);
-    this.addWater(image, bounds);
     this.overlay = L.imageOverlay(image.url, bounds, { zIndex: 2 }).addTo(this.map);
     this.restoringView = true;
     // Lift the previous image's limits so they can't constrain fitting the new one.
@@ -83,12 +91,14 @@ export class WorldmapLeaflet {
       this.map.setView([image.height * (1 - view.centerY), image.width * view.centerX], zoom, { animate: false });
     }
     this.restoringView = false;
+    this.pinAmbience();
+    this.ambience.setRunning(this.ambientAnimated);
     this.publishView();
   }
 
-  setWaterAnimated(animated: boolean): void {
-    this.waterAnimated = animated;
-    this.water?.setAnimated(animated);
+  setAmbientAnimated(animated: boolean): void {
+    this.ambientAnimated = animated;
+    this.ambience.setRunning(animated && !!this.image);
   }
 
   /** Adds, moves, restyles and removes pins to match `markers`. */
@@ -144,7 +154,7 @@ export class WorldmapLeaflet {
   }
 
   destroy(): void {
-    this.water?.destroy();
+    this.ambience.destroy();
     this.map.remove();
   }
 
@@ -190,33 +200,17 @@ export class WorldmapLeaflet {
   }
 
   private removeImage(): void {
-    this.waterOverlay?.remove();
-    this.waterOverlay = undefined;
-    this.water?.destroy();
-    this.water = undefined;
+    this.ambience.setRunning(false);
     this.overlay?.remove();
     this.overlay = undefined;
   }
 
-  /** Water goes in its own SVG overlay below the map image, so only transparent sea shows it. */
-  private addWater(image: WorldmapImage, bounds: L.LatLngBounds): void {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', `0 0 ${image.width} ${image.height}`);
-    // Leaflet's stylesheet forces z-index 200 on SVGs in a pane, which would cover the map image.
-    svg.style.zIndex = '1';
-    const host = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-    host.setAttribute('width', String(image.width));
-    host.setAttribute('height', String(image.height));
-    const canvas = document.createElement('canvas');
-    canvas.className = 'ui-water';
-    canvas.setAttribute('aria-hidden', 'true');
-    canvas.style.cssText = 'display:block;width:100%;height:100%';
-    host.append(canvas);
-    svg.append(host);
-    this.waterOverlay = L.svgOverlay(svg, bounds, { interactive: false, zIndex: 1 }).addTo(this.map);
-    this.water = new WaterRenderer(canvas);
-    this.water.setAnimated(this.waterAnimated);
-    void this.water.load(image.url);
+  /** Keeps the ambience layer covering exactly the visible map, however the map pane has been panned. */
+  private pinAmbience(): void {
+    const size = this.map.getSize();
+    L.DomUtil.setPosition(this.ambienceLayer, this.map.containerPointToLayerPoint([0, 0]));
+    this.ambienceLayer.style.width = `${size.x}px`;
+    this.ambienceLayer.style.height = `${size.y}px`;
   }
 
   private publishView(): void {

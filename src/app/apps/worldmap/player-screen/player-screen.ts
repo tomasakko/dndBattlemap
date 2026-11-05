@@ -1,6 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, DestroyRef, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
-import { WaterCanvas } from '../../../shared/ui/water/water-canvas';
+import { WorldmapAmbience } from '../ambience/worldmap-ambience';
 import { markerFont, markerFontSize } from '../domain/marker-style';
 import { viewRect } from '../domain/model';
 import { WorldmapMirror } from '../sync/worldmap.mirror';
@@ -8,7 +8,7 @@ import { WorldmapMirror } from '../sync/worldmap.mirror';
 /** What players see of the world map: the DM's open map, its visible markers, and where the DM is looking. */
 @Component({
   selector: 'app-worldmap-player-screen',
-  imports: [WaterCanvas],
+  imports: [WorldmapAmbience],
   providers: [WorldmapMirror],
   templateUrl: './player-screen.html',
   styleUrl: './player-screen.css',
@@ -21,7 +21,7 @@ export class WorldmapPlayerScreen {
 
   protected readonly current = this.mirror.map;
   protected readonly markers = this.mirror.markers;
-  protected readonly waterAnimated = this.mirror.waterAnimated;
+  protected readonly ambientAnimated = this.mirror.ambientAnimated;
   protected readonly font = markerFont;
   protected readonly fontSize = markerFontSize;
   private readonly aspect = signal(16 / 9);

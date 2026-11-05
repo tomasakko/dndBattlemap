@@ -18,6 +18,13 @@
   height: 100%;
 }
 
+/* Same viewBox as the map, laid exactly over it, above the ambient layer. */
+.markers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .marker {
   pointer-events: none;
 }

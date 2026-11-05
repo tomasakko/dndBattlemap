@@ -49,7 +49,7 @@ export class WorldmapScreen {
   protected readonly persistenceError = this.store.persistenceError;
   /** Players see the world map. */
   protected readonly shared = computed(() => this.stage.isShowing(APP_ID));
-  protected readonly waterAnimated = this.store.waterAnimated;
+  protected readonly ambientAnimated = this.store.ambientAnimated;
   /** Marker whose popup is open; highlighted in the Markers list. */
   protected readonly openMarkerId = signal<string | null>(null);
   protected readonly markersOpen = signal(false);
@@ -76,8 +76,8 @@ export class WorldmapScreen {
       this.leaflet?.destroy();
     });
     effect(() => {
-      const animated = this.waterAnimated();
-      untracked(() => this.leaflet?.setWaterAnimated(animated));
+      const animated = this.ambientAnimated();
+      untracked(() => this.leaflet?.setAmbientAnimated(animated));
     });
     effect(() => {
       const current = this.current();
@@ -153,8 +153,8 @@ export class WorldmapScreen {
     }
   }
 
-  protected toggleWater(): void {
-    this.store.setWaterAnimated(!this.waterAnimated());
+  protected toggleAmbience(): void {
+    this.store.setAmbientAnimated(!this.ambientAnimated());
   }
 
   /** Centres the map on a marker and opens its popup. */

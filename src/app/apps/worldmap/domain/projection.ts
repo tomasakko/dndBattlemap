@@ -6,14 +6,14 @@ export interface WorldmapPlayerSlices {
   /** Only the markers players may see. */
   markers: WorldmapMarker[];
   view: WorldmapView;
-  waterAnimated: boolean;
+  ambientAnimated: boolean;
 }
 
 export const EMPTY_WORLDMAP_SLICES: WorldmapPlayerSlices = {
   map: null,
   markers: [],
   view: DEFAULT_VIEW,
-  waterAnimated: true,
+  ambientAnimated: true,
 };
 
 /** What the players may see: the DM's open map, its visible markers, and where the DM is looking. */
@@ -21,16 +21,16 @@ export function worldmapPlayerView(
   state: WorldmapState,
   shown: boolean,
   views: Readonly<Record<string, WorldmapView>>,
-  waterAnimated: boolean,
+  ambientAnimated: boolean,
 ): WorldmapPlayerSlices {
   const entry = shown ? currentWorldmap(state) : null;
   if (!entry) {
-    return { ...EMPTY_WORLDMAP_SLICES, waterAnimated };
+    return { ...EMPTY_WORLDMAP_SLICES, ambientAnimated };
   }
   return {
     map: { id: entry.id, name: entry.name, image: entry.image },
     markers: entry.markers.filter((marker) => marker.visible),
     view: views[entry.id] ?? DEFAULT_VIEW,
-    waterAnimated,
+    ambientAnimated,
   };
 }

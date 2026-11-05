@@ -16,7 +16,7 @@ import {
 } from '../domain/model';
 import { WORLDMAP_SCHEMA } from '../domain/schema';
 
-const waterPref = booleanPref('dnd-worldmap-water-animated', true);
+const ambiencePref = booleanPref('dnd-worldmap-ambient-animated', true);
 
 /**
  * The Worldmap app's data, and the only copy of it. Saved in the browser (IndexedDB, falling back to
@@ -36,8 +36,8 @@ export class WorldmapStore {
   readonly persistenceError = signal<string | null>(null);
   /** Where the DM last looked at each map this session. Players follow it; not saved. */
   readonly views = signal<Readonly<Record<string, WorldmapView>>>({});
-  /** Whether the sea moves, on the DM's map and on the player screen. */
-  readonly waterAnimated = signal(waterPref.read());
+  /** Whether clouds, birds, leaves and snow drift over the map, on the DM's map and on the player screen. */
+  readonly ambientAnimated = signal(ambiencePref.read());
   /** A marker to centre on and open, e.g. picked in the search bar. The DM screen handles and clears it. */
   readonly markerToFocus = signal<string | null>(null);
 
@@ -116,9 +116,9 @@ export class WorldmapStore {
     }
   }
 
-  setWaterAnimated(animated: boolean): void {
-    this.waterAnimated.set(animated);
-    waterPref.write(animated);
+  setAmbientAnimated(animated: boolean): void {
+    this.ambientAnimated.set(animated);
+    ambiencePref.write(animated);
   }
 
   async exportState(): Promise<WorldmapState> {
