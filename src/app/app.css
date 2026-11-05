@@ -54,40 +54,6 @@
   transform: rotate(90deg);
 }
 
-/* 408×36 pill with an inset shadow. */
-.search {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 36px;
-  padding: 0 13px 0 9px;
-  box-sizing: border-box;
-  border-radius: 70px;
-  background: var(--color-surface);
-  box-shadow: var(--shadow-inset-pill);
-  cursor: not-allowed;
-}
-
-.search input {
-  flex: 1;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--color-text);
-  outline: none;
-}
-
-.search input::placeholder {
-  color: var(--color-placeholder);
-  opacity: 1;
-}
-
-.search input:disabled,
-.search .icon-btn:disabled {
-  cursor: not-allowed;
-}
-
 app-panel-tabs {
   height: 100%;
   margin: 0 49px 0 24px;

@@ -1,0 +1,102 @@
+:host {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+/* 408×36 pill with an inset shadow. */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 36px;
+  padding: 0 13px 0 9px;
+  box-sizing: border-box;
+  border-radius: 70px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-inset-pill);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  outline: none;
+}
+
+.search input::placeholder {
+  color: var(--color-placeholder);
+  opacity: 1;
+}
+
+.search:focus-within {
+  outline: 2px solid var(--color-text);
+  outline-offset: -2px;
+}
+
+.results {
+  position: absolute;
+  z-index: 3000;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  max-height: min(60vh, 420px);
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--color-bg);
+  border: 1px solid var(--color-surface);
+  border-radius: var(--radius-tab);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 40%);
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.result.active {
+  background: var(--color-surface);
+}
+
+.result.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.result .icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Where the item belongs, e.g. "– worldmap" or the map a marker is on. */
+.context {
+  flex: none;
+  max-width: 50%;
+  overflow: hidden;
+  color: var(--color-placeholder);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.empty {
+  padding: 6px 10px;
+  color: var(--color-placeholder);
+}

@@ -110,6 +110,21 @@ export class WorldmapScreen {
         this.syncMarkers(current?.image ?? null, current?.markers ?? []);
       });
     });
+    // A marker picked elsewhere (the search bar): open it now, or as soon as its pin is drawn.
+    effect(() => {
+      const id = this.worldmap.markerToFocus();
+      this.current();
+      if (!id) return;
+      untracked(() => {
+        if (!this.current()?.markers.some((marker) => marker.id === id)) return;
+        this.worldmap.markerToFocus.set(null);
+        if (this.pins.has(id)) {
+          this.focusMarker(id);
+        } else {
+          this.openAfterSync = id;
+        }
+      });
+    });
   }
 
   protected onFileSelected(file: File): void {

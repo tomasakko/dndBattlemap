@@ -1,4 +1,5 @@
 import type { AppStorage } from './app-storage';
+import type { SearchSource } from './search/search-item';
 import type { MapSource } from './shell/panel-tabs.service';
 
 export interface SuiteApp {
@@ -18,6 +19,8 @@ export interface SuiteApp {
    * the returned factory runs in an injection context.
    */
   readonly loadMaps?: () => Promise<() => MapSource>;
+  /** What the search bar can find in the app. Lazy too; the factory runs in an injection context. */
+  readonly loadSearch?: () => Promise<() => SearchSource>;
 }
 
 // Add new apps here (and a matching route in app.routes.ts). The order is the sidebar order.
@@ -30,6 +33,7 @@ export const SUITE_APPS: readonly SuiteApp[] = [
     route: '/worldmap',
     loadStorage: () => import('../apps/worldmap/worldmap.storage').then((m) => m.worldmapStorage),
     loadMaps: () => import('../apps/worldmap/worldmap.sidebar').then((m) => m.worldmapMaps),
+    loadSearch: () => import('../apps/worldmap/worldmap.search').then((m) => m.worldmapSearch),
   },
   {
     id: 'battlemap',
@@ -39,6 +43,7 @@ export const SUITE_APPS: readonly SuiteApp[] = [
     route: '/battlemap',
     loadStorage: () => import('../apps/battlemap/battlemap.storage').then((m) => m.battlemapStorage),
     loadMaps: () => import('../apps/battlemap/battlemap.sidebar').then((m) => m.battlemapMaps),
+    loadSearch: () => import('../apps/battlemap/battlemap.search').then((m) => m.battlemapSearch),
   },
   {
     id: 'storyteller',

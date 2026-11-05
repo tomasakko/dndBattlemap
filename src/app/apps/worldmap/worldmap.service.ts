@@ -76,6 +76,8 @@ export class WorldmapService {
   readonly playerView = signal(DEFAULT_VIEW);
   readonly linkedBattlemapId = signal<string | null>(null);
   readonly persistenceError = signal<string | null>(null);
+  /** A marker to centre on and open, e.g. picked in the search bar. The DM screen handles and clears it. */
+  readonly markerToFocus = signal<string | null>(null);
   /** Whether the player screen shows the current map. Hidden, players only see the waiting message. */
   readonly shared = signal(readFlag(SHARED_KEY));
   /** Whether the sea moves, on the DM's map and on the player screen. */
@@ -138,6 +140,10 @@ export class WorldmapService {
     this.state.update((state) => ({ maps: [...state.maps, entry], currentId: entry.id }));
     this.broadcastCurrent();
     await this.persist();
+  }
+
+  focusMarker(id: string): void {
+    this.markerToFocus.set(id);
   }
 
   selectMap(id: string): void {

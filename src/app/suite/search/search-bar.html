@@ -1,0 +1,50 @@
+<div class="search">
+  <span class="icon" aria-hidden="true">search</span>
+  <input
+    #input
+    type="search"
+    role="combobox"
+    placeholder="Search in project"
+    aria-label="Search in project"
+    aria-autocomplete="list"
+    aria-controls="search-results"
+    [attr.aria-expanded]="showList()"
+    [attr.aria-activedescendant]="
+      showList() && results().length ? 'search-result-' + activeIndex() : null
+    "
+    [value]="query()"
+    (focus)="onFocus()"
+    (input)="onInput(input.value)"
+    (keydown)="onKeydown($event)"
+  />
+</div>
+
+@if (showList()) {
+  <ul id="search-results" class="results" role="listbox" aria-label="Search results">
+    @for (result of results(); track result.item.id; let i = $index) {
+      <li
+        [id]="'search-result-' + i"
+        role="option"
+        class="result"
+        [class.active]="i === activeIndex()"
+        [class.disabled]="!!result.item.disabledNote"
+        [attr.aria-selected]="i === activeIndex()"
+        [attr.aria-disabled]="result.item.disabledNote ? 'true' : null"
+        [attr.title]="result.item.disabledNote ?? null"
+        (mousedown)="$event.preventDefault()"
+        (mouseenter)="activeIndex.set(i)"
+        (click)="pick(result)"
+      >
+        <span class="icon" aria-hidden="true">{{ result.item.icon }}</span>
+        <span class="label">{{ result.item.label }}</span>
+        @if (result.context) {
+          <span class="context">– {{ result.context }}</span>
+        }
+      </li>
+    } @empty {
+      <li class="empty" role="presentation">
+        No maps, markers or creatures match "{{ query().trim() }}".
+      </li>
+    }
+  </ul>
+}

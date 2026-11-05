@@ -5,6 +5,7 @@ import { AppNav } from './suite/shell/app-nav';
 import { HelpDialog } from './suite/shell/help-dialog';
 import { PanelTabs } from './suite/shell/panel-tabs';
 import { PanelTabsService } from './suite/shell/panel-tabs.service';
+import { SearchBar } from './suite/search/search-bar';
 import { ProjectMenu } from './suite/shell/project-menu';
 import { ThemeMenu } from './suite/shell/theme-menu';
 import { TabService } from './suite/tab.service';
@@ -20,7 +21,7 @@ function readCollapsed(): boolean {
 }
 
 @Component({
-  imports: [RouterOutlet, ConfirmDialog, AppNav, HelpDialog, PanelTabs, ProjectMenu, ThemeMenu],
+  imports: [RouterOutlet, ConfirmDialog, AppNav, HelpDialog, PanelTabs, ProjectMenu, SearchBar, ThemeMenu],
   selector: 'app-root',
   styleUrl: './app.css',
   templateUrl: './app.html',
