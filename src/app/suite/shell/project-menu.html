@@ -1,16 +1,45 @@
-<details #menu class="project-menu">
-  <summary [attr.title]="project.name()">
-    <span class="project-name">{{ project.name() }}</span>
-    <span class="caret" aria-hidden="true"></span>
-    <span class="visually-hidden">Project menu</span>
-  </summary>
-  <div class="menu">
-    <button type="button" (click)="save()">Save project</button>
-    <button type="button" (click)="openFilePicker()">Load project</button>
-    @if (playerUrl(); as url) {
-      <hr />
-      <button type="button" (click)="openPlayerScreen(url)">Open player screen</button>
-    }
-  </div>
-</details>
-<input #fileInput type="file" accept=".json,application/json" hidden (change)="onFileSelected($event)" />
+<div class="project-menu">
+  @if (editing()) {
+    <input
+      #nameInput
+      class="project-name name-input"
+      type="text"
+      aria-label="Project name"
+      maxlength="80"
+      [value]="project.name()"
+      (keydown.enter)="commitRename(nameInput.value)"
+      (keydown.escape)="cancelRename(); $event.stopPropagation()"
+      (blur)="commitRename(nameInput.value)"
+    />
+  } @else {
+    <button
+      type="button"
+      class="project-name name-button"
+      title="Rename project"
+      (click)="startRename()"
+    >
+      {{ project.name() }}
+    </button>
+  }
+  <details #menu class="menu-toggle">
+    <summary title="Project menu">
+      <span class="caret" aria-hidden="true"></span>
+      <span class="visually-hidden">Project menu</span>
+    </summary>
+    <div class="menu">
+      <button type="button" (click)="save()">Save project</button>
+      <button type="button" (click)="openFilePicker()">Load project</button>
+      @if (playerUrl(); as url) {
+        <hr />
+        <button type="button" (click)="openPlayerScreen(url)">Open player screen</button>
+      }
+    </div>
+  </details>
+</div>
+<input
+  #fileInput
+  type="file"
+  accept=".json,application/json"
+  hidden
+  (change)="onFileSelected($event)"
+/>

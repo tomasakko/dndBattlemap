@@ -1,8 +1,17 @@
-import { Component, ElementRef, inject, input, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { ConfirmService } from '../../shared/ui/confirm-dialog/confirm.service';
 import { ProjectService } from '../project.service';
 
-/** Project name with a dropdown for saving and loading the project file. */
+/** Project name (click to rename) with a dropdown for saving and loading the project file. */
 @Component({
   selector: 'app-project-menu',
   templateUrl: './project-menu.html',
@@ -17,6 +26,9 @@ export class ProjectMenu {
   readonly playerUrl = input<string | null>(null);
 
   protected readonly project = inject(ProjectService);
+  protected readonly editing = signal(false);
+  private readonly injector = inject(Injector);
+  private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
   private readonly confirm = inject(ConfirmService);
   private readonly menu = viewChild.required<ElementRef<HTMLDetailsElement>>('menu');
   private readonly fileInput = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
@@ -32,14 +44,37 @@ export class ProjectMenu {
     }
   }
 
-  protected async save(): Promise<void> {
+  protected startRename(): void {
     this.close();
-    const name = prompt('Choose a name for the project file:', this.project.name())?.trim();
-    if (!name) {
+    this.editing.set(true);
+    afterNextRender(
+      () => {
+        const field = this.nameInput()?.nativeElement;
+        field?.focus();
+        field?.select();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  /** Enter and leaving the field both keep the name; an empty name goes back to "Untitled". */
+  protected commitRename(value: string): void {
+    if (!this.editing()) {
       return;
     }
+    this.editing.set(false);
+    this.project.rename(value);
+  }
+
+  protected cancelRename(): void {
+    this.editing.set(false);
+  }
+
+  /** Saves under the project's name; rename it first by clicking the name. */
+  protected async save(): Promise<void> {
+    this.close();
     try {
-      await this.project.save(name);
+      await this.project.save(this.project.name());
     } catch (error) {
       alert('Could not save project: ' + this.message(error));
     }
@@ -62,7 +97,8 @@ export class ProjectMenu {
     if (!file) {
       return;
     }
-    const message = 'Loading "' + file.name + '" replaces the current data of every app in the file. Continue?';
+    const message =
+      'Loading "' + file.name + '" replaces the current data of every app in the file. Continue?';
     if (!(await this.confirm.ask(message, 'Load'))) {
       return;
     }

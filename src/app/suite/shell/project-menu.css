@@ -3,17 +3,27 @@
   min-width: 0;
 }
 
+/* The menu drops down from the whole row, not just the caret. */
 .project-menu {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
 }
 
 summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: grid;
+  place-items: center;
+  width: 22px;
   height: 26px;
+  border-radius: 6px;
   list-style: none;
   cursor: pointer;
+}
+
+summary:hover {
+  background: rgb(255 255 255 / 6%);
 }
 
 summary::-webkit-details-marker {
@@ -28,9 +38,36 @@ summary:focus-visible {
 .project-name {
   flex: 1;
   min-width: 0;
+  height: 26px;
+  padding: 0 6px;
+  margin-left: -6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.name-button {
+  cursor: text;
+}
+
+.name-button:hover {
+  border-color: var(--color-surface);
+}
+
+.name-button:focus-visible,
+.name-input:focus {
+  border-color: var(--color-text);
+  outline: none;
+}
+
+.name-input {
+  background: var(--color-surface);
 }
 
 /* 9px downward triangle. */
@@ -44,7 +81,7 @@ summary:focus-visible {
   transition: transform 0.15s;
 }
 
-.project-menu[open] .caret {
+.menu-toggle[open] .caret {
   transform: rotate(180deg);
 }
 

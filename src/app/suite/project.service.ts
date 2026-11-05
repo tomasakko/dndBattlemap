@@ -20,10 +20,14 @@ function readStoredName(): string {
 export class ProjectService {
   readonly summaries = signal<Record<string, ProjectSummaryItem[]>>({});
   readonly summaryError = signal<string | null>(null);
-  /** Shown in the sidebar; taken from the file name on save and load. */
+  /** Shown in the sidebar and used as the file name on save; renamed by the DM or taken from a loaded file. */
   readonly name = signal(readStoredName());
 
   private readonly injector = inject(Injector);
+
+  rename(name: string): void {
+    this.setName(name);
+  }
 
   private setName(fileName: string): void {
     const name = fileName.replace(/\.json$/i, '').trim() || DEFAULT_NAME;
