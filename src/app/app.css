@@ -15,6 +15,8 @@
   padding: 0 var(--gutter-right) var(--gutter-bottom) 0;
   box-sizing: border-box;
   background: var(--color-bg);
+  /* The sidebar slides open and shut; the panel follows. */
+  transition: grid-template-columns 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .shell.collapsed {
@@ -45,6 +47,7 @@
 
 .sidebar-toggle .icon {
   transform: rotate(-90deg);
+  transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .shell.collapsed .sidebar-toggle .icon {
@@ -119,6 +122,8 @@ app-panel-tabs {
 
 .nav {
   grid-area: nav;
+  overflow-x: hidden;
+  transition: padding 250ms cubic-bezier(0.4, 0, 0.2, 1);
   padding: 21px 10px 0 9px;
   overflow-y: auto;
 }
@@ -186,4 +191,12 @@ app-panel-tabs {
 
 .shell.standalone .panel-content::after {
   content: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell,
+  .nav,
+  .sidebar-toggle .icon {
+    transition: none;
+  }
 }

@@ -9,13 +9,24 @@ ul {
 }
 
 /* Rows are 48px apart: 24px content + 24px gap; the active pill is 196×42 and sits under the row. */
+/* Sidebar collapse/expand: everything below eases along with the column width (app.css). */
+:host {
+  --nav-ease: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .apps {
   display: grid;
   gap: 6px;
+  transition: gap var(--nav-ease);
 }
 
 .app {
   border-radius: var(--radius-pill);
+  transition:
+    background-color var(--nav-ease),
+    box-shadow var(--nav-ease),
+    padding var(--nav-ease),
+    border-radius var(--nav-ease);
 }
 
 .app.active {
@@ -44,8 +55,14 @@ button {
   width: 100%;
   height: 42px;
   padding: 0 9px 0 12px;
+  overflow: hidden;
   border-radius: var(--radius-pill);
   text-align: left;
+  transition:
+    height var(--nav-ease),
+    padding var(--nav-ease),
+    gap var(--nav-ease),
+    background-color var(--nav-ease);
 }
 
 .app:not(.active) .app-item:hover:not(:disabled) {
@@ -61,7 +78,27 @@ button {
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
+  text-overflow: clip;
+  transition: opacity 150ms ease;
+}
+
+/* The map list folds its height to zero instead of disappearing at once. */
+.maps-fold {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows var(--nav-ease),
+    opacity var(--nav-ease);
+}
+
+.maps-fold > .maps {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.maps-fold.folded {
+  grid-template-rows: 0fr;
+  opacity: 0;
 }
 
 .maps {
@@ -150,24 +187,36 @@ button:focus-visible {
   outline-offset: -2px;
 }
 
-/* Icons only: a 42×30 pill marks the active app. */
+/*
+ * Icons only: a 42×30 pill marks the active app. The item keeps its layout and just narrows
+ * with the column, so the icon glides to the left while the label fades out.
+ */
 .collapsed .apps {
   gap: 19px;
 }
 
 .collapsed .app,
 .collapsed .app.active {
-  background: none;
+  background-color: transparent;
   box-shadow: none;
 }
 
 .collapsed .app-item {
-  justify-content: center;
-  width: 42px;
+  gap: 0;
   height: 30px;
-  padding: 0;
+  padding: 0 9px;
+}
+
+.collapsed .label {
+  opacity: 0;
 }
 
 .collapsed .app.active .app-item {
-  background: var(--color-highlight);
+  background-color: var(--color-highlight);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    --nav-ease: 0s;
+  }
 }
