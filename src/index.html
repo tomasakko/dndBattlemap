@@ -5,6 +5,12 @@
   <title>Dungeons &amp; Dragons Suite</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Applies the saved colour theme before the app starts, so the page doesn't flash grey (see ThemeService). -->
+  <script>
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem('dnd-suite-theme') || 'default';
+    } catch (e) {}
+  </script>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

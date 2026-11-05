@@ -27,6 +27,7 @@
       <app-panel-tabs />
 
       <div class="user-bar" aria-label="Account">
+        <app-theme-menu />
         @for (item of userBar; track item.icon) {
           <!-- Only Help exists so far; give the others their own click handler when they're uncommented. -->
           <button type="button" class="icon-btn" [attr.aria-label]="item.label" [attr.title]="item.label" (click)="helpOpen.set(true)">

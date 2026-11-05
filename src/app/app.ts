@@ -6,6 +6,7 @@ import { HelpDialog } from './suite/shell/help-dialog';
 import { PanelTabs } from './suite/shell/panel-tabs';
 import { PanelTabsService } from './suite/shell/panel-tabs.service';
 import { ProjectMenu } from './suite/shell/project-menu';
+import { ThemeMenu } from './suite/shell/theme-menu';
 import { TabService } from './suite/tab.service';
 
 const COLLAPSED_KEY = 'dnd-suite-sidebar-collapsed';
@@ -19,7 +20,7 @@ function readCollapsed(): boolean {
 }
 
 @Component({
-  imports: [RouterOutlet, ConfirmDialog, AppNav, HelpDialog, PanelTabs, ProjectMenu],
+  imports: [RouterOutlet, ConfirmDialog, AppNav, HelpDialog, PanelTabs, ProjectMenu, ThemeMenu],
   selector: 'app-root',
   styleUrl: './app.css',
   templateUrl: './app.html',

@@ -38,6 +38,28 @@
   color-scheme: dark;
 }
 
+/*
+ * Colour themes, picked from the palette button in the top right (ThemeService).
+ * Grey is the :root default above. Each theme overrides only the colour tokens.
+ */
+html[data-theme='bordeaux'] {
+  --color-bg: #2a1418;
+  --color-surface: #5e2a33;
+  --color-highlight: #8e4350;
+  --color-field: #ecdcde;
+  --color-field-text: #2a1418;
+  --color-placeholder: #c8a6ab;
+}
+
+html[data-theme='dark-blue'] {
+  --color-bg: #121b2c;
+  --color-surface: #28395a;
+  --color-highlight: #45608f;
+  --color-field: #dbe2ee;
+  --color-field-text: #121b2c;
+  --color-placeholder: #a5b3cb;
+}
+
 html,
 body {
   margin: 0;
