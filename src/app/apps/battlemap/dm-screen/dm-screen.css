@@ -258,63 +258,22 @@ button.tool:hover:not(:disabled) {
   outline-offset: 4px;
 }
 
-/* "Areas" tab on the bottom edge, like the Markers list on the world map. */
+/* "Areas" drawer on the bottom edge; opened, it widens to fit its rows. Shared look in ui.css. */
 .area-list {
-  position: absolute;
   z-index: 4;
   right: 12px;
-  bottom: 0;
-  width: 178px;
-  color: var(--color-text);
-  filter: drop-shadow(3px 4px 4px rgb(0 0 0 / 25%));
 }
 
-.area-list[open] {
-  width: 259px;
-}
-
-.area-list summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 32px;
-  padding: 0 10px 0 13px;
-  border-radius: var(--radius-tab) var(--radius-tab) 0 0;
-  background: var(--color-bg);
-  box-shadow: var(--shadow-inset-panel);
-  list-style: none;
-  cursor: pointer;
-}
-
-.area-list[open] summary {
-  height: 36px;
-  box-shadow: none;
-}
-
-.area-list summary::-webkit-details-marker {
-  display: none;
-}
-
-.area-list summary:focus-visible {
-  outline: 2px solid var(--color-text);
-  outline-offset: -4px;
-}
-
-.caret {
-  width: 0;
-  height: 0;
-  border-top: 7px solid currentColor;
-  border-left: 4.5px solid transparent;
-  border-right: 4.5px solid transparent;
+.area-list.open {
+  width: max-content;
+  min-width: 178px;
+  max-width: calc(100% - 24px);
 }
 
 .area-list app-area-editor {
   display: block;
   max-height: 320px;
   overflow-y: auto;
-  border: solid var(--color-bg);
-  border-width: 0 2px;
-  background: var(--color-surface);
 }
 
 @media (max-width: 900px) {

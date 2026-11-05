@@ -58,31 +58,41 @@
       </button>
     </div>
 
-    <details class="marker-list">
-      <summary>
+    <div class="ui-drawer marker-list" [class.open]="markersOpen()">
+      <button
+        type="button"
+        class="ui-drawer-head"
+        aria-controls="marker-drawer"
+        [attr.aria-expanded]="markersOpen()"
+        (click)="markersOpen.set(!markersOpen())"
+      >
         <span>Markers</span>
-        <span class="caret" aria-hidden="true"></span>
-      </summary>
-      <ul aria-label="Markers on this map">
-        @for (marker of sortedMarkers(); track marker.id) {
-          <li>
-            <button
-              type="button"
-              class="marker-item"
-              [class.current]="marker.id === openMarkerId()"
-              [class.hidden-marker]="!marker.visible"
-              [attr.aria-current]="marker.id === openMarkerId() ? 'true' : null"
-              [attr.title]="marker.visible ? 'Go to ' + marker.name : marker.name + ' (hidden from players)'"
-              (click)="focusMarker(marker.id)"
-            >
-              {{ marker.name }}
-            </button>
-          </li>
-        } @empty {
-          <li class="marker-empty">No markers yet</li>
-        }
-      </ul>
-    </details>
+        <span class="ui-drawer-caret" aria-hidden="true"></span>
+      </button>
+      <div id="marker-drawer" class="ui-drawer-fold" [attr.inert]="markersOpen() ? null : ''">
+        <div class="ui-drawer-body">
+          <ul aria-label="Markers on this map">
+            @for (marker of sortedMarkers(); track marker.id) {
+              <li>
+                <button
+                  type="button"
+                  class="marker-item"
+                  [class.current]="marker.id === openMarkerId()"
+                  [class.hidden-marker]="!marker.visible"
+                  [attr.aria-current]="marker.id === openMarkerId() ? 'true' : null"
+                  [attr.title]="marker.visible ? 'Go to ' + marker.name : marker.name + ' (hidden from players)'"
+                  (click)="focusMarker(marker.id)"
+                >
+                  {{ marker.name }}
+                </button>
+              </li>
+            } @empty {
+              <li class="marker-empty">No markers yet</li>
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
   }
 
   @if (pendingFile()) {

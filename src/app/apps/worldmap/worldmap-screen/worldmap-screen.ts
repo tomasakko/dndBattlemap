@@ -59,6 +59,7 @@ export class WorldmapScreen {
   protected readonly waterAnimated = this.worldmap.waterAnimated;
   /** Marker whose popup is open; highlighted in the Markers list. */
   protected readonly openMarkerId = signal<string | null>(null);
+  protected readonly markersOpen = signal(false);
   protected readonly sortedMarkers = computed(() =>
     [...(this.current()?.markers ?? [])].sort((a, b) => a.name.localeCompare(b.name)),
   );

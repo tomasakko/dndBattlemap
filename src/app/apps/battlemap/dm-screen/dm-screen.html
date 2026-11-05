@@ -224,20 +224,30 @@
       </button>
     </div>
 
-    <details class="area-list">
-      <summary>
+    <div class="ui-drawer area-list" [class.open]="areasOpen()">
+      <button
+        type="button"
+        class="ui-drawer-head"
+        aria-controls="area-drawer"
+        [attr.aria-expanded]="areasOpen()"
+        (click)="areasOpen.set(!areasOpen())"
+      >
         <span>Areas</span>
-        <span class="caret" aria-hidden="true"></span>
-      </summary>
-      <app-area-editor
-        [rooms]="rooms()"
-        [revealedCount]="revealedCount()"
-        (setAll)="setAll($event)"
-        (renamed)="rename($event.room, $event.name)"
-        (toggled)="toggle($event)"
-        (removed)="remove($event)"
-      />
-    </details>
+        <span class="ui-drawer-caret" aria-hidden="true"></span>
+      </button>
+      <div id="area-drawer" class="ui-drawer-fold" [attr.inert]="areasOpen() ? null : ''">
+        <div class="ui-drawer-body">
+          <app-area-editor
+            [rooms]="rooms()"
+            [revealedCount]="revealedCount()"
+            (setAll)="setAll($event)"
+            (renamed)="rename($event.room, $event.name)"
+            (toggled)="toggle($event)"
+            (removed)="remove($event)"
+          />
+        </div>
+      </div>
+    </div>
   }
 
   @if (pendingMapFile()) {

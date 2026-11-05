@@ -107,56 +107,13 @@ button.tool:hover {
   outline-offset: 2px;
 }
 
-/*
- * "Markers" tab on the bottom edge of the map. Opened, the header stays on top and the list
- * hangs below it; the block is anchored to the bottom, so it grows upwards.
- */
+/* "Markers" drawer on the bottom edge; shared look in ui.css. */
 .marker-list {
-  position: absolute;
   z-index: 1000;
   right: 12px;
-  bottom: 0;
-  width: 178px;
-  color: var(--color-text);
-  filter: drop-shadow(3px 4px 4px rgb(0 0 0 / 25%));
 }
 
-.marker-list summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 32px;
-  padding: 0 10px 0 13px;
-  border-radius: var(--radius-tab) var(--radius-tab) 0 0;
-  background: var(--color-bg);
-  box-shadow: var(--shadow-inset-panel);
-  list-style: none;
-  cursor: pointer;
-}
-
-.marker-list[open] summary {
-  height: 36px;
-  box-shadow: none;
-}
-
-.marker-list summary::-webkit-details-marker {
-  display: none;
-}
-
-.marker-list summary:focus-visible {
-  outline: 2px solid var(--color-text);
-  outline-offset: -4px;
-}
-
-.caret {
-  width: 0;
-  height: 0;
-  border-top: 7px solid currentColor;
-  border-left: 4.5px solid transparent;
-  border-right: 4.5px solid transparent;
-}
-
-/* Under the header: #626262 with dark side borders, 25.5px rows, down to the map's bottom edge. */
+/* 25.5px rows. */
 .marker-list ul {
   max-height: 217px;
   margin: 0;
@@ -164,9 +121,6 @@ button.tool:hover {
   box-sizing: border-box;
   overflow-y: auto;
   list-style: none;
-  border: solid var(--color-bg);
-  border-width: 0 2px;
-  background: var(--color-surface);
 }
 
 .marker-item {

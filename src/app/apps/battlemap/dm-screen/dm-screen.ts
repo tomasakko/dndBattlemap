@@ -59,6 +59,8 @@ export class DmScreen {
   /** The Initiative Tracker docked next to the toolbar, and what it shows. */
   protected readonly trackerOpen = signal(true);
   protected readonly trackerView = signal<'order' | 'players'>('order');
+  /** The Areas list on the bottom edge. */
+  protected readonly areasOpen = signal(false);
 
   protected readonly map = this.battlemap.map;
   protected readonly rooms = this.battlemap.rooms;
