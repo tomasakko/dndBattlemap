@@ -2,7 +2,7 @@ import { Component, input, output } from '@angular/core';
 
 let nextId = 0;
 
-/** A centred modal form with a heading, projected fields and Cancel/Submit buttons. */
+/** A centred modal form with a heading, projected fields and Cancel/Submit buttons (plus an optional third). */
 @Component({
   selector: 'app-modal-dialog',
   templateUrl: './modal-dialog.html',
@@ -12,7 +12,10 @@ export class ModalDialog {
   readonly heading = input.required<string>();
   readonly submitLabel = input('OK');
   readonly cancelLabel = input('Cancel');
+  /** Adds a button between Cancel and Submit, e.g. "Don't save". */
+  readonly secondaryLabel = input<string | null>(null);
   readonly submitted = output<void>();
+  readonly secondary = output<void>();
   readonly cancelled = output<void>();
 
   protected readonly headingId = 'modal-dialog-heading-' + nextId++;

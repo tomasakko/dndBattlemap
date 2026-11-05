@@ -20,6 +20,19 @@ export const battlemapStorage: AppStorage = {
     ].filter((item) => item.count > 0);
   },
 
+  async clear() {
+    const battlemap = inject(BattlemapService);
+    await battlemap.ensureRestored();
+    battlemap.importState({
+      maps: [],
+      currentId: null,
+      sharedId: null,
+      players: [],
+      initiative: { combatants: [], activeId: null },
+      initiativeShared: false,
+    });
+  },
+
   async import(data) {
     const battlemap = inject(BattlemapService);
     await battlemap.ensureRestored();

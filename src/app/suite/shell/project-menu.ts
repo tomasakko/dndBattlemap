@@ -80,6 +80,38 @@ export class ProjectMenu {
     }
   }
 
+  /** Offers to save what's there first, then empties every app. */
+  protected async newProject(): Promise<void> {
+    this.close();
+    if (await this.project.hasContent()) {
+      const choice = await this.confirm.choose({
+        heading: 'Save current project?',
+        message:
+          'Do you want to save "' +
+          this.project.name() +
+          '" before starting a new project? Unsaved changes are lost otherwise.',
+        confirmLabel: 'Save',
+        secondaryLabel: "Don't save",
+      });
+      if (choice === 'cancel') {
+        return;
+      }
+      if (choice === 'confirm') {
+        try {
+          await this.project.save(this.project.name());
+        } catch (error) {
+          alert('Could not save project: ' + this.message(error));
+          return;
+        }
+      }
+    }
+    try {
+      await this.project.startNew();
+    } catch (error) {
+      alert('Could not start a new project: ' + this.message(error));
+    }
+  }
+
   protected openPlayerScreen(url: string): void {
     this.close();
     window.open(url, '_blank', 'noopener');

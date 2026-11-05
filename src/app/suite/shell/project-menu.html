@@ -27,6 +27,7 @@
       <span class="visually-hidden">Project menu</span>
     </summary>
     <div class="menu">
+      <button type="button" (click)="newProject()">New project</button>
       <button type="button" (click)="save()">Save project</button>
       <button type="button" (click)="openFilePicker()">Load project</button>
       @if (playerUrl(); as url) {

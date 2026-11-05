@@ -77,6 +77,27 @@ export class ProjectService {
     }
   }
 
+  /** True when any app holds data, i.e. starting over would lose something unsaved. */
+  async hasContent(): Promise<boolean> {
+    await this.refreshSummaries();
+    if (this.summaryError()) {
+      return true;
+    }
+    return Object.values(this.summaries()).some((items) => items.some((item) => item.count > 0));
+  }
+
+  /** Empties every app and names the project "Untitled" again. */
+  async startNew(): Promise<void> {
+    for (const app of SUITE_APPS) {
+      if (app.loadStorage) {
+        const storage = await app.loadStorage();
+        await runInInjectionContext(this.injector, () => storage.clear());
+      }
+    }
+    this.setName(DEFAULT_NAME);
+    await this.refreshSummaries();
+  }
+
   /** Replaces the data of every app that is present in the file. Apps missing from the file are left alone. */
   async load(file: File): Promise<void> {
     let parsed: unknown;
@@ -99,12 +120,19 @@ export class ProjectService {
   }
 
   private appsIn(parsed: unknown): Record<string, unknown> {
-    const data = parsed as { app?: unknown; apps?: unknown; battlemap?: unknown; initiative?: unknown } | null;
+    const data = parsed as {
+      app?: unknown;
+      apps?: unknown;
+      battlemap?: unknown;
+      initiative?: unknown;
+    } | null;
     if (data && data.app === PROJECT_APP && data.apps && typeof data.apps === 'object') {
       return data.apps as Record<string, unknown>;
     }
     // Battlemap-only saves from before the suite existed.
-    const legacy = data?.battlemap as { maps?: { id: string; initiative?: unknown }[]; currentId?: string } | undefined;
+    const legacy = data?.battlemap as
+      | { maps?: { id: string; initiative?: unknown }[]; currentId?: string }
+      | undefined;
     if (legacy && Array.isArray(legacy.maps)) {
       // Even older files kept initiative global instead of per map.
       if (data?.initiative && legacy.currentId) {

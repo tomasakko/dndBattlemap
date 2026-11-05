@@ -7,6 +7,8 @@ export interface AppStorage {
   export(): unknown | Promise<unknown>;
   /** Replaces the app's data. Throws an Error with a readable message if the data is invalid. */
   import(data: unknown): void | Promise<void>;
+  /** Empties the app's data, for a new project. */
+  clear(): void | Promise<void>;
   /** Short counts of the app data belonging to the current project. */
   summary?(): ProjectSummaryItem[] | Promise<ProjectSummaryItem[]>;
 }

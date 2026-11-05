@@ -8,10 +8,12 @@ import { ConfirmService } from './confirm.service';
   template: `
     @if (confirm.request(); as request) {
       <app-modal-dialog
-        heading="Are you sure?"
+        [heading]="request.heading"
         [submitLabel]="request.confirmLabel"
-        (submitted)="confirm.answer(true)"
-        (cancelled)="confirm.answer(false)"
+        [secondaryLabel]="request.secondaryLabel"
+        (submitted)="confirm.answer('confirm')"
+        (secondary)="confirm.answer('secondary')"
+        (cancelled)="confirm.answer('cancel')"
       >
         <p>{{ request.message }}</p>
       </app-modal-dialog>

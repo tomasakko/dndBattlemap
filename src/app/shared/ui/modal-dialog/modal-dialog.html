@@ -10,6 +10,9 @@
     <ng-content />
     <div class="actions">
       <button type="button" (click)="cancelled.emit()">{{ cancelLabel() }}</button>
+      @if (secondaryLabel(); as label) {
+        <button type="button" (click)="secondary.emit()">{{ label }}</button>
+      }
       <button type="submit" class="primary">{{ submitLabel() }}</button>
     </div>
   </form>

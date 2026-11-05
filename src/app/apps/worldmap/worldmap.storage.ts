@@ -20,6 +20,12 @@ export const worldmapStorage: AppStorage = {
     ].filter((item) => item.count > 0);
   },
 
+  async clear() {
+    const worldmap = inject(WorldmapService);
+    await worldmap.ensureRestored();
+    worldmap.importState({ maps: [], currentId: null });
+  },
+
   async import(data) {
     const worldmap = inject(WorldmapService);
     await worldmap.ensureRestored();
