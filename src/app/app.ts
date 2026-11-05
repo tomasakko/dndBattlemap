@@ -28,15 +28,12 @@ export class App {
   protected readonly tabs = inject(TabService);
   protected readonly panelTabs = inject(PanelTabsService);
   protected readonly collapsed = signal(readCollapsed());
-  /**
-   * Top-right icons from the design. Only Help works so far; the others are kept in place
-   * but invisible until their features exist.
-   */
+  /** Top-right icons from the design. Only Help works so far; uncomment the others once their features exist. */
   protected readonly userBar = [
-    { icon: 'notifications', label: 'Notifications', available: false },
-    { icon: 'help', label: 'Help', available: true },
-    { icon: 'settings', label: 'Settings', available: false },
-    { icon: 'account_circle', label: 'Account', available: false },
+    // { icon: 'notifications', label: 'Notifications' },
+    { icon: 'help', label: 'Help' },
+    // { icon: 'settings', label: 'Settings' },
+    // { icon: 'account_circle', label: 'Account' },
   ];
   protected readonly helpOpen = signal(false);
 

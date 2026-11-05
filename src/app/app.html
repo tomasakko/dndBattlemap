@@ -28,16 +28,10 @@
 
       <div class="user-bar" aria-label="Account">
         @for (item of userBar; track item.icon) {
-          @if (item.available) {
-            <button type="button" class="icon-btn" [attr.aria-label]="item.label" [attr.title]="item.label" (click)="helpOpen.set(true)">
-              <span class="icon" aria-hidden="true">{{ item.icon }}</span>
-            </button>
-          } @else {
-            <!-- Keeps its spot so the bar's layout matches the design. -->
-            <span class="icon-btn placeholder" aria-hidden="true">
-              <span class="icon">{{ item.icon }}</span>
-            </span>
-          }
+          <!-- Only Help exists so far; give the others their own click handler when they're uncommented. -->
+          <button type="button" class="icon-btn" [attr.aria-label]="item.label" [attr.title]="item.label" (click)="helpOpen.set(true)">
+            <span class="icon" aria-hidden="true">{{ item.icon }}</span>
+          </button>
         }
       </div>
     </header>

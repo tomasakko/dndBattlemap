@@ -98,11 +98,6 @@ app-panel-tabs {
   gap: 16px;
 }
 
-/* Features that don't exist yet: invisible, but still taking their spot. */
-.user-bar .placeholder {
-  visibility: hidden;
-}
-
 .icon-btn {
   display: grid;
   place-items: center;
