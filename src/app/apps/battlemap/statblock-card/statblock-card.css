@@ -14,6 +14,8 @@
   max-height: 100%;
   overflow-y: auto;
   padding: 1rem;
+  /* Smaller than the UI's 16px so a whole statblock fits; headings and fields scale with it. */
+  font-size: 14px;
   background: Canvas;
   color: CanvasText;
 }
@@ -27,6 +29,7 @@ header {
 
 h2 {
   margin: 0;
+  font-size: 1.4em;
 }
 
 .subtitle {
