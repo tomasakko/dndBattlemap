@@ -1,52 +1,44 @@
-@if (linkedBattlemapId()) {
-  <app-player-screen />
-} @else {
-  <main class="stage">
-    @if (current(); as entry) {
-      <svg class="map" #stage [attr.viewBox]="viewBox()" role="img" [attr.aria-label]="entry.name">
-        <foreignObject x="0" y="0" [attr.width]="entry.image.width" [attr.height]="entry.image.height">
-          <app-water-canvas [src]="entry.image.url" [animated]="waterAnimated()" />
-        </foreignObject>
-        <image
-          [attr.href]="entry.image.url"
-          x="0"
-          y="0"
-          [attr.width]="entry.image.width"
-          [attr.height]="entry.image.height"
-        />
-        @for (marker of entry.markers; track marker.id) {
-          <g class="marker" [attr.transform]="'translate(' + marker.x + ' ' + marker.y + ')'">
-            <title>{{ marker.name }}</title>
-            <circle
-              class="marker-pin"
-              [attr.r]="pixel() * 10"
-              [attr.stroke-width]="pixel() * 3"
-              [attr.fill]="marker.color"
-              [attr.stroke]="marker.border"
-            />
-            <text
-              class="marker-name"
-              text-anchor="middle"
-              dominant-baseline="hanging"
-              [attr.y]="pixel() * 14"
-              [attr.font-size]="pixel() * fontSize(marker)"
-              [attr.font-family]="font(marker).css"
-              [attr.font-weight]="font(marker).weight"
-              [attr.stroke-width]="pixel() * 3"
-              [attr.fill]="marker.color"
-              [attr.stroke]="marker.border"
-            >
-              {{ marker.name }}
-            </text>
-          </g>
-        }
-      </svg>
-    } @else {
-      <p class="waiting" role="status">Waiting for the Dungeon Master to share a world map.</p>
-    }
-  </main>
-
-  <button type="button" class="fullscreen" (click)="toggleFullscreen()">
-    {{ isFullscreen() ? 'Exit full screen' : 'Full screen' }}
-  </button>
-}
+<main class="stage">
+  @if (current(); as entry) {
+    <svg class="map" #stage [attr.viewBox]="viewBox()" role="img" [attr.aria-label]="entry.name">
+      <foreignObject x="0" y="0" [attr.width]="entry.image.width" [attr.height]="entry.image.height">
+        <app-water-canvas [src]="entry.image.url" [animated]="waterAnimated()" />
+      </foreignObject>
+      <image
+        [attr.href]="entry.image.url"
+        x="0"
+        y="0"
+        [attr.width]="entry.image.width"
+        [attr.height]="entry.image.height"
+      />
+      @for (marker of markers(); track marker.id) {
+        <g class="marker" [attr.transform]="'translate(' + marker.x + ' ' + marker.y + ')'">
+          <title>{{ marker.name }}</title>
+          <circle
+            class="marker-pin"
+            [attr.r]="pixel() * 10"
+            [attr.stroke-width]="pixel() * 3"
+            [attr.fill]="marker.color"
+            [attr.stroke]="marker.border"
+          />
+          <text
+            class="marker-name"
+            text-anchor="middle"
+            dominant-baseline="hanging"
+            [attr.y]="pixel() * 14"
+            [attr.font-size]="pixel() * fontSize(marker)"
+            [attr.font-family]="font(marker).css"
+            [attr.font-weight]="font(marker).weight"
+            [attr.stroke-width]="pixel() * 3"
+            [attr.fill]="marker.color"
+            [attr.stroke]="marker.border"
+          >
+            {{ marker.name }}
+          </text>
+        </g>
+      }
+    </svg>
+  } @else {
+    <p class="waiting" role="status">Waiting for the Dungeon Master to share a world map.</p>
+  }
+</main>

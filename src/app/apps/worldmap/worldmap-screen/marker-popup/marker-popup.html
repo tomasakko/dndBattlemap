@@ -1,0 +1,113 @@
+@if (marker(); as m) {
+  <div class="marker-popup">
+    <div class="mp-header">
+      <input
+        class="mp-title"
+        type="text"
+        maxlength="60"
+        aria-label="Marker name"
+        [value]="m.name"
+        (change)="rename($any($event.target).value)"
+        (keydown)="onTitleKey($event)"
+      />
+      <button
+        type="button"
+        class="mp-icon-btn"
+        [attr.aria-pressed]="m.visible"
+        [attr.aria-label]="visibilityLabel()"
+        [title]="visibilityLabel()"
+        (click)="toggleVisible()"
+      >
+        <span class="icon" aria-hidden="true">{{ m.visible ? 'visibility' : 'visibility_off' }}</span>
+      </button>
+      <button type="button" class="mp-icon-btn" aria-label="Delete marker" title="Delete marker" (click)="remove()">
+        <span class="icon" aria-hidden="true">delete</span>
+      </button>
+      <button type="button" class="mp-icon-btn" aria-label="Close" title="Close" (click)="closed.emit()">
+        <span class="icon" aria-hidden="true">close</span>
+      </button>
+    </div>
+
+    <div class="mp-body">
+      <label class="mp-label" [for]="ids().icon">Icon</label>
+      <select class="mp-field mp-select" [id]="ids().icon" (change)="setOption('icon', $event)">
+        @for (option of icons; track option.id) {
+          <option [value]="option.id" [selected]="option.id === m.icon">{{ option.label }}</option>
+        }
+      </select>
+
+      <label class="mp-label" [for]="ids().font">Font</label>
+      <select
+        class="mp-field mp-select"
+        [id]="ids().font"
+        [style.font-family]="font().css"
+        [style.font-weight]="font().weight"
+        (change)="setOption('font', $event)"
+      >
+        @for (option of fonts; track option.id) {
+          <option [value]="option.id" [selected]="option.id === m.font">{{ option.label }}</option>
+        }
+      </select>
+
+      <label class="mp-label" [for]="ids().size">Size</label>
+      <select class="mp-field mp-select" [id]="ids().size" (change)="setOption('size', $event)">
+        @for (option of sizes; track option.id) {
+          <option [value]="option.id" [selected]="option.id === m.size">{{ option.label }}</option>
+        }
+      </select>
+
+      <label class="mp-label" [for]="ids().color">Color</label>
+      <div class="mp-field mp-color">
+        <input class="mp-swatch" type="color" [id]="ids().color" [value]="m.color" (input)="pickColor('color', $event)" />
+        <input
+          class="mp-hex"
+          type="text"
+          maxlength="7"
+          spellcheck="false"
+          aria-label="Color hex code"
+          [value]="hex(m.color)"
+          (keydown)="$event.stopPropagation()"
+          (change)="typeColor('color', $event)"
+        />
+      </div>
+
+      <label class="mp-label" [for]="ids().border">Border</label>
+      <div class="mp-field mp-color">
+        <input class="mp-swatch" type="color" [id]="ids().border" [value]="m.border" (input)="pickColor('border', $event)" />
+        <input
+          class="mp-hex"
+          type="text"
+          maxlength="7"
+          spellcheck="false"
+          aria-label="Border hex code"
+          [value]="hex(m.border)"
+          (keydown)="$event.stopPropagation()"
+          (change)="typeColor('border', $event)"
+        />
+      </div>
+
+      <label class="mp-label" [for]="ids().battlemap">Battlemap</label>
+      <div class="mp-battlemap">
+        <select class="mp-field mp-select" [id]="ids().battlemap" (change)="setBattlemap($event)">
+          <option value="" [selected]="!m.battlemapId">-no map selected-</option>
+          @if (brokenLink()) {
+            <option [value]="m.battlemapId" selected>Unavailable map</option>
+          }
+          @for (target of links.targets(); track target.id) {
+            <option [value]="target.id" [selected]="target.id === m.battlemapId">{{ target.label }}</option>
+          }
+        </select>
+        <button
+          type="button"
+          class="mp-icon-btn"
+          aria-label="Open linked battlemap"
+          title="Open linked battlemap"
+          [disabled]="!links.canOpen(m.battlemapId)"
+          (click)="openBattlemap()"
+        >
+          <span class="icon" aria-hidden="true">open_in_new</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}

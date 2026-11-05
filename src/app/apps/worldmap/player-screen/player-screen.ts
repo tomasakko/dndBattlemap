@@ -1,125 +1,60 @@
 import { DOCUMENT } from '@angular/common';
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  afterNextRender,
-  computed,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
-import { PlayerScreen } from '../../battlemap/player-screen/player-screen';
+import { Component, DestroyRef, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { WaterCanvas } from '../../../shared/ui/water/water-canvas';
-import { WorldmapService } from '../worldmap.service';
-import { markerFont, markerFontSize } from '../marker-style';
+import { markerFont, markerFontSize } from '../domain/marker-style';
+import { viewRect } from '../domain/model';
+import { WorldmapMirror } from '../sync/worldmap.mirror';
 
+/** What players see of the world map: the DM's open map, its visible markers, and where the DM is looking. */
 @Component({
   selector: 'app-worldmap-player-screen',
-  imports: [PlayerScreen, WaterCanvas],
+  imports: [WaterCanvas],
+  providers: [WorldmapMirror],
   templateUrl: './player-screen.html',
   styleUrl: './player-screen.css',
-  host: {
-    '(document:fullscreenchange)': 'syncFullscreen()',
-  },
 })
 export class WorldmapPlayerScreen {
   private readonly document = inject(DOCUMENT);
-  private readonly worldmap = inject(WorldmapService);
+  private readonly mirror = inject(WorldmapMirror);
   private readonly destroyRef = inject(DestroyRef);
   private readonly stage = viewChild<ElementRef<SVGSVGElement>>('stage');
 
-  protected readonly current = this.worldmap.playerMap;
-  protected readonly linkedBattlemapId = this.worldmap.linkedBattlemapId;
-  protected readonly waterAnimated = this.worldmap.playerWaterAnimated;
+  protected readonly current = this.mirror.map;
+  protected readonly markers = this.mirror.markers;
+  protected readonly waterAnimated = this.mirror.waterAnimated;
   protected readonly font = markerFont;
   protected readonly fontSize = markerFontSize;
-  protected readonly isFullscreen = signal(false);
-  private readonly aspect = signal(this.currentAspect());
+  private readonly aspect = signal(16 / 9);
+  private readonly stageWidth = signal(0);
+  private readonly rect = computed(() => {
+    const entry = this.current();
+    return entry ? viewRect(entry.image, this.mirror.view(), this.aspect()) : null;
+  });
   protected readonly viewBox = computed(() => {
-    const entry = this.current();
-    if (!entry) {
-      return '';
-    }
-    const rect = playerRect(
-      entry.image.width,
-      entry.image.height,
-      this.worldmap.playerView(),
-      this.aspect(),
-    );
-    return `${rect.x} ${rect.y} ${rect.width} ${rect.height}`;
+    const rect = this.rect();
+    return rect ? `${rect.x} ${rect.y} ${rect.width} ${rect.height}` : '';
   });
-  private readonly stageWidth = signal(this.currentWidth());
   /** Map units per screen pixel, so markers keep a constant on-screen size at every zoom level. */
-  protected readonly pixel = computed(() => {
-    const entry = this.current();
-    if (!entry) {
-      return 0;
-    }
-    const rect = playerRect(
-      entry.image.width,
-      entry.image.height,
-      this.worldmap.playerView(),
-      this.aspect(),
-    );
-    return rect.width / Math.max(this.stageWidth(), 1);
-  });
+  protected readonly pixel = computed(() => (this.rect()?.width ?? 0) / Math.max(this.stageWidth(), 1));
 
   constructor() {
-    this.worldmap.startViewer();
+    this.measure();
     afterNextRender(() => {
       const stage = this.stage()?.nativeElement;
       if (stage) {
-        const observer = new ResizeObserver(() => this.reportAspect());
+        const observer = new ResizeObserver(() => this.measure());
         observer.observe(stage);
         this.destroyRef.onDestroy(() => observer.disconnect());
       }
-      this.reportAspect();
+      this.measure();
     });
   }
 
-  protected syncFullscreen(): void {
-    this.isFullscreen.set(!!this.document.fullscreenElement);
-  }
-
-  protected toggleFullscreen(): void {
-    if (this.document.fullscreenElement) {
-      void this.document.exitFullscreen();
-    } else {
-      void this.document.documentElement.requestFullscreen();
-    }
-  }
-
-  private reportAspect(): void {
-    this.aspect.set(this.currentAspect());
-    this.stageWidth.set(this.currentWidth());
-  }
-
-  private currentWidth(): number {
+  private measure(): void {
     const stage = this.stage()?.nativeElement;
-    return stage?.clientWidth || this.document.defaultView?.innerWidth || 0;
-  }
-
-  private currentAspect(): number {
-    const stage = this.stage()?.nativeElement;
-    const width = this.currentWidth();
+    const width = stage?.clientWidth || this.document.defaultView?.innerWidth || 0;
     const height = stage?.clientHeight || this.document.defaultView?.innerHeight || 0;
-    return height > 0 ? width / height : 16 / 9;
+    this.stageWidth.set(width);
+    this.aspect.set(height > 0 ? width / height : 16 / 9);
   }
-}
-
-function playerRect(
-  width: number,
-  height: number,
-  view: { centerX: number; centerY: number; zoom: number },
-  aspect: number,
-): { x: number; y: number; width: number; height: number } {
-  const rectWidth = Math.max(width, height * aspect) / view.zoom;
-  const rectHeight = rectWidth / aspect;
-  return {
-    x: view.centerX * width - rectWidth / 2,
-    y: view.centerY * height - rectHeight / 2,
-    width: rectWidth,
-    height: rectHeight,
-  };
 }

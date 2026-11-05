@@ -27,16 +27,3 @@
   stroke-linejoin: round;
   paint-order: stroke;
 }
-
-/* Revealed on hover so it doesn't cover the player view. */
-.fullscreen {
-  position: fixed;
-  top: 0.75rem;
-  right: 0.75rem;
-  opacity: 0;
-}
-
-.fullscreen:hover,
-.fullscreen:focus-visible {
-  opacity: 1;
-}
