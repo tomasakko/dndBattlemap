@@ -37,7 +37,7 @@ ul {
   box-shadow: var(--shadow-inset-pill);
 }
 
-/* The active app with maps opens into a box listing them. */
+/* An app with maps opens into a box listing them; the active app's box is filled. */
 .app.expanded {
   padding-bottom: 16px;
   border-radius: 14px;
@@ -96,9 +96,14 @@ button {
     opacity var(--nav-ease);
 }
 
+/* Four maps fit (26px rows, 8px apart); more scroll. */
 .maps-fold > .maps {
   min-height: 0;
-  overflow: hidden;
+  max-height: calc(4 * 26px + 3 * 8px);
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 25%) transparent;
 }
 
 .maps-fold.folded {

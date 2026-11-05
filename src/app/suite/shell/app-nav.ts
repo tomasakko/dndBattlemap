@@ -1,9 +1,18 @@
-import { Component, computed, inject, input } from '@angular/core';
+import {
+  Component,
+  Injector,
+  afterNextRender,
+  inject,
+  input,
+  runInInjectionContext,
+  signal,
+} from '@angular/core';
+import { Router } from '@angular/router';
 import { SUITE_APPS, SuiteApp } from '../suite-apps';
 import { TabService } from '../tab.service';
-import { PanelTab, PanelTabsService } from './panel-tabs.service';
+import { MapSource, PanelTab, PanelTabsService } from './panel-tabs.service';
 
-/** Sidebar list of the suite's apps; the active app also lists its maps. */
+/** Sidebar list of the suite's apps, each listing its maps once it has some. */
 @Component({
   selector: 'app-nav',
   templateUrl: './app-nav.html',
@@ -16,15 +25,39 @@ export class AppNav {
   protected readonly apps = SUITE_APPS;
   protected readonly tabs = inject(TabService);
   protected readonly panelTabs = inject(PanelTabsService);
-  protected readonly locked = computed(() => this.panelTabs.config()?.locked?.() ?? false);
+  private readonly router = inject(Router);
+  /** Maps of every app that has them, loaded lazily so the apps' code isn't in the main bundle. */
+  private readonly sources = signal<Record<string, MapSource>>({});
 
-  /** The maps to list under an app: only the active app's, and only once it has some. */
-  protected mapsOf(app: SuiteApp): PanelTab[] {
-    const config = this.panelTabs.config();
-    return config && config.appId === app.id && app.id === this.tabs.activeId() ? config.tabs() : [];
+  constructor() {
+    const injector = inject(Injector);
+    // Browser only: the apps keep their maps in IndexedDB.
+    afterNextRender(() => {
+      for (const app of this.apps) {
+        void app.loadMaps?.().then((factory) => {
+          const source = runInInjectionContext(injector, factory);
+          this.sources.update((all) => ({ ...all, [app.id]: source }));
+        });
+      }
+    });
   }
 
-  protected remove(tab: PanelTab): void {
-    this.panelTabs.config()?.remove(tab);
+  /** The open app's screen knows best (it resets its tools on switching); other apps use their stored maps. */
+  protected sourceOf(app: SuiteApp): MapSource | null {
+    const config = this.panelTabs.config();
+    if (config && config.appId === app.id && app.id === this.tabs.activeId()) {
+      return config;
+    }
+    return this.sources()[app.id] ?? null;
+  }
+
+  protected openMap(app: SuiteApp, source: MapSource, tab: PanelTab): void {
+    if (app.id === this.tabs.activeId() && source === this.panelTabs.config()) {
+      this.panelTabs.open(tab.id);
+      return;
+    }
+    // Picks the map, then opens the app on its plain route so it shows that map.
+    source.select(tab.id);
+    if (app.route) void this.router.navigateByUrl(app.route);
   }
 }

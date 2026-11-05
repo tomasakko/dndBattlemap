@@ -7,10 +7,8 @@ export interface PanelTab {
   readonly note?: string;
 }
 
-/** What an app screen puts into the shell: its maps (sidebar list) and the open ones (tabs). */
-export interface PanelTabsConfig {
-  /** Suite app id, so the sidebar knows which app the maps belong to. */
-  readonly appId: string;
+/** An app's maps as the sidebar lists them. */
+export interface MapSource {
   readonly ariaLabel: string;
   /** Every map of the app, in sidebar order. */
   readonly tabs: Signal<PanelTab[]>;
@@ -20,11 +18,17 @@ export interface PanelTabsConfig {
   /** When true, only the current map can be used and nothing can be deleted. */
   readonly locked?: Signal<boolean>;
   readonly lockedNote?: string;
+  select(id: string): void;
+  /** Deletes the map (asking for confirmation first). */
+  remove(tab: PanelTab): void;
+}
+
+/** What an app screen puts into the shell: its maps (sidebar list) and the open ones (tabs). */
+export interface PanelTabsConfig extends MapSource {
+  /** Suite app id, so the sidebar knows which app the maps belong to. */
+  readonly appId: string;
   /** Opens in a new window from the project menu. */
   readonly playerUrl?: string;
-  select(id: string): void;
-  /** Deletes the map (the screen asks for confirmation). */
-  remove(tab: PanelTab): void;
 }
 
 const OPEN_KEY = 'dnd-suite-open-maps';
