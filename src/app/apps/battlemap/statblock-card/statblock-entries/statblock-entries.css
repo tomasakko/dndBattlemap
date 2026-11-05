@@ -6,8 +6,13 @@ h3 {
   margin: 1rem 0 0.25rem;
 }
 
+/* A blank line between entries, so each trait or action starts clearly on its own. */
 .entry {
-  margin: 0.25rem 0;
+  margin: 0 0 1em;
+}
+
+.entry:last-child {
+  margin-bottom: 0;
 }
 
 .empty {
