@@ -258,13 +258,13 @@ button.tool:hover:not(:disabled) {
   outline-offset: 4px;
 }
 
-/* "Areas" drawer on the bottom edge; opened, it widens to fit its rows. Shared look in ui.css. */
+/*
+ * "Areas" drawer on the bottom edge. Open or closed, it is as wide as its rows need, so the
+ * header never changes width. Shared look in ui.css.
+ */
 .area-list {
   z-index: 4;
   right: 12px;
-}
-
-.area-list.open {
   width: max-content;
   min-width: 178px;
   max-width: calc(100% - 24px);
