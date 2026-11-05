@@ -1,72 +1,70 @@
-import { Injectable, Injector, inject, runInInjectionContext, signal } from '@angular/core';
-import type { ProjectSummaryItem } from './app-storage';
-import { SUITE_APPS } from './suite-apps';
+import { Injector, Service, inject, runInInjectionContext, signal } from '@angular/core';
+import { localPref } from '../shared/storage/local-pref';
+import type { AppStorage, ProjectSummaryItem } from './app-storage';
+import { PlayerStageService } from './presentation/player-stage.service';
+import { SUITE_APPS, SuiteApp } from './suite-apps';
 
 const PROJECT_APP = 'dnd-suite';
-const PROJECT_VERSION = 1;
-const NAME_KEY = 'dnd-suite-project-name';
+/**
+ * Project file format.
+ * - 1: `{ app, version, apps: { [appId]: data } }` with each app's bare data.
+ * - 2: each app's data in its own versioned envelope (see `PersistedState`), plus what players see.
+ * Apps read both, so older files keep loading.
+ */
+const PROJECT_VERSION = 2;
 const DEFAULT_NAME = 'Untitled';
 
-function readStoredName(): string {
-  try {
-    return localStorage.getItem(NAME_KEY) || DEFAULT_NAME;
-  } catch {
-    return DEFAULT_NAME;
-  }
+const namePref = localPref<string>('dnd-suite-project-name', DEFAULT_NAME, {
+  parse: (raw) => raw || undefined,
+  serialise: (value) => value,
+});
+
+interface ProjectFile {
+  app: typeof PROJECT_APP;
+  version: number;
+  apps: Record<string, unknown>;
+  stage?: unknown;
 }
 
 /** Saves and loads the data of every app that provides an `AppStorage` as one project file. */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ProjectService {
+  private readonly injector = inject(Injector);
+  private readonly stage = inject(PlayerStageService);
+
   readonly summaries = signal<Record<string, ProjectSummaryItem[]>>({});
   readonly summaryError = signal<string | null>(null);
   /** Shown in the sidebar and used as the file name on save; renamed by the DM or taken from a loaded file. */
-  readonly name = signal(readStoredName());
-
-  private readonly injector = inject(Injector);
+  readonly name = signal(namePref.read());
 
   rename(name: string): void {
-    this.setName(name);
-  }
-
-  private setName(fileName: string): void {
-    const name = fileName.replace(/\.json$/i, '').trim() || DEFAULT_NAME;
-    this.name.set(name);
-    try {
-      localStorage.setItem(NAME_KEY, name);
-    } catch {
-      // The name just won't survive a reload.
-    }
+    const cleaned = name.replace(/\.json$/i, '').trim() || DEFAULT_NAME;
+    this.name.set(cleaned);
+    namePref.write(cleaned);
   }
 
   async save(name: string): Promise<void> {
     const apps: Record<string, unknown> = {};
-    for (const app of SUITE_APPS) {
-      if (app.loadStorage) {
-        const storage = await app.loadStorage();
-        apps[app.id] = await runInInjectionContext(this.injector, () => storage.export());
-      }
+    for (const { app, storage } of await this.storages()) {
+      apps[app.id] = await this.run(() => storage.export());
     }
-    const data = { app: PROJECT_APP, version: PROJECT_VERSION, apps };
+    const data: ProjectFile = { app: PROJECT_APP, version: PROJECT_VERSION, apps, stage: this.stage.exportStage() };
     const url = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
     const link = document.createElement('a');
     link.href = url;
     link.download = name.toLowerCase().endsWith('.json') ? name : `${name}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    this.setName(name);
+    this.rename(name);
   }
 
   async refreshSummaries(): Promise<void> {
     try {
       const summaries: Record<string, ProjectSummaryItem[]> = {};
-      for (const app of SUITE_APPS) {
-        if (!app.loadStorage) {
-          continue;
-        }
-        const storage = await app.loadStorage();
+      for (const { app, storage } of await this.storages()) {
         if (storage.summary) {
-          summaries[app.id] = await runInInjectionContext(this.injector, () => storage.summary!());
+          const summary = storage.summary.bind(storage);
+          summaries[app.id] = await this.run(summary);
         }
       }
       this.summaries.set(summaries);
@@ -86,15 +84,13 @@ export class ProjectService {
     return Object.values(this.summaries()).some((items) => items.some((item) => item.count > 0));
   }
 
-  /** Empties every app and names the project "Untitled" again. */
+  /** Empties every app, hides everything from the players, and names the project "Untitled" again. */
   async startNew(): Promise<void> {
-    for (const app of SUITE_APPS) {
-      if (app.loadStorage) {
-        const storage = await app.loadStorage();
-        await runInInjectionContext(this.injector, () => storage.clear());
-      }
+    for (const { storage } of await this.storages()) {
+      await this.run(() => storage.clear());
     }
-    this.setName(DEFAULT_NAME);
+    this.stage.hide();
+    this.rename(DEFAULT_NAME);
     await this.refreshSummaries();
   }
 
@@ -106,43 +102,49 @@ export class ProjectService {
     } catch {
       throw new Error('Not a valid project file');
     }
-    const apps = this.appsIn(parsed);
-    const entries = SUITE_APPS.filter((app) => app.loadStorage && app.id in apps);
+    const project = readProject(parsed);
+    const entries = (await this.storages()).filter(({ app }) => app.id in project.apps);
     if (entries.length === 0) {
       throw new Error('This file contains no data for any app');
     }
-    for (const app of entries) {
-      const storage = await app.loadStorage!();
-      await runInInjectionContext(this.injector, () => storage.import(apps[app.id]));
+    for (const { app, storage } of entries) {
+      await this.run(() => storage.import(project.apps[app.id]));
     }
-    this.setName(file.name);
+    this.stage.importStage(project.stage ?? null);
+    this.rename(file.name);
     await this.refreshSummaries();
   }
 
-  private appsIn(parsed: unknown): Record<string, unknown> {
-    const data = parsed as {
-      app?: unknown;
-      apps?: unknown;
-      battlemap?: unknown;
-      initiative?: unknown;
-    } | null;
-    if (data && data.app === PROJECT_APP && data.apps && typeof data.apps === 'object') {
-      return data.apps as Record<string, unknown>;
-    }
-    // Battlemap-only saves from before the suite existed.
-    const legacy = data?.battlemap as
-      | { maps?: { id: string; initiative?: unknown }[]; currentId?: string }
-      | undefined;
-    if (legacy && Array.isArray(legacy.maps)) {
-      // Even older files kept initiative global instead of per map.
-      if (data?.initiative && legacy.currentId) {
-        const current = legacy.maps.find((map) => map.id === legacy.currentId);
-        if (current && !current.initiative) {
-          current.initiative = data.initiative;
-        }
+  private async storages(): Promise<{ app: SuiteApp; storage: AppStorage }[]> {
+    const result: { app: SuiteApp; storage: AppStorage }[] = [];
+    for (const app of SUITE_APPS) {
+      if (app.loadStorage) {
+        result.push({ app, storage: await app.loadStorage() });
       }
-      return { battlemap: legacy };
     }
-    throw new Error('Not a project file');
+    return result;
   }
+
+  /** Storage methods `inject()` their app's services. */
+  private run<T>(action: () => T): T {
+    return runInInjectionContext(this.injector, action);
+  }
+}
+
+/** Reads every project file version, plus battlemap-only saves from before the suite existed. */
+function readProject(parsed: unknown): Pick<ProjectFile, 'apps' | 'stage'> {
+  const data = parsed as Partial<ProjectFile> & { battlemap?: unknown; initiative?: unknown };
+  if (data && data.app === PROJECT_APP && data.apps && typeof data.apps === 'object') {
+    if (typeof data.version === 'number' && data.version > PROJECT_VERSION) {
+      throw new Error('This project was saved by a newer version of the app');
+    }
+    return { apps: data.apps, stage: data.stage };
+  }
+  const legacy = data?.battlemap;
+  if (legacy && typeof legacy === 'object' && Array.isArray((legacy as { maps?: unknown }).maps)) {
+    // Even older files kept the open map's initiative next to the battlemap data; the Battlemap app reads it there.
+    const battlemap = data.initiative && !('initiative' in legacy) ? { ...legacy, initiative: data.initiative } : legacy;
+    return { apps: { battlemap } };
+  }
+  throw new Error('Not a project file');
 }

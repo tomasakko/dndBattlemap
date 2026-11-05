@@ -1,5 +1,6 @@
 import { DOCUMENT } from '@angular/common';
-import { Injectable, effect, inject, signal } from '@angular/core';
+import { Service, effect, inject, signal } from '@angular/core';
+import { stringPref } from '../shared/storage/local-pref';
 
 export interface Theme {
   readonly id: string;
@@ -16,21 +17,16 @@ export const THEMES: readonly Theme[] = [
 ];
 
 /** Same key as the inline script in index.html, which applies the theme before the app starts. */
-const THEME_KEY = 'dnd-suite-theme';
-
-function readTheme(): string {
-  try {
-    const id = localStorage.getItem(THEME_KEY);
-    return THEMES.some((theme) => theme.id === id) ? id! : 'default';
-  } catch {
-    return 'default';
-  }
-}
+const themePref = stringPref(
+  'dnd-suite-theme',
+  'default',
+  THEMES.map((theme) => theme.id),
+);
 
 /** The colour theme, set as `data-theme` on <html> and remembered across reloads. */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ThemeService {
-  readonly themeId = signal(typeof localStorage === 'undefined' ? 'default' : readTheme());
+  readonly themeId = signal(themePref.read());
 
   private readonly document = inject(DOCUMENT);
 
@@ -38,11 +34,7 @@ export class ThemeService {
     effect(() => {
       const id = this.themeId();
       this.document.documentElement.dataset['theme'] = id;
-      try {
-        localStorage.setItem(THEME_KEY, id);
-      } catch {
-        // The theme just won't survive a reload.
-      }
+      themePref.write(id);
     });
   }
 

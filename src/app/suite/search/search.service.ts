@@ -1,6 +1,6 @@
 import {
-  Injectable,
   Injector,
+  Service,
   computed,
   inject,
   runInInjectionContext,
@@ -19,7 +19,7 @@ export interface SearchResult {
 const MAX_RESULTS = 30;
 
 /** Searches what every app offers through `SuiteApp.loadSearch`. Sources load on first use. */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class SearchService {
   private readonly injector = inject(Injector);
   private readonly router = inject(Router);

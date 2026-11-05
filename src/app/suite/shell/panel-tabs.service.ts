@@ -1,4 +1,5 @@
-import { DestroyRef, Injectable, Signal, computed, effect, inject, signal, untracked } from '@angular/core';
+import { DestroyRef, Service, Signal, computed, effect, inject, signal, untracked } from '@angular/core';
+import { localPref } from '../../shared/storage/local-pref';
 
 export interface PanelTab {
   readonly id: string;
@@ -18,7 +19,8 @@ export interface MapSource {
   /** When true, only the current map can be used and nothing can be deleted. */
   readonly locked?: Signal<boolean>;
   readonly lockedNote?: string;
-  select(id: string): void;
+  /** Opens the map in its app. Returns false when it can't be opened right now (see `locked`). */
+  select(id: string): boolean;
   /** Deletes the map (asking for confirmation first). */
   remove(tab: PanelTab): void;
 }
@@ -29,25 +31,29 @@ export interface PanelTabsConfig extends MapSource {
   readonly appId: string;
 }
 
-const OPEN_KEY = 'dnd-suite-open-maps';
-
-function readOpen(): Record<string, string[]> {
-  try {
-    const stored: unknown = JSON.parse(localStorage.getItem(OPEN_KEY) ?? '{}');
-    return stored && typeof stored === 'object' ? (stored as Record<string, string[]>) : {};
-  } catch {
-    return {};
-  }
-}
+const openPref = localPref<Record<string, string[]>>('dnd-suite-open-maps', {}, {
+  parse: (raw) => {
+    const stored: unknown = JSON.parse(raw);
+    if (!stored || typeof stored !== 'object' || Array.isArray(stored)) {
+      return undefined;
+    }
+    return Object.fromEntries(
+      Object.entries(stored).map(([app, ids]) => [
+        app,
+        Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string') : [],
+      ]),
+    );
+  },
+});
 
 /**
  * Lets the active app screen fill the shell's sidebar map list and tab strip.
  * Tabs are the maps the DM has open; closing a tab keeps the map, deleting happens from the sidebar.
  */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class PanelTabsService {
   readonly config = signal<PanelTabsConfig | null>(null);
-  private readonly openIds = signal<Record<string, string[]>>(readOpen());
+  private readonly openIds = signal<Record<string, string[]>>(openPref.read());
 
   /** Open maps of the active app, in the order they were opened. */
   readonly openTabs = computed<PanelTab[]>(() => {
@@ -115,10 +121,6 @@ export class PanelTabsService {
 
   private setOpen(appId: string, ids: string[]): void {
     this.openIds.update((all) => ({ ...all, [appId]: ids }));
-    try {
-      localStorage.setItem(OPEN_KEY, JSON.stringify(this.openIds()));
-    } catch {
-      // Open tabs just won't survive a reload.
-    }
+    openPref.write(this.openIds());
   }
 }

@@ -1,5 +1,10 @@
 import { Component, input } from '@angular/core';
-import type { PlayerLoading } from './player-window.service';
+/** What the loading screen says while the player screen switches apps. */
+export interface PlayerLoading {
+  readonly title: string;
+  readonly subtitle?: string;
+  readonly icon: string;
+}
 
 /** Covers the player screen while it switches to another app. */
 @Component({

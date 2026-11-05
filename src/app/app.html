@@ -45,9 +45,6 @@
     }
   </main>
 </div>
-@if (playerWindow.loading(); as loading) {
-  <app-player-loading [loading]="loading" />
-}
 <app-confirm-dialog />
 @if (helpOpen()) {
   <app-help-dialog (closed)="helpOpen.set(false)" />

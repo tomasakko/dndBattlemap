@@ -1,6 +1,9 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Service, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
+import { localPref } from '../shared/storage/local-pref';
+import { PLAYER_PATH } from './presentation/stage';
 import { SUITE_APPS, SuiteApp } from './suite-apps';
 
 export interface AppTab {
@@ -13,17 +16,15 @@ function appRoot(app: SuiteApp): string {
   return app.route ?? '';
 }
 
-const STORAGE_KEY = 'dnd-suite-tabs';
-
 interface StoredTab {
   id: string;
   url: string;
 }
 
-function readStoredTabs(): AppTab[] {
-  try {
-    const stored: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
-    if (!Array.isArray(stored)) return [];
+const tabsPref = localPref<AppTab[]>('dnd-suite-tabs', [], {
+  parse: (raw) => {
+    const stored: unknown = JSON.parse(raw);
+    if (!Array.isArray(stored)) return undefined;
     const tabs: AppTab[] = [];
     for (const item of stored as Partial<StoredTab>[]) {
       const app = SUITE_APPS.find((a) => a.id === item?.id);
@@ -32,22 +33,25 @@ function readStoredTabs(): AppTab[] {
       }
     }
     return tabs;
-  } catch {
-    return [];
-  }
-}
+  },
+  serialise: (tabs) => JSON.stringify(tabs.map((t): StoredTab => ({ id: t.app.id, url: t.url }))),
+});
 
 /** Open app tabs. Tabs follow navigation: visiting an app's route opens (or refreshes) its tab. They survive page reloads. */
-@Injectable({ providedIn: 'root' })
+@Service()
 export class TabService {
   private readonly router = inject(Router);
-  private readonly _tabs = signal<readonly AppTab[]>(readStoredTabs());
+  private readonly _tabs = signal<readonly AppTab[]>(tabsPref.read());
   private readonly _url = signal(this.router.url);
 
   readonly tabs = this._tabs.asReadonly();
   readonly activeId = computed(() => this.appFor(this._url())?.id ?? null);
-  /** True for routes marked `data: { standalone: true }`, which render without the topbar. */
-  readonly standalone = signal(false);
+  /**
+   * True for routes marked `data: { standalone: true }` (the player window), which render without the
+   * DM's chrome. Known from the address before the first navigation ends, so the player window never
+   * briefly builds the DM's sidebar.
+   */
+  readonly standalone = signal(isPlayerPath(inject(DOCUMENT).location?.pathname ?? ''));
 
   constructor() {
     this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)).subscribe((e) => {
@@ -96,11 +100,7 @@ export class TabService {
 
   private setTabs(tabs: readonly AppTab[]): void {
     this._tabs.set(tabs);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tabs.map((t) => ({ id: t.app.id, url: t.url }))));
-    } catch {
-      // Tabs just won't survive a reload.
-    }
+    tabsPref.write([...tabs]);
   }
 
   private appFor(url: string): SuiteApp | undefined {
@@ -110,4 +110,8 @@ export class TabService {
       return root && (path === root || path.startsWith(root + '/'));
     });
   }
+}
+
+function isPlayerPath(path: string): boolean {
+  return ['', '/battlemap', '/worldmap'].some((prefix) => path === prefix + PLAYER_PATH);
 }
