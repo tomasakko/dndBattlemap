@@ -16,11 +16,14 @@ ul {
 
 .apps {
   display: grid;
+  /* Never wider than the sidebar column, whatever the (folded) map list needs. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
   transition: gap var(--nav-ease);
 }
 
 .app {
+  min-width: 0;
   border-radius: var(--radius-pill);
   transition:
     background-color var(--nav-ease),
@@ -86,6 +89,8 @@ button {
 .maps-fold {
   display: grid;
   grid-template-rows: 1fr;
+  min-width: 0;
+  overflow: hidden;
   transition:
     grid-template-rows var(--nav-ease),
     opacity var(--nav-ease);
