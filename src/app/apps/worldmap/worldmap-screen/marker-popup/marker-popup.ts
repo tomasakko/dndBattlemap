@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import {
   MARKER_FONTS,
   MARKER_ICON_SECTIONS,
@@ -61,13 +61,52 @@ export class MarkerPopup {
     return !!id && !this.links.exists(id);
   });
 
-  protected readonly iconSections = MARKER_ICON_SECTIONS;
   /** The icon grid is open under the Icon field. */
   protected readonly iconsOpen = signal(false);
+  /** Text typed in the icon search field. */
+  protected readonly iconQuery = signal('');
+  /** Icon sections filtered by the search: every typed word must appear in the icon's or its section's name. */
+  protected readonly iconSections = computed(() => {
+    const words = this.iconQuery().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) {
+      return MARKER_ICON_SECTIONS;
+    }
+    return MARKER_ICON_SECTIONS.map((section) => ({
+      label: section.label,
+      icons: section.icons.filter((icon) => {
+        const text = `${icon.label} ${icon.id.replace(/-/g, ' ')} ${section.label}`.toLowerCase();
+        return words.every((word) => text.includes(word));
+      }),
+    })).filter((section) => section.icons.length > 0);
+  });
+  private readonly iconSearch = viewChild<ElementRef<HTMLInputElement>>('iconSearch');
+
+  constructor() {
+    // Put the cursor in the search field as soon as the grid opens.
+    effect(() => this.iconSearch()?.nativeElement.focus());
+  }
 
   protected toggleIcons(): void {
     this.iconsOpen.update((open) => !open);
+    this.iconQuery.set('');
     this.resized.emit();
+  }
+
+  protected searchIcons(value: string): void {
+    this.iconQuery.set(value);
+    this.resized.emit();
+  }
+
+  /** Keys typed in the search must not move the map; Escape clears it, then closes the grid. */
+  protected onSearchKey(event: KeyboardEvent): void {
+    event.stopPropagation();
+    if (event.key === 'Escape') {
+      if (this.iconQuery()) {
+        this.searchIcons('');
+      } else {
+        this.toggleIcons();
+      }
+    }
   }
   protected readonly iconLabel = computed(() => {
     const marker = this.marker();
@@ -104,6 +143,7 @@ export class MarkerPopup {
   protected pickIcon(icon: string): void {
     this.store.setMarkerStyle(this.markerId(), { icon });
     this.iconsOpen.set(false);
+    this.iconQuery.set('');
     this.resized.emit();
   }
 

@@ -44,7 +44,17 @@
       </button>
       @if (iconsOpen()) {
         <div class="mp-icon-grid" [id]="ids().icon + '-grid'" role="group" aria-label="Marker icons">
-          @for (section of iconSections; track section.label) {
+          <input
+            #iconSearch
+            class="mp-field mp-icon-search"
+            type="search"
+            placeholder="Search icons…"
+            aria-label="Search icons"
+            [value]="iconQuery()"
+            (input)="searchIcons($any($event.target).value)"
+            (keydown)="onSearchKey($event)"
+          />
+          @for (section of iconSections(); track section.label) {
             <p class="mp-icon-section">{{ section.label }}</p>
             <div class="mp-icon-tiles">
               @for (icon of section.icons; track icon.id) {
@@ -61,6 +71,8 @@
                 </button>
               }
             </div>
+          } @empty {
+            <p class="mp-icon-empty">No icons match “{{ iconQuery() }}”</p>
           }
         </div>
       }
