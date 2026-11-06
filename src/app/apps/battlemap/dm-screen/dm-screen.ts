@@ -299,6 +299,7 @@ export class DmScreen {
 
   protected toggle(room: Room): void {
     this.store.toggleRoom(room.id);
+    this.shareIfLinked();
   }
 
   protected remove(room: Room): void {
@@ -311,6 +312,18 @@ export class DmScreen {
 
   protected setAll(revealed: boolean): void {
     this.store.setAllRevealed(revealed);
+    this.shareIfLinked();
+  }
+
+  /**
+   * A quick look from a world map link keeps every area covered. Revealing or hiding areas on that map
+   * means the DM is now running it, so it becomes a normal share and players see the areas change.
+   */
+  private shareIfLinked(): void {
+    const id = this.store.currentId();
+    if (id && this.stage.isShowing(APP_ID, id, 'linked')) {
+      this.stage.present({ app: APP_ID, mapId: id, mode: 'shared' });
+    }
   }
 
   private centerPlayerViewOn(point: Point): void {
