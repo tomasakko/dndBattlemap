@@ -157,7 +157,20 @@ export class WorldmapLeaflet {
   refreshPopup(id: string): void {
     const popup = this.pins.get(id)?.getPopup();
     if (popup?.isOpen()) {
+      // Leaflet re-attaches the content on update, which drops focus: put the cursor back where it was.
+      const content = popup.getElement();
+      const focused = document.activeElement;
+      const field = focused instanceof HTMLInputElement && content?.contains(focused) ? focused : null;
+      const caret = field ? [field.selectionStart, field.selectionEnd] : null;
       popup.update();
+      if (field && caret && document.activeElement !== field) {
+        field.focus({ preventScroll: true });
+        try {
+          field.setSelectionRange(caret[0], caret[1]);
+        } catch {
+          // Some input types have no caret.
+        }
+      }
     }
   }
 
