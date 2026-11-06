@@ -112,7 +112,7 @@
 
 .mp-icon-grid {
   grid-column: 1 / -1;
-  max-height: 196px;
+  max-height: 240px;
   margin-top: -11px;
   padding: 2px 4px 4px;
   overflow-y: auto;
@@ -130,15 +130,15 @@
 
 .mp-icon-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 28px);
-  gap: 1px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
 }
 
 .mp-icon-tile {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  aspect-ratio: 1;
+  min-width: 0;
   padding: 0;
   border: 1px solid transparent;
   border-radius: 4px;
