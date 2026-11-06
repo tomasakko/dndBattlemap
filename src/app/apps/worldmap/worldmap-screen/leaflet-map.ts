@@ -1,7 +1,7 @@
 import * as L from 'leaflet';
 import { AmbienceScene } from '../ambience/ambience-scene';
 import { escapeHtml } from '../../../shared/util/text';
-import { MarkerStyle, markerFont, markerFontSize } from '../domain/marker-style';
+import { MarkerStyle, markerFont, markerFontSize, markerIconPath } from '../domain/marker-style';
 import type { WorldmapImage, WorldmapMarker, WorldmapView } from '../domain/model';
 
 /** Leaflet's fitting maths needs room to go below and above the final limits. */
@@ -153,6 +153,14 @@ export class WorldmapLeaflet {
     this.pins.get(id)?.closePopup();
   }
 
+  /** Re-places an open popup whose content changed size, panning the map so it stays in view. */
+  refreshPopup(id: string): void {
+    const popup = this.pins.get(id)?.getPopup();
+    if (popup?.isOpen()) {
+      popup.update();
+    }
+  }
+
   destroy(): void {
     this.ambience.destroy();
     this.map.remove();
@@ -252,8 +260,30 @@ function imageBounds(image: WorldmapImage): L.LatLngBounds {
   return L.latLngBounds([0, 0], [image.height, image.width]);
 }
 
-/** Round pin in the marker's colours. Colours are validated hex codes, so they are safe in HTML. */
+/** On-screen size of an icon pin, in pixels. */
+const ICON_PIN_PX = 30;
+
+/**
+ * The marker's icon (or a round pin) in its colours. Colours are validated hex codes and icon outlines
+ * come from the built-in icon set, so both are safe in HTML.
+ */
 function styledPin(marker: MarkerStyle): L.DivIcon {
+  const path = markerIconPath(marker);
+  if (path) {
+    const half = ICON_PIN_PX / 2;
+    return L.divIcon({
+      className: 'world-pin world-pin-icon',
+      html:
+        `<svg viewBox="0 0 512 512" width="${ICON_PIN_PX}" height="${ICON_PIN_PX}">` +
+        `<path d="${path}" fill="${marker.color}" stroke="${marker.border}" stroke-width="40" ` +
+        `stroke-linejoin="round" paint-order="stroke"/></svg>`,
+      iconSize: [ICON_PIN_PX, ICON_PIN_PX],
+      iconAnchor: [half, half],
+      popupAnchor: [0, -half],
+      // The name goes under the icon rather than under the centre.
+      tooltipAnchor: [0, half - 10],
+    });
+  }
   return L.divIcon({
     className: 'world-pin',
     html: `<span style="background:${marker.color};border-color:${marker.border}"></span>`,

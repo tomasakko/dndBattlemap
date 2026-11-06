@@ -10,7 +10,10 @@ const SVG = 'http://www.w3.org/2000/svg';
 
 const CLOUD_SVG =
   '<svg viewBox="0 0 200 90" width="100%" height="100%" preserveAspectRatio="none" style="display:block">' +
-  '<g fill="#fff">' +
+  // Dark rain-cloud grey, slightly lighter on top.
+  '<defs><linearGradient id="cloud-shade" x1="0" y1="0" x2="0" y2="1">' +
+  '<stop offset="0" stop-color="#6b7380"/><stop offset="1" stop-color="#363c46"/></linearGradient></defs>' +
+  '<g fill="url(#cloud-shade)">' +
   '<ellipse cx="100" cy="64" rx="92" ry="22"/>' +
   '<circle cx="62" cy="52" r="26"/><circle cx="104" cy="40" r="36"/><circle cx="146" cy="54" r="24"/>' +
   '</g></svg>';
@@ -63,7 +66,7 @@ export class AmbienceScene {
     // A couple of clouds are already partway across, so the map doesn't start empty.
     this.cloud(between(0.1, 0.4));
     this.cloud(between(0.55, 0.85));
-    this.repeat(() => this.cloud(0), 40, 80, 25);
+    this.repeat(() => this.cloud(0), 16, 32, 10);
     this.repeat(() => this.birds(), 35, 90, between(8, 20));
     this.repeat(() => this.leaf(), 18, 45, between(5, 15));
     this.repeat(() => this.snowFlurry(), 150, 360, between(45, 100));
@@ -128,10 +131,10 @@ export class AmbienceScene {
     cloud.innerHTML = CLOUD_SVG;
     cloud.style.width = `${width}px`;
     cloud.style.height = `${height}px`;
-    cloud.style.filter = `blur(${Math.round(width / 28)}px) drop-shadow(${width * 0.12}px ${width * 0.2}px ${width * 0.06}px rgba(0, 0, 0, 0.22))`;
-    const peak = between(0.3, 0.5);
+    cloud.style.filter = `blur(${Math.round(width / 28)}px) drop-shadow(${width * 0.12}px ${width * 0.2}px ${width * 0.06}px rgba(0, 0, 0, 0.3))`;
+    const peak = between(0.5, 0.7);
     const drift = between(-0.05, 0.05) * size.height;
-    const duration = between(110, 180) * 1000;
+    const duration = between(45, 75) * 1000;
     const animation = this.spawn(
       cloud,
       [

@@ -87,7 +87,8 @@
                   [attr.title]="marker.visible ? 'Go to ' + marker.name : marker.name + ' (hidden from players)'"
                   (click)="focusMarker(marker.id)"
                 >
-                  {{ marker.name }}
+                  <app-marker-glyph [icon]="marker.icon" [color]="marker.color" [border]="marker.border" [size]="14" />
+                  <span class="marker-item-name">{{ marker.name }}</span>
                 </button>
               </li>
             } @empty {

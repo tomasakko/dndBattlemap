@@ -1,3 +1,6 @@
+import { MARKER_ICON_PATHS } from './marker-icon-art';
+import { MARKER_ICON_GROUPS } from './marker-icons';
+
 /** Look of a world map marker: its pin and the name written next to it. */
 export interface MarkerStyle {
   icon: string;
@@ -14,12 +17,17 @@ export interface MarkerOption {
   readonly label: string;
 }
 
-/**
- * Pin shapes. Only the standard round pin exists so far; the Figma design also lists
- * Castle, Castle Ruins, Cave, Crypt Entrance, Drawbridge, Elven Castle, Gate, Hill Fort,
- * Mountain, Tower and Wall, which get added here once their artwork exists.
- */
-export const MARKER_ICONS: readonly MarkerOption[] = [{ id: 'standard', label: 'Standard' }];
+/** The plain round pin, drawn in the marker's colours. */
+export const STANDARD_MARKER_ICON: MarkerOption = { id: 'standard', label: 'Round pin' };
+
+/** The icon picker's sections: the round pin, then the game-icons.net place icons by kind. */
+export const MARKER_ICON_SECTIONS: readonly { readonly label: string; readonly icons: readonly MarkerOption[] }[] = [
+  { label: 'Pin', icons: [STANDARD_MARKER_ICON] },
+  ...MARKER_ICON_GROUPS,
+];
+
+/** Pin shapes: the round pin and every place icon. */
+export const MARKER_ICONS: readonly MarkerOption[] = MARKER_ICON_SECTIONS.flatMap((section) => section.icons);
 
 export const MARKER_FONTS: readonly (MarkerOption & { css: string; weight: number })[] = [
   { id: 'bahnschrift', label: 'Bahnschrift', css: "Bahnschrift, 'DIN Alternate', 'Arial Narrow', sans-serif", weight: 700 },
@@ -66,4 +74,13 @@ export function markerFont(style: MarkerStyle): { css: string; weight: number } 
 
 export function markerFontSize(style: MarkerStyle): number {
   return (MARKER_SIZES.find((size) => size.id === style.size) ?? MARKER_SIZES[1]).px;
+}
+
+/** Outline of the marker's icon in a 512 x 512 box, or null for the round pin. */
+export function markerIconPath(style: Pick<MarkerStyle, 'icon'>): string | null {
+  return MARKER_ICON_PATHS[style.icon] ?? null;
+}
+
+export function markerIconLabel(style: Pick<MarkerStyle, 'icon'>): string {
+  return (MARKER_ICONS.find((icon) => icon.id === style.icon) ?? STANDARD_MARKER_ICON).label;
 }

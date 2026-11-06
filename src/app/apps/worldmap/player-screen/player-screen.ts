@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, DestroyRef, ElementRef, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { WorldmapAmbience } from '../ambience/worldmap-ambience';
-import { markerFont, markerFontSize } from '../domain/marker-style';
+import { markerFont, markerFontSize, markerIconPath } from '../domain/marker-style';
 import { viewRect } from '../domain/model';
 import { WorldmapMirror } from '../sync/worldmap.mirror';
 
@@ -24,6 +24,9 @@ export class WorldmapPlayerScreen {
   protected readonly ambientAnimated = this.mirror.ambientAnimated;
   protected readonly font = markerFont;
   protected readonly fontSize = markerFontSize;
+  protected readonly iconPath = markerIconPath;
+  /** Icons are drawn in a 512 box and shown 30 screen pixels wide, like on the DM's map. */
+  protected readonly iconScale = 30 / 512;
   private readonly aspect = signal(16 / 9);
   private readonly stageWidth = signal(0);
   private readonly rect = computed(() => {

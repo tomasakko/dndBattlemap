@@ -29,12 +29,41 @@
     </div>
 
     <div class="mp-body">
-      <label class="mp-label" [for]="ids().icon">Icon</label>
-      <select class="mp-field mp-select" [id]="ids().icon" (change)="setOption('icon', $event)">
-        @for (option of icons; track option.id) {
-          <option [value]="option.id" [selected]="option.id === m.icon">{{ option.label }}</option>
-        }
-      </select>
+      <span class="mp-label" [id]="ids().icon + '-label'">Icon</span>
+      <button
+        type="button"
+        class="mp-field mp-select mp-icon-pick"
+        [id]="ids().icon"
+        [attr.aria-labelledby]="ids().icon + '-label ' + ids().icon"
+        [attr.aria-expanded]="iconsOpen()"
+        [attr.aria-controls]="ids().icon + '-grid'"
+        (click)="toggleIcons()"
+      >
+        <app-marker-glyph [icon]="m.icon" [color]="m.color" [border]="m.border" [size]="12" />
+        <span class="mp-icon-name">{{ iconLabel() }}</span>
+      </button>
+      @if (iconsOpen()) {
+        <div class="mp-icon-grid" [id]="ids().icon + '-grid'" role="group" aria-label="Marker icons">
+          @for (section of iconSections; track section.label) {
+            <p class="mp-icon-section">{{ section.label }}</p>
+            <div class="mp-icon-tiles">
+              @for (icon of section.icons; track icon.id) {
+                <button
+                  type="button"
+                  class="mp-icon-tile"
+                  [class.current]="icon.id === m.icon"
+                  [attr.aria-pressed]="icon.id === m.icon"
+                  [attr.aria-label]="icon.label"
+                  [title]="icon.label"
+                  (click)="pickIcon(icon.id)"
+                >
+                  <app-marker-glyph [icon]="icon.id" [color]="m.color" [border]="m.border" [size]="20" />
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
 
       <label class="mp-label" [for]="ids().font">Font</label>
       <select

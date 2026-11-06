@@ -1,22 +1,25 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import {
   MARKER_FONTS,
-  MARKER_ICONS,
+  MARKER_ICON_SECTIONS,
   MARKER_SIZES,
   MarkerStyle,
   markerFont,
+  markerIconLabel,
 } from '../../domain/marker-style';
+import { MarkerGlyph } from '../../marker-glyph/marker-glyph';
 import { WorldmapStore } from '../../state/worldmap.store';
 import { BattlemapLinks } from '../battlemap-links';
 
 type ColorKey = 'color' | 'border';
-type OptionKey = 'icon' | 'font' | 'size';
+type OptionKey = 'font' | 'size';
 
 const HEX = /^#[0-9a-f]{6}$/i;
 
 /** A marker's popup on the DM's world map: name, visibility, look, and a linked battlemap. */
 @Component({
   selector: 'app-marker-popup',
+  imports: [MarkerGlyph],
   templateUrl: './marker-popup.html',
   styleUrl: './marker-popup.css',
 })
@@ -27,6 +30,8 @@ export class MarkerPopup {
   readonly markerId = input.required<string>();
   /** The popup's close button was pressed. */
   readonly closed = output<void>();
+  /** The popup grew or shrank (the icon grid opened or closed). */
+  readonly resized = output<void>();
 
   protected readonly marker = computed(
     () => this.store.current()?.markers.find((m) => m.id === this.markerId()) ?? null,
@@ -56,7 +61,18 @@ export class MarkerPopup {
     return !!id && !this.links.exists(id);
   });
 
-  protected readonly icons = MARKER_ICONS;
+  protected readonly iconSections = MARKER_ICON_SECTIONS;
+  /** The icon grid is open under the Icon field. */
+  protected readonly iconsOpen = signal(false);
+
+  protected toggleIcons(): void {
+    this.iconsOpen.update((open) => !open);
+    this.resized.emit();
+  }
+  protected readonly iconLabel = computed(() => {
+    const marker = this.marker();
+    return marker ? markerIconLabel(marker) : '';
+  });
   protected readonly fonts = MARKER_FONTS;
   protected readonly sizes = MARKER_SIZES;
 
@@ -83,6 +99,12 @@ export class MarkerPopup {
 
   protected remove(): void {
     this.store.removeMarker(this.markerId());
+  }
+
+  protected pickIcon(icon: string): void {
+    this.store.setMarkerStyle(this.markerId(), { icon });
+    this.iconsOpen.set(false);
+    this.resized.emit();
   }
 
   protected setOption(key: OptionKey, event: Event): void {

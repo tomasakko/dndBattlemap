@@ -15,18 +15,31 @@
       @for (marker of markers(); track marker.id) {
         <g class="marker" [attr.transform]="'translate(' + marker.x + ' ' + marker.y + ')'">
           <title>{{ marker.name }}</title>
-          <circle
-            class="marker-pin"
-            [attr.r]="pixel() * 10"
-            [attr.stroke-width]="pixel() * 3"
-            [attr.fill]="marker.color"
-            [attr.stroke]="marker.border"
-          />
+          @if (iconPath(marker); as d) {
+            <path
+              class="marker-pin"
+              [attr.d]="d"
+              [attr.transform]="'scale(' + pixel() * iconScale + ') translate(-256 -256)'"
+              [attr.fill]="marker.color"
+              [attr.stroke]="marker.border"
+              stroke-width="40"
+              stroke-linejoin="round"
+              paint-order="stroke"
+            />
+          } @else {
+            <circle
+              class="marker-pin"
+              [attr.r]="pixel() * 10"
+              [attr.stroke-width]="pixel() * 3"
+              [attr.fill]="marker.color"
+              [attr.stroke]="marker.border"
+            />
+          }
           <text
             class="marker-name"
             text-anchor="middle"
             dominant-baseline="hanging"
-            [attr.y]="pixel() * 14"
+            [attr.y]="pixel() * (iconPath(marker) ? 19 : 14)"
             [attr.font-size]="pixel() * fontSize(marker)"
             [attr.font-family]="font(marker).css"
             [attr.font-weight]="font(marker).weight"

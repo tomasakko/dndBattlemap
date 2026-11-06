@@ -96,6 +96,65 @@
   cursor: pointer;
 }
 
+/* Icon field: the current icon and its name; opens the icon grid below. */
+.mp-icon-pick {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-align: left;
+}
+
+.mp-icon-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mp-icon-grid {
+  grid-column: 1 / -1;
+  max-height: 196px;
+  margin-top: -11px;
+  padding: 2px 4px 4px;
+  overflow-y: auto;
+  border-radius: 2px;
+  background: rgb(0 0 0 / 22%);
+  box-shadow: inset 0 1px 4px rgb(0 0 0 / 45%);
+}
+
+.mp-icon-section {
+  margin: 4px 0 2px;
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.mp-icon-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 28px);
+  gap: 1px;
+}
+
+.mp-icon-tile {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
+.mp-icon-tile:hover {
+  background: rgb(255 255 255 / 15%);
+}
+
+.mp-icon-tile.current {
+  border-color: var(--color-text);
+  background: rgb(255 255 255 / 20%);
+}
+
 .mp-color {
   display: flex;
   align-items: center;

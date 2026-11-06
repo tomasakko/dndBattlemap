@@ -25,13 +25,14 @@ import { WorldmapStore } from '../state/worldmap.store';
 import { worldmapMaps } from '../suite/worldmap.sidebar';
 import { BattlemapLinks } from './battlemap-links';
 import { WorldmapLeaflet } from './leaflet-map';
+import { MarkerGlyph } from '../marker-glyph/marker-glyph';
 import { MarkerPopup } from './marker-popup/marker-popup';
 
 const APP_ID = 'worldmap';
 
 @Component({
   selector: 'app-worldmap-screen',
-  imports: [FileButton, MapUploadDialog],
+  imports: [FileButton, MapUploadDialog, MarkerGlyph],
   providers: [BattlemapLinks],
   templateUrl: './worldmap-screen.html',
   styleUrl: './worldmap-screen.css',
@@ -205,6 +206,8 @@ export class WorldmapScreen {
     });
     popup.setInput('markerId', id);
     popup.instance.closed.subscribe(() => this.leaflet?.closePopup(id));
+    // Once the new size is drawn, let Leaflet re-place the popup and pan it into view.
+    popup.instance.resized.subscribe(() => requestAnimationFrame(() => this.leaflet?.refreshPopup(id)));
     this.appRef.attachView(popup.hostView);
     popup.changeDetectorRef.detectChanges();
     this.popups.set(id, popup);
