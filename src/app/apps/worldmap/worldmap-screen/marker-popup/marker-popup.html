@@ -54,26 +54,28 @@
             (input)="searchIcons($any($event.target).value)"
             (keydown)="onSearchKey($event)"
           />
-          @for (section of iconSections(); track section.label) {
-            <p class="mp-icon-section">{{ section.label }}</p>
-            <div class="mp-icon-tiles">
-              @for (icon of section.icons; track icon.id) {
-                <button
-                  type="button"
-                  class="mp-icon-tile"
-                  [class.current]="icon.id === m.icon"
-                  [attr.aria-pressed]="icon.id === m.icon"
-                  [attr.aria-label]="icon.label"
-                  [title]="icon.label"
-                  (click)="pickIcon(icon.id)"
-                >
-                  <app-marker-glyph [icon]="icon.id" [color]="m.color" [border]="m.border" [size]="30" />
-                </button>
-              }
-            </div>
-          } @empty {
-            <p class="mp-icon-empty">No icons match “{{ iconQuery() }}”</p>
-          }
+          <div class="mp-icon-list">
+            @for (section of iconSections(); track section.label) {
+              <p class="mp-icon-section">{{ section.label }}</p>
+              <div class="mp-icon-tiles">
+                @for (icon of section.icons; track icon.id) {
+                  <button
+                    type="button"
+                    class="mp-icon-tile"
+                    [class.current]="icon.id === m.icon"
+                    [attr.aria-pressed]="icon.id === m.icon"
+                    [attr.aria-label]="icon.label"
+                    [title]="icon.label"
+                    (click)="pickIcon(icon.id)"
+                  >
+                    <app-marker-glyph [icon]="icon.id" [color]="m.color" [border]="m.border" [size]="30" />
+                  </button>
+                }
+              </div>
+            } @empty {
+              <p class="mp-icon-empty">No icons match “{{ iconQuery() }}”</p>
+            }
+          </div>
         </div>
       }
 
